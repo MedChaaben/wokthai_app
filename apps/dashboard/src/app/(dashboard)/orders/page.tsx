@@ -387,10 +387,18 @@ export default function OrdersPage() {
           </li>
         ) : (
           filtered.map((o) => (
-            <li key={o.id}>
+            <li
+              key={o.id}
+              className="group relative rounded-xl focus-within:ring-2 focus-within:ring-orange-400 focus-within:ring-offset-2"
+            >
+              {/* Lien pleine carte sous le contenu : évite <a> imbriqués avec tel:/mailto: */}
               <Link
                 href={`/orders/${o.id}`}
-                className={`flex flex-col gap-2 rounded-xl border-l-4 bg-white p-4 shadow-sm ring-1 ring-stone-100 transition hover:ring-orange-200 md:flex-row md:items-start md:justify-between ${
+                className="absolute inset-0 z-0 rounded-xl"
+                aria-label={`Ouvrir la commande ${formatCustomerDisplayName(o.users)} — ${Number(o.total_price).toFixed(2)} TND`}
+              />
+              <div
+                className={`pointer-events-none relative z-10 flex flex-col gap-2 rounded-xl border-l-4 bg-white p-4 shadow-sm ring-1 ring-stone-100 transition group-hover:ring-orange-200 md:flex-row md:items-start md:justify-between ${
                   o.type === "delivery" ? "border-l-orange-500" : "border-l-violet-500"
                 }`}
               >
@@ -412,7 +420,10 @@ export default function OrdersPage() {
                     <p>
                       <span className="font-medium text-stone-500">Tél. </span>
                       {o.users?.phone?.trim() ? (
-                        <a href={`tel:${o.users.phone.replace(/\s/g, "")}`} className="text-orange-700 underline-offset-2 hover:underline">
+                        <a
+                          href={`tel:${o.users.phone.replace(/\s/g, "")}`}
+                          className="pointer-events-auto text-orange-700 underline-offset-2 hover:underline"
+                        >
                           {o.users.phone.trim()}
                         </a>
                       ) : (
@@ -422,7 +433,10 @@ export default function OrdersPage() {
                     <p className="truncate">
                       <span className="font-medium text-stone-500">E-mail </span>
                       {o.users?.email?.trim() ? (
-                        <a href={`mailto:${o.users.email.trim()}`} className="text-orange-700 underline-offset-2 hover:underline">
+                        <a
+                          href={`mailto:${o.users.email.trim()}`}
+                          className="pointer-events-auto text-orange-700 underline-offset-2 hover:underline"
+                        >
                           {o.users.email.trim()}
                         </a>
                       ) : (
@@ -442,7 +456,7 @@ export default function OrdersPage() {
                 <p className="shrink-0 text-xl font-bold text-orange-600 md:pt-1 md:text-right">
                   {Number(o.total_price).toFixed(2)} TND
                 </p>
-              </Link>
+              </div>
             </li>
           ))
         )}
