@@ -361,6 +361,25 @@ export type Database = {
           instructions: string | null;
         }[];
       };
+      staff_customers_for_store_orders: {
+        Args: { p_store_id: string };
+        Returns: {
+          order_id: string;
+          phone: string | null;
+          email: string | null;
+          first_name: string | null;
+          last_name: string | null;
+        }[];
+      };
+      staff_customer_for_order: {
+        Args: { p_order_id: string };
+        Returns: {
+          phone: string | null;
+          email: string | null;
+          first_name: string | null;
+          last_name: string | null;
+        }[];
+      };
     };
     Enums: {
       order_type: OrderTypeEnum;

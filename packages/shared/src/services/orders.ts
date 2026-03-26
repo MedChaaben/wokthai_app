@@ -9,6 +9,7 @@ import type {
   OrderRow,
   OrderStatusEventRow,
 } from '../types';
+import { isCustomerSummaryEmpty } from '../domain/customer-display';
 import { fetchActiveStores } from './stores';
 import { fetchDeliveryZones } from './delivery-zones';
 import { fetchOptionTreesForProducts } from './product-options';
@@ -42,7 +43,7 @@ export async function fetchOrdersForStore(
     .select(
       `
       *,
-      users!orders_user_id_fkey ( phone, email ),
+      users!orders_user_id_fkey ( phone, email, first_name, last_name ),
       addresses!orders_address_id_fkey ( label, address, city ),
       stores!orders_store_id_fkey ( name, address, city )
     `
@@ -51,7 +52,28 @@ export async function fetchOrdersForStore(
     .order('created_at', { ascending: false });
   if (error) throw error;
   const rows = (data ?? []) as unknown as OrderListRow[];
-  return rows.map(normalizeOrderListRow);
+  const normalized = rows.map(normalizeOrderListRow);
+
+  const { data: custRows, error: rpcErr } = await client.rpc('staff_customers_for_store_orders', {
+    p_store_id: storeId,
+  });
+  if (rpcErr) throw rpcErr;
+  const byOrderId = new Map(
+    (custRows ?? []).map((r) => [
+      r.order_id,
+      {
+        phone: r.phone,
+        email: r.email,
+        first_name: r.first_name,
+        last_name: r.last_name,
+      },
+    ])
+  );
+
+  return normalized.map((row) => ({
+    ...row,
+    users: byOrderId.get(row.id) ?? row.users,
+  }));
 }
 
 function asSingle<T>(v: T | T[] | null | undefined): T | null {
@@ -66,6 +88,9 @@ function normalizeOrderDetail(raw: OrderDetailRow): OrderDetailRow {
   const addresses = asSingle(
     raw.addresses as OrderDetailRow['addresses'] | OrderDetailRow['addresses'][] | null | undefined
   );
+  const users = asSingle(
+    raw.users as OrderDetailRow['users'] | OrderDetailRow['users'][] | null | undefined
+  );
   const items = raw.order_items ?? [];
   const rawEvents = raw.order_status_events ?? [];
   const eventsList = Array.isArray(rawEvents) ? rawEvents : [rawEvents];
@@ -78,6 +103,7 @@ function normalizeOrderDetail(raw: OrderDetailRow): OrderDetailRow {
     ...raw,
     stores,
     addresses,
+    users,
     order_status_events,
     order_items: items.map((line) => ({
       ...line,
@@ -110,6 +136,7 @@ export async function fetchOrderById(
     .select(
       `
       *,
+      users!orders_user_id_fkey ( phone, email, first_name, last_name ),
       stores!orders_store_id_fkey ( id, name, address, city ),
       addresses!orders_address_id_fkey ( label, address, city, instructions ),
       order_items (
@@ -141,6 +168,24 @@ export async function fetchOrderById(
           address: addr.address,
           city: addr.city,
           instructions: addr.instructions,
+        },
+      };
+    }
+  }
+
+  if (isCustomerSummaryEmpty(detail.users)) {
+    const { data: custRows, error: custErr } = await client.rpc('staff_customer_for_order', {
+      p_order_id: orderId,
+    });
+    if (!custErr && custRows && Array.isArray(custRows) && custRows.length > 0) {
+      const u = custRows[0];
+      detail = {
+        ...detail,
+        users: {
+          phone: u.phone,
+          email: u.email,
+          first_name: u.first_name,
+          last_name: u.last_name,
         },
       };
     }

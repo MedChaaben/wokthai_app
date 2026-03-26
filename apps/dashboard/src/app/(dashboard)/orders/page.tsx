@@ -6,6 +6,7 @@ import {
   useOrders,
   useStaffProfile,
   useStoreOrdersRealtime,
+  formatCustomerDisplayName,
   type OrderListRow,
 } from "@wokthai/shared";
 import type { OrderRow } from "@wokthai/shared";
@@ -43,14 +44,6 @@ const STATUS_ORDER: Record<OrderRow["status"], number> = {
 const TERMINAL: OrderRow["status"][] = ["delivered", "cancelled"];
 
 type ViewMode = "active" | "history" | "all";
-
-function clientLabel(u: OrderListRow["users"]): string {
-  const email = u?.email?.trim();
-  const phone = u?.phone?.trim();
-  if (email) return email;
-  if (phone) return phone;
-  return "Client";
-}
 
 function placeSummary(o: OrderListRow): string {
   if (o.type === "delivery") {
@@ -350,7 +343,9 @@ export default function OrdersPage() {
                       {o.type === "delivery" ? "Livraison" : "À emporter"}
                     </span>
                   </div>
-                  <p className="truncate text-base font-bold text-stone-900">{clientLabel(o.users)}</p>
+                  <p className="truncate text-base font-bold text-stone-900">
+                    {formatCustomerDisplayName(o.users)}
+                  </p>
                   <p className="text-sm leading-snug text-stone-700">{placeSummary(o)}</p>
                   <p className="font-mono text-xs text-stone-400">{o.id}</p>
                   <p className="text-xs text-stone-500">

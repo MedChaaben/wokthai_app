@@ -6,6 +6,7 @@ export * from './domain/store-assignment';
 export * from './domain/delivery';
 export * from './domain/order-line-options';
 export * from './domain/order-status';
+export * from './domain/customer-display';
 export * from './services/stores';
 export * from './services/categories';
 export * from './services/products';

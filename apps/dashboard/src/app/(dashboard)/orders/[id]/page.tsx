@@ -2,7 +2,12 @@
 
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useOrder, useOrderRealtime, useUpdateOrderStatus } from "@wokthai/shared";
+import {
+  useOrder,
+  useOrderRealtime,
+  useUpdateOrderStatus,
+  formatCustomerDisplayName,
+} from "@wokthai/shared";
 import type { OrderRow } from "@wokthai/shared";
 
 const STATUSES: OrderRow["status"][] = [
@@ -73,6 +78,15 @@ export default function OrderDetailPage() {
 
       <div className="mt-6 space-y-6">
         <div className="space-y-4 rounded-2xl border border-stone-200 bg-white p-6 shadow-sm">
+          <div>
+            <p className="text-sm font-semibold text-stone-700">Contact</p>
+            <p className="mt-1 text-lg font-bold text-stone-900">{formatCustomerDisplayName(o.users)}</p>
+            {o.users && (o.users.phone?.trim() || o.users.email?.trim()) ? (
+              <p className="mt-1 text-sm text-stone-600">
+                {[o.users.phone?.trim(), o.users.email?.trim()].filter(Boolean).join(" · ")}
+              </p>
+            ) : null}
+          </div>
           <div>
             <p className="text-sm font-semibold text-stone-700">Statut</p>
             <select

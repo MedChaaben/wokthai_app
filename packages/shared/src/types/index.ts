@@ -48,11 +48,15 @@ export type OrderDetailRow = OrderRow & {
   addresses: Pick<AddressRow, 'label' | 'address' | 'city' | 'instructions'> | null;
   order_items: OrderItemDetail[] | null;
   order_status_events: OrderStatusEventRow[] | null;
+  users: OrderCustomerSummary | null;
 };
+
+/** Infos client jointes aux listes / détail commande (staff). */
+export type OrderCustomerSummary = Pick<UserRow, 'phone' | 'email' | 'first_name' | 'last_name'>;
 
 /** Liste staff : commande avec client, adresse livraison et magasin (retrait). */
 export type OrderListRow = OrderRow & {
-  users: Pick<UserRow, 'phone' | 'email'> | null;
+  users: OrderCustomerSummary | null;
   addresses: Pick<AddressRow, 'label' | 'address' | 'city'> | null;
   stores: Pick<StoreRow, 'name' | 'address' | 'city'> | null;
 };
