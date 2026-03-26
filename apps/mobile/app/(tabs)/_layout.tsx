@@ -1,6 +1,7 @@
 import { Tabs } from 'expo-router';
 import { useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
+import { BrandLogo } from '../../components/BrandLogo';
 import { useCart } from '../../contexts/CartContext';
 import { wt } from '../../lib/theme';
 
@@ -42,7 +43,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Menu',
+          headerTitle: () => <BrandLogo variant="header" />,
           tabBarLabel: 'Accueil',
           tabBarIcon: ({ color, size }) => <TabIcon glyph="⌂" color={color} size={size} />,
         }}
@@ -50,7 +51,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="cart"
         options={{
-          title: 'Panier',
+          headerTitle: () => <BrandLogo variant="header" />,
           tabBarIcon: ({ color, size }) => <CartTabIcon color={color} size={size} />,
           tabBarBadge: cartCount > 0 ? cartCount : undefined,
           tabBarBadgeStyle: {
@@ -66,7 +67,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="account"
         options={{
-          title: 'Compte',
+          headerTitle: () => <BrandLogo variant="header" />,
           tabBarIcon: ({ color, size }) => <TabIcon glyph="👤" color={color} size={size} />,
         }}
       />

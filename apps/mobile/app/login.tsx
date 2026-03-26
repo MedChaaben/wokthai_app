@@ -3,6 +3,7 @@ import { View, Text, TextInput, StyleSheet, Alert, Pressable } from 'react-nativ
 import * as Linking from 'expo-linking';
 import { useRouter } from 'expo-router';
 import { useSupabase } from '@wokthai/shared';
+import { BrandLogo } from '../components/BrandLogo';
 import { WtButton } from '../components/WtButton';
 import { WtCard } from '../components/WtCard';
 import { wt } from '../lib/theme';
@@ -121,7 +122,7 @@ export default function LoginScreen() {
 
   return (
     <View style={styles.screen}>
-      <Text style={styles.brand}>WokThai</Text>
+      <BrandLogo variant="hero" style={styles.logoWrap} />
       <Text style={styles.sub}>Tunis & Ariana — commande rapide</Text>
       <WtCard style={styles.card}>
         <View style={styles.modeRow}>
@@ -185,8 +186,8 @@ export default function LoginScreen() {
 
 const styles = StyleSheet.create({
   screen: { flex: 1, padding: 24, paddingTop: 48, backgroundColor: wt.bg },
-  brand: { fontSize: 32, fontWeight: '800', color: wt.text },
-  sub: { marginTop: 4, marginBottom: 24, color: wt.textMuted, fontSize: 15 },
+  logoWrap: { marginBottom: 8, alignSelf: 'center' },
+  sub: { marginBottom: 24, color: wt.textMuted, fontSize: 15, textAlign: 'center' },
   card: { gap: 12 },
   modeRow: { flexDirection: 'row', gap: 8, marginBottom: 4 },
   modeBtn: {
