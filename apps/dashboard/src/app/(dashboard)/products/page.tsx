@@ -11,6 +11,7 @@ import {
   deleteProduct,
 } from "@wokthai/shared";
 import type { ProductRow as ProductRowType } from "@wokthai/shared";
+import { CategoryMenuManager } from "../../../components/CategoryMenuManager";
 import { Modal } from "../../../components/Modal";
 
 export default function ProductsPage() {
@@ -20,6 +21,7 @@ export default function ProductsPage() {
   const categories = useCategories();
 
   const [activeCategoryId, setActiveCategoryId] = useState<string | null>(null);
+  const [menuTabsOpen, setMenuTabsOpen] = useState(false);
   const [showCreateForm, setShowCreateForm] = useState(false);
 
   const [name, setName] = useState("");
@@ -84,19 +86,24 @@ export default function ProductsPage() {
     return map;
   }, [allProducts]);
 
-  const categoriesWithProducts = useMemo(
-    () => cats.filter((c) => (productsByCategory.get(c.id)?.length ?? 0) > 0),
-    [cats, productsByCategory]
-  );
-
   useEffect(() => {
-    if (categoriesWithProducts.length === 0) {
+    if (cats.length === 0) {
       setActiveCategoryId(null);
       return;
     }
-    const ok = activeCategoryId && categoriesWithProducts.some((c) => c.id === activeCategoryId);
-    if (!ok) setActiveCategoryId(categoriesWithProducts[0].id);
-  }, [categoriesWithProducts, activeCategoryId]);
+    const ok = activeCategoryId && cats.some((c) => c.id === activeCategoryId);
+    if (!ok) setActiveCategoryId(cats[0].id);
+  }, [cats, activeCategoryId]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (window.location.hash === "#menu-tabs") {
+      setMenuTabsOpen(true);
+      requestAnimationFrame(() => {
+        document.getElementById("menu-tabs")?.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    }
+  }, []);
 
   const visibleProducts =
     activeCategoryId != null ? (productsByCategory.get(activeCategoryId) ?? []) : [];
@@ -131,8 +138,8 @@ export default function ProductsPage() {
           <h1 className="text-2xl font-extrabold text-zinc-900 dark:text-zinc-100">Produits</h1>
           <p className="mt-2 max-w-2xl text-sm text-stone-600 dark:text-zinc-400">
             L’ordre d’affichage dans l’app mobile suit le champ <span className="font-medium">Position</span> (plus
-            petit en premier) par catégorie. Les onglets de catégories suivent la page{" "}
-            <span className="font-medium">Catégories</span>.
+            petit en premier) par catégorie. L’ordre des onglets et les noms de catégories se gèrent dans la section
+            repliable ci-dessous.
           </p>
         </div>
         <button
@@ -144,17 +151,67 @@ export default function ProductsPage() {
         </button>
       </div>
 
+      <details
+        id="menu-tabs"
+        open={menuTabsOpen}
+        onToggle={(e) => setMenuTabsOpen((e.target as HTMLDetailsElement).open)}
+        className="group mt-8 rounded-2xl border border-stone-200/90 bg-stone-50/80 dark:border-zinc-800 dark:bg-zinc-950/40"
+      >
+        <summary className="cursor-pointer list-none px-4 py-3 sm:px-5 [&::-webkit-details-marker]:hidden">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wider text-stone-500 dark:text-zinc-500">
+                Navigation app
+              </p>
+              <p className="mt-0.5 text-base font-bold text-zinc-900 dark:text-zinc-100">
+                Onglets du menu — ordre et libellés
+              </p>
+            </div>
+            <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-stone-600 shadow-sm ring-1 ring-stone-200/80 dark:bg-zinc-900 dark:text-zinc-400 dark:ring-zinc-700">
+              {menuTabsOpen ? "Masquer" : "Afficher"}
+            </span>
+          </div>
+        </summary>
+        <div className="border-t border-stone-200/90 px-4 pb-5 pt-2 dark:border-zinc-800 sm:px-5">
+          <CategoryMenuManager />
+        </div>
+      </details>
+
       <h2 className="mt-8 text-lg font-bold text-zinc-900 dark:text-zinc-100">Menu</h2>
 
-      {allProducts.length === 0 ? (
+      {cats.length === 0 ? (
         <p className="mt-6 wt-dashed-empty text-stone-600 dark:text-zinc-500">
-          Aucun produit pour le moment. Cliquez sur <span className="font-semibold">Nouveau produit</span> pour en
-          ajouter un.
+          Créez d’abord une <span className="font-semibold">catégorie</span> dans la section ci-dessus, puis ajoutez des
+          produits.
         </p>
+      ) : allProducts.length === 0 ? (
+        <>
+          <div className="mt-4 flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            {cats.map((c) => (
+              <button
+                key={c.id}
+                type="button"
+                onClick={() => setActiveCategoryId(c.id)}
+                className={`shrink-0 rounded-full px-4 py-2 text-sm font-semibold transition ${
+                  activeCategoryId === c.id
+                    ? "bg-wt-bordeaux-muted text-wt-bordeaux ring-1 ring-wt-bordeaux/30 dark:bg-wt-bordeaux/25 dark:text-white dark:ring-wt-bordeaux/50"
+                    : "bg-stone-100 dark:bg-zinc-800 text-stone-600 dark:text-zinc-400 hover:bg-stone-200 dark:hover:bg-zinc-700"
+                }`}
+              >
+                {c.name}
+                <span className="ml-1.5 text-xs font-medium opacity-80">(0)</span>
+              </button>
+            ))}
+          </div>
+          <p className="mt-6 wt-dashed-empty text-stone-600 dark:text-zinc-500">
+            Aucun produit pour le moment. Cliquez sur <span className="font-semibold">Nouveau produit</span> pour en
+            ajouter un dans la catégorie sélectionnée.
+          </p>
+        </>
       ) : (
         <>
           <div className="mt-4 flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            {categoriesWithProducts.map((c) => (
+            {cats.map((c) => (
               <button
                 key={c.id}
                 type="button"
@@ -173,11 +230,18 @@ export default function ProductsPage() {
             ))}
           </div>
 
-          <ul className="mt-6 space-y-3">
-            {visibleProducts.map((p) => (
-              <ProductListRow key={p.id} product={p} categories={cats} onDelete={() => deleteMut.mutate(p.id)} />
-            ))}
-          </ul>
+          {visibleProducts.length === 0 ? (
+            <p className="mt-6 wt-dashed-empty text-stone-600 dark:text-zinc-500">
+              Aucun produit dans cette catégorie. Utilisez <span className="font-semibold">Nouveau produit</span> pour en
+              ajouter un.
+            </p>
+          ) : (
+            <ul className="mt-6 space-y-3">
+              {visibleProducts.map((p) => (
+                <ProductListRow key={p.id} product={p} categories={cats} onDelete={() => deleteMut.mutate(p.id)} />
+              ))}
+            </ul>
+          )}
         </>
       )}
 

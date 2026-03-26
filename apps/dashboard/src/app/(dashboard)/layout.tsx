@@ -10,7 +10,6 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 const nav = [
   { href: "/orders", label: "Commandes" },
   { href: "/products", label: "Produits" },
-  { href: "/categories", label: "Catégories" },
 ];
 
 function useIsMdUp() {
@@ -118,7 +117,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const navLinks = (
     <nav className="mt-4 flex flex-col gap-1" aria-label="Navigation principale">
       {nav.map((item) => {
-        const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
+        const active =
+          pathname === item.href ||
+          pathname.startsWith(`${item.href}/`) ||
+          (item.href === "/products" && pathname === "/categories");
         const showPendingBadge = item.href === "/orders" && pendingOrdersCount > 0;
         return (
           <Link
