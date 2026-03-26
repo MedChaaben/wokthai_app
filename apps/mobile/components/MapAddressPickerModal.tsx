@@ -4,6 +4,7 @@ import MapView, { Marker } from 'react-native-maps';
 import * as Location from 'expo-location';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { REGION_MODAL } from '../lib/mapRegion';
+import { reverseGeocodeToSuggestion, type MapConfirmPayload } from '../lib/reverseGeocodeToAddress';
 import { WtButton } from './WtButton';
 import { isNativeMapsAvailable } from '../lib/nativeMapsAvailable';
 import { wt } from '../lib/theme';
@@ -13,7 +14,7 @@ type Props = {
   onClose: () => void;
   initialLat?: number | null;
   initialLng?: number | null;
-  onConfirm: (lat: number, lng: number) => void;
+  onConfirm: (payload: MapConfirmPayload) => void;
 };
 
 export function MapAddressPickerModal({
@@ -25,6 +26,7 @@ export function MapAddressPickerModal({
 }: Props) {
   const mapRef = useRef<MapView>(null);
   const [mapKey, setMapKey] = useState(0);
+  const [resolving, setResolving] = useState(false);
   const [coord, setCoord] = useState<{ latitude: number; longitude: number }>({
     latitude: REGION_MODAL.latitude,
     longitude: REGION_MODAL.longitude,
@@ -62,9 +64,17 @@ export function MapAddressPickerModal({
     }
   }
 
-  function handleConfirm() {
-    onConfirm(coord.latitude, coord.longitude);
-    onClose();
+  async function handleConfirm() {
+    const lat = coord.latitude;
+    const lng = coord.longitude;
+    setResolving(true);
+    try {
+      const geocoded = await reverseGeocodeToSuggestion(lat, lng);
+      onConfirm({ lat, lng, geocoded });
+      onClose();
+    } finally {
+      setResolving(false);
+    }
   }
 
   const mapsOk = isNativeMapsAvailable();
@@ -81,13 +91,20 @@ export function MapAddressPickerModal({
           <View style={styles.header}>
             <Text style={styles.title}>Position pour la livraison</Text>
             <Text style={styles.subtitle}>{hint}</Text>
+            <Text style={styles.subtitle2}>
+              L’adresse sera complétée automatiquement après validation si les services le permettent.
+            </Text>
           </View>
           <View style={styles.fallbackBody}>
             <Text style={styles.coordsLine}>
               {coord.latitude.toFixed(5)}, {coord.longitude.toFixed(5)}
             </Text>
             <WtButton title="Utiliser ma position" onPress={() => void centerOnMyLocation()} />
-            <WtButton title="Valider cette position" onPress={handleConfirm} />
+            <WtButton
+              title="Valider cette position"
+              loading={resolving}
+              onPress={() => void handleConfirm()}
+            />
             <WtButton title="Annuler" variant="ghost" onPress={onClose} />
           </View>
         </SafeAreaView>
@@ -102,6 +119,10 @@ export function MapAddressPickerModal({
           <Text style={styles.title}>Position sur la carte</Text>
           <Text style={styles.subtitle}>
             Déplacez l’épingle pour indiquer l’entrée ou l’emplacement exact pour la livraison.
+          </Text>
+          <Text style={styles.subtitle2}>
+            L’adresse écrite et la ville seront remplies automatiquement ; vous pourrez les corriger
+            ensuite.
           </Text>
         </View>
         <MapView
@@ -131,8 +152,12 @@ export function MapAddressPickerModal({
             variant="ghost"
             onPress={() => void centerOnMyLocation()}
           />
-          <WtButton title="Valider cette position" onPress={handleConfirm} />
-          <WtButton title="Annuler" variant="ghost" onPress={onClose} />
+          <WtButton
+            title="Valider cette position"
+            loading={resolving}
+            onPress={() => void handleConfirm()}
+          />
+          <WtButton title="Annuler" variant="ghost" onPress={onClose} disabled={resolving} />
         </View>
       </SafeAreaView>
     </Modal>
@@ -144,6 +169,7 @@ const styles = StyleSheet.create({
   header: { paddingHorizontal: 16, paddingBottom: 10, gap: 6 },
   title: { fontSize: 18, fontWeight: '800', color: wt.text },
   subtitle: { fontSize: 14, color: wt.textMuted, lineHeight: 20 },
+  subtitle2: { fontSize: 13, color: wt.textSecondary, lineHeight: 18 },
   map: { flex: 1, marginHorizontal: 12, borderRadius: 12, overflow: 'hidden' },
   actions: { padding: 16, gap: 10 },
   fallbackBody: { flex: 1, padding: 16, gap: 12, justifyContent: 'center' },

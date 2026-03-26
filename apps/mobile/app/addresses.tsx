@@ -181,19 +181,9 @@ export default function AddressesScreen() {
         <WtCard style={{ gap: 12 }}>
           <Text style={styles.formTitle}>{editingId ? 'Modifier l’adresse' : 'Nouvelle adresse'}</Text>
           <Text style={styles.formHint}>
-            Placez d’abord le point sur la carte (entrée, immeuble), puis complétez le texte pour le livreur.
+            Renseignez le texte ci-dessous, puis précisez le point exact sur la carte : l’adresse et la
+            ville peuvent être complétées automatiquement à la validation.
           </Text>
-
-          <View style={styles.positionBlock}>
-            <Text style={styles.sectionLabel}>Où livrer</Text>
-            <AddressMapPreview lat={lat} lng={lng} onOpenPicker={() => setMapPickerVisible(true)} />
-            <WtButton title="Choisir sur la carte" onPress={() => setMapPickerVisible(true)} />
-            <Text style={[styles.coords, lat != null && lng != null ? styles.coordsOk : null]}>
-              {lat != null && lng != null
-                ? `Point enregistré · ${lat.toFixed(5)}, ${lng.toFixed(5)}`
-                : 'À faire : ouvrir la carte et valider la position'}
-            </Text>
-          </View>
 
           <Text style={styles.sectionLabel}>Ville</Text>
           <View style={styles.cityRow}>
@@ -232,6 +222,17 @@ export default function AddressesScreen() {
             multiline
           />
 
+          <View style={styles.positionBlock}>
+            <Text style={styles.sectionLabel}>Où livrer (carte)</Text>
+            <AddressMapPreview lat={lat} lng={lng} onOpenPicker={() => setMapPickerVisible(true)} />
+            <WtButton title="Choisir sur la carte" onPress={() => setMapPickerVisible(true)} />
+            <Text style={[styles.coords, lat != null && lng != null ? styles.coordsOk : null]}>
+              {lat != null && lng != null
+                ? `Point enregistré · ${lat.toFixed(5)}, ${lng.toFixed(5)}`
+                : 'À faire : ouvrir la carte et valider la position'}
+            </Text>
+          </View>
+
           <WtButton
             title={editingId ? 'Enregistrer les modifications' : 'Enregistrer l’adresse'}
             loading={savingAddress}
@@ -246,9 +247,11 @@ export default function AddressesScreen() {
         onClose={() => setMapPickerVisible(false)}
         initialLat={lat}
         initialLng={lng}
-        onConfirm={(la, ln) => {
-          setLat(la);
-          setLng(ln);
+        onConfirm={(payload) => {
+          setLat(payload.lat);
+          setLng(payload.lng);
+          if (payload.geocoded?.addressLine) setAddressLine(payload.geocoded.addressLine);
+          if (payload.geocoded?.city) setCity(payload.geocoded.city);
         }}
       />
     </ScrollView>

@@ -236,18 +236,8 @@ export default function CheckoutScreen() {
           {showNewAddress ? (
             <WtCard style={{ gap: 12 }}>
               <Text style={styles.formHint}>
-                Carte d’abord pour le point exact, puis les détails pour le livreur.
+                Renseignez le texte, puis indiquez le point exact sur la carte en dessous.
               </Text>
-              <View style={styles.positionBlock}>
-                <Text style={styles.sectionLabel}>Où livrer</Text>
-                <AddressMapPreview lat={lat} lng={lng} onOpenPicker={() => setMapPickerVisible(true)} />
-                <WtButton title="Choisir sur la carte" onPress={() => setMapPickerVisible(true)} />
-                <Text style={[styles.coords, lat != null && lng != null ? styles.coordsOk : null]}>
-                  {lat != null && lng != null
-                    ? `Point enregistré · ${lat.toFixed(5)}, ${lng.toFixed(5)}`
-                    : 'À faire : ouvrir la carte et valider la position'}
-                </Text>
-              </View>
               <Text style={styles.sectionLabel}>Ville</Text>
               <View style={styles.cityRow}>
                 {CITIES.map((c) => (
@@ -272,6 +262,16 @@ export default function CheckoutScreen() {
                 onChangeText={setAddressLine}
                 style={styles.input}
               />
+              <View style={styles.positionBlock}>
+                <Text style={styles.sectionLabel}>Où livrer (carte)</Text>
+                <AddressMapPreview lat={lat} lng={lng} onOpenPicker={() => setMapPickerVisible(true)} />
+                <WtButton title="Choisir sur la carte" onPress={() => setMapPickerVisible(true)} />
+                <Text style={[styles.coords, lat != null && lng != null ? styles.coordsOk : null]}>
+                  {lat != null && lng != null
+                    ? `Point enregistré · ${lat.toFixed(5)}, ${lng.toFixed(5)}`
+                    : 'À faire : ouvrir la carte et valider la position'}
+                </Text>
+              </View>
               <WtButton title="Enregistrer l’adresse" loading={savingAddress} onPress={saveNewAddress} />
             </WtCard>
           ) : null}
@@ -318,9 +318,11 @@ export default function CheckoutScreen() {
         onClose={() => setMapPickerVisible(false)}
         initialLat={lat}
         initialLng={lng}
-        onConfirm={(la, ln) => {
-          setLat(la);
-          setLng(ln);
+        onConfirm={(payload) => {
+          setLat(payload.lat);
+          setLng(payload.lng);
+          if (payload.geocoded?.addressLine) setAddressLine(payload.geocoded.addressLine);
+          if (payload.geocoded?.city) setCity(payload.geocoded.city);
         }}
       />
     </ScrollView>
