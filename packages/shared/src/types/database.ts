@@ -330,7 +330,15 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
-      [_ in never]: never;
+      order_delivery_address: {
+        Args: { p_order_id: string };
+        Returns: {
+          label: string;
+          address: string;
+          city: string;
+          instructions: string | null;
+        }[];
+      };
     };
     Enums: {
       order_type: OrderTypeEnum;

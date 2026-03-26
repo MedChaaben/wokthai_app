@@ -80,6 +80,18 @@ function normalizeOrderDetail(raw: OrderDetailRow): OrderDetailRow {
   };
 }
 
+type RpcDeliveryAddress = {
+  label: string;
+  address: string;
+  city: string;
+  instructions: string | null;
+};
+
+/**
+ * Adresse de livraison : l’embed PostgREST `addresses!…` est souvent vide pour le **staff**
+ * (RLS sur `addresses` : le client est propriétaire de la ligne, pas le restaurateur).
+ * La RPC `order_delivery_address` contourne ce blocage en vérifiant les droits côté SQL.
+ */
 export async function fetchOrderById(
   client: WokthaiSupabaseClient,
   orderId: string
@@ -104,7 +116,27 @@ export async function fetchOrderById(
     .maybeSingle();
   if (error) throw error;
   if (!data) return null;
-  return normalizeOrderDetail(data as unknown as OrderDetailRow);
+  let detail = normalizeOrderDetail(data as unknown as OrderDetailRow);
+
+  if (detail.type === 'delivery' && detail.address_id && !detail.addresses) {
+    const { data: addrRows, error: rpcErr } = await client.rpc('order_delivery_address', {
+      p_order_id: orderId,
+    });
+    if (!rpcErr && addrRows && Array.isArray(addrRows) && addrRows.length > 0) {
+      const addr = addrRows[0] as RpcDeliveryAddress;
+      detail = {
+        ...detail,
+        addresses: {
+          label: addr.label,
+          address: addr.address,
+          city: addr.city,
+          instructions: addr.instructions,
+        },
+      };
+    }
+  }
+
+  return detail;
 }
 
 export async function updateOrderStatus(
