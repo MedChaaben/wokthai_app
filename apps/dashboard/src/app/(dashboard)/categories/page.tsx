@@ -32,6 +32,7 @@ export default function CategoriesPage() {
   const supabase = useSupabase();
   const qc = useQueryClient();
   const categories = useCategories();
+  const [showCreateForm, setShowCreateForm] = useState(false);
   const [name, setName] = useState("");
 
   const createMut = useMutation({
@@ -45,6 +46,7 @@ export default function CategoriesPage() {
     },
     onSuccess: () => {
       setName("");
+      setShowCreateForm(false);
       void qc.invalidateQueries({ queryKey: ["categories"] });
     },
   });
@@ -85,37 +87,35 @@ export default function CategoriesPage() {
   const list = categories.data ?? [];
   const ids = list.map((c) => c.id);
 
+  function cancelCreateForm() {
+    setShowCreateForm(false);
+    setName("");
+  }
+
   return (
     <div>
-      <h1 className="text-2xl font-extrabold text-stone-900">Catégories</h1>
-      <p className="mt-2 max-w-xl text-sm text-stone-600">
-        Glissez-déposez les lignes pour définir l’ordre des onglets dans l’app mobile (haut → premier onglet).
-        Les positions sont enregistrées automatiquement.
-      </p>
-      <form
-        className="mt-6 flex max-w-xl flex-col gap-3 rounded-2xl border border-stone-200 bg-white p-6 shadow-sm md:flex-row md:items-end"
-        onSubmit={(e) => {
-          e.preventDefault();
-          if (!name.trim()) return;
-          createMut.mutate();
-        }}
-      >
-        <div className="flex-1">
-          <label className="text-sm font-semibold text-stone-700">Nom</label>
-          <input
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            className="mt-1 w-full rounded-xl border border-stone-300 px-3 py-2"
-          />
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-extrabold text-stone-900">Catégories</h1>
+          <p className="mt-2 max-w-xl text-sm text-stone-600">
+            Glissez-déposez les lignes pour définir l’ordre des onglets dans l’app mobile (haut → premier onglet).
+            Les positions sont enregistrées automatiquement.
+          </p>
         </div>
         <button
-          type="submit"
-          disabled={createMut.isPending}
-          className="rounded-xl bg-orange-600 px-4 py-2 font-semibold text-white disabled:opacity-50"
+          type="button"
+          onClick={() => (showCreateForm ? cancelCreateForm() : setShowCreateForm(true))}
+          className={`shrink-0 rounded-xl px-4 py-2.5 text-sm font-semibold transition ${
+            showCreateForm
+              ? "border border-stone-300 bg-white text-stone-800 hover:bg-stone-50"
+              : "bg-orange-600 text-white hover:bg-orange-700"
+          }`}
         >
-          Ajouter
+          {showCreateForm ? "Fermer le formulaire" : "Nouvelle catégorie"}
         </button>
-      </form>
+      </div>
+
+      <h2 className="mt-8 text-lg font-bold text-stone-900">Menu</h2>
 
       {reorderMut.isError ? (
         <p className="mt-4 text-sm text-red-600">
@@ -123,24 +123,76 @@ export default function CategoriesPage() {
         </p>
       ) : null}
 
-      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-        <SortableContext items={ids} strategy={verticalListSortingStrategy}>
-          <ul className="mt-8 space-y-2">
-            {list.map((c) => (
-              <SortableCategoryRow
-                key={c.id}
-                category={c}
-                disabled={reorderMut.isPending}
-                onDelete={() => {
-                  if (confirm("Supprimer cette catégorie ? Les produits liés seront supprimés (CASCADE).")) {
-                    deleteMut.mutate(c.id);
-                  }
-                }}
+      {list.length === 0 ? (
+        <p className="mt-6 rounded-xl border border-dashed border-stone-300 bg-white p-8 text-center text-stone-500">
+          Aucune catégorie pour le moment. Cliquez sur <span className="font-semibold">Nouvelle catégorie</span> pour en
+          ajouter une.
+        </p>
+      ) : (
+        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+          <SortableContext items={ids} strategy={verticalListSortingStrategy}>
+            <ul className="mt-6 space-y-2">
+              {list.map((c) => (
+                <SortableCategoryRow
+                  key={c.id}
+                  category={c}
+                  disabled={reorderMut.isPending}
+                  onDelete={() => {
+                    if (confirm("Supprimer cette catégorie ? Les produits liés seront supprimés (CASCADE).")) {
+                      deleteMut.mutate(c.id);
+                    }
+                  }}
+                />
+              ))}
+            </ul>
+          </SortableContext>
+        </DndContext>
+      )}
+
+      {showCreateForm ? (
+        <form
+          className="mt-10 max-w-xl space-y-3 rounded-2xl border border-stone-200 bg-white p-6 shadow-sm"
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (!name.trim()) return;
+            createMut.mutate();
+          }}
+        >
+          <p className="text-sm font-semibold text-stone-900">Nouvelle catégorie</p>
+          <div className="flex flex-col gap-3 md:flex-row md:items-end">
+            <div className="min-w-0 flex-1">
+              <label className="text-sm font-semibold text-stone-700">Nom</label>
+              <input
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="mt-1 w-full rounded-xl border border-stone-300 px-3 py-2"
               />
-            ))}
-          </ul>
-        </SortableContext>
-      </DndContext>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="submit"
+                disabled={createMut.isPending}
+                className="rounded-xl bg-orange-600 px-4 py-2 font-semibold text-white disabled:opacity-50"
+              >
+                Ajouter
+              </button>
+              <button
+                type="button"
+                disabled={createMut.isPending}
+                onClick={cancelCreateForm}
+                className="rounded-xl border border-stone-300 bg-white px-4 py-2 font-semibold text-stone-800 hover:bg-stone-50 disabled:opacity-50"
+              >
+                Annuler
+              </button>
+            </div>
+          </div>
+          {createMut.isError ? (
+            <p className="text-sm text-red-600">
+              {createMut.error instanceof Error ? createMut.error.message : "Erreur"}
+            </p>
+          ) : null}
+        </form>
+      ) : null}
     </div>
   );
 }
