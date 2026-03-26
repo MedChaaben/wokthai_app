@@ -14,9 +14,30 @@ export type Database = {
   public: {
     Tables: {
       users: {
-        Row: { id: string; phone: string | null; email: string | null; created_at: string };
-        Insert: { id: string; phone?: string | null; email?: string | null; created_at?: string };
-        Update: { id?: string; phone?: string | null; email?: string | null; created_at?: string };
+        Row: {
+          id: string;
+          phone: string | null;
+          email: string | null;
+          first_name: string | null;
+          last_name: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id: string;
+          phone?: string | null;
+          email?: string | null;
+          first_name?: string | null;
+          last_name?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          phone?: string | null;
+          email?: string | null;
+          first_name?: string | null;
+          last_name?: string | null;
+          created_at?: string;
+        };
         Relationships: [];
       };
       addresses: {
