@@ -30,6 +30,12 @@
     "plugins": [
       "expo-router",
       [
+        "expo-notifications",
+        {
+          "defaultChannel": "order-status"
+        }
+      ],
+      [
         "expo-location",
         {
           "locationWhenInUsePermission": "WokThai utilise votre position pour enregistrer les coordonnées de livraison."

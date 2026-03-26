@@ -9,7 +9,7 @@ import {
   RefreshControl,
 } from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
-import { useOrders, useMyOrdersRealtime, isOngoingOrderStatus, type OrderRow } from '@wokthai/shared';
+import { useOrders, isOngoingOrderStatus, type OrderRow } from '@wokthai/shared';
 import { WtCard } from '../components/WtCard';
 import { wt } from '../lib/theme';
 
@@ -28,7 +28,6 @@ type Tab = 'ongoing' | 'history';
 export default function MyOrdersScreen() {
   const router = useRouter();
   const orders = useOrders({ mode: 'customer' });
-  useMyOrdersRealtime();
   const [tab, setTab] = useState<Tab>('ongoing');
 
   const refetchOrders = orders.refetch;

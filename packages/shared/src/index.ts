@@ -28,7 +28,11 @@ export { useCreateOrder } from './hooks/useCreateOrder';
 export { useUpdateOrderStatus } from './hooks/useUpdateOrderStatus';
 export { useOrder } from './hooks/useOrder';
 export { useOrderRealtime } from './hooks/useOrderRealtime';
-export { useMyOrdersRealtime } from './hooks/useMyOrdersRealtime';
+export {
+  useMyOrdersRealtime,
+  type MyOrdersRealtimeEvent,
+  type MyOrdersRealtimeOptions,
+} from './hooks/useMyOrdersRealtime';
 export {
   useStoreOrdersRealtime,
   type StoreOrdersRealtimeOptions,

@@ -6,6 +6,7 @@ import { StatusBar } from 'expo-status-bar';
 import { wt } from '../lib/theme';
 import { SupabaseProvider } from '@wokthai/shared';
 import { AuthDeepLinkHandler } from '../components/AuthDeepLinkHandler';
+import { OrderNotificationsHost } from '../components/OrderNotificationsHost';
 import { CartProvider } from '../contexts/CartContext';
 import { getSupabase, supabaseReady } from '../lib/supabase';
 
@@ -34,6 +35,7 @@ export default function RootLayout() {
       <SupabaseProvider client={supabaseClient}>
         <CartProvider>
           <StatusBar style="light" />
+          <OrderNotificationsHost />
           <AuthDeepLinkHandler />
           <Stack
             screenOptions={{
