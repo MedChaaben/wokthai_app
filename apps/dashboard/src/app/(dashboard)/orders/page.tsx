@@ -62,6 +62,32 @@ function sortOrders(a: OrderListRow, b: OrderListRow): number {
   return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
 }
 
+function normalizeDigits(s: string): string {
+  return s.replace(/\D/g, "");
+}
+
+/** Recherche sur nom affiché, prénom, nom, e-mail, téléphone (y compris partiel sur les chiffres). */
+function orderMatchesClientQuery(o: OrderListRow, queryRaw: string): boolean {
+  const q = queryRaw.trim().toLowerCase();
+  if (!q) return true;
+  const u = o.users;
+  const chunks = [
+    formatCustomerDisplayName(u),
+    u?.first_name ?? "",
+    u?.last_name ?? "",
+    u?.email ?? "",
+    u?.phone ?? "",
+  ];
+  const haystack = chunks.join(" \n ").toLowerCase();
+  if (haystack.includes(q)) return true;
+  const qDigits = normalizeDigits(q);
+  if (qDigits.length >= 2 && u?.phone) {
+    const phoneDigits = normalizeDigits(u.phone);
+    if (phoneDigits.includes(qDigits)) return true;
+  }
+  return false;
+}
+
 export default function OrdersPage() {
   const staff = useStaffProfile();
   const storeId = staff.data?.store_id;
@@ -71,8 +97,9 @@ export default function OrdersPage() {
   const [view, setView] = useState<ViewMode>("active");
   const [statusFilter, setStatusFilter] = useState<OrderRow["status"] | "all">("all");
   const [typeFilter, setTypeFilter] = useState<"all" | "delivery" | "pickup">("all");
+  const [clientSearch, setClientSearch] = useState("");
 
-  const list = orders.data ?? [];
+  const list = useMemo(() => orders.data ?? [], [orders.data]);
 
   const counts = useMemo(() => {
     const c = {
@@ -96,10 +123,17 @@ export default function OrdersPage() {
     return c;
   }, [list]);
 
+  const searchActive = clientSearch.trim().length > 0;
+
   const filtered = useMemo(() => {
     let rows = [...list];
-    if (view === "active") rows = rows.filter((o) => !TERMINAL.includes(o.status));
-    else if (view === "history") rows = rows.filter((o) => TERMINAL.includes(o.status));
+
+    if (clientSearch.trim()) {
+      rows = rows.filter((o) => orderMatchesClientQuery(o, clientSearch));
+    } else {
+      if (view === "active") rows = rows.filter((o) => !TERMINAL.includes(o.status));
+      else if (view === "history") rows = rows.filter((o) => TERMINAL.includes(o.status));
+    }
 
     if (statusFilter !== "all") rows = rows.filter((o) => o.status === statusFilter);
     if (typeFilter === "delivery") rows = rows.filter((o) => o.type === "delivery");
@@ -107,7 +141,7 @@ export default function OrdersPage() {
 
     rows.sort(sortOrders);
     return rows;
-  }, [list, view, statusFilter, typeFilter]);
+  }, [list, view, statusFilter, typeFilter, clientSearch]);
 
   if (staff.isLoading || orders.isLoading) {
     return <p className="text-stone-600">Chargement des commandes…</p>;
@@ -290,6 +324,38 @@ export default function OrdersPage() {
         </div>
       </section>
 
+      <section className="mt-6" aria-label="Recherche client">
+        <label htmlFor="orders-client-search" className="mb-2 block text-xs font-semibold uppercase tracking-wide text-stone-500">
+          Recherche client (toutes les commandes du magasin)
+        </label>
+        <div className="flex max-w-xl flex-col gap-2 sm:flex-row sm:items-center">
+          <input
+            id="orders-client-search"
+            type="search"
+            value={clientSearch}
+            onChange={(e) => setClientSearch(e.target.value)}
+            placeholder="Nom, prénom, e-mail, téléphone…"
+            autoComplete="off"
+            className="w-full rounded-xl border border-stone-300 px-3 py-2.5 text-stone-900 outline-none ring-orange-200 placeholder:text-stone-400 focus:border-orange-500 focus:ring-2"
+          />
+          {searchActive ? (
+            <button
+              type="button"
+              onClick={() => setClientSearch("")}
+              className="shrink-0 rounded-xl border border-stone-300 bg-white px-4 py-2.5 text-sm font-semibold text-stone-700 hover:bg-stone-50"
+            >
+              Effacer
+            </button>
+          ) : null}
+        </div>
+        {searchActive ? (
+          <p className="mt-2 text-sm text-orange-800">
+            Filtre « vue » (En cours / Toutes / Historique) désactivé pendant la recherche — portée : toutes les
+            commandes du magasin, avec les filtres type et statut ci-dessous si actifs.
+          </p>
+        ) : null}
+      </section>
+
       {(statusFilter !== "all" || typeFilter !== "all") && (
         <p className="mt-3 text-sm text-stone-600">
           Filtres actifs :
@@ -316,12 +382,15 @@ export default function OrdersPage() {
 
       <p className="mt-4 text-sm text-stone-500">
         {filtered.length} commande{filtered.length !== 1 ? "s" : ""} affichée{filtered.length !== 1 ? "s" : ""}
+        {searchActive ? " (recherche active)" : ""}
       </p>
 
       <ul className="mt-4 space-y-3">
         {filtered.length === 0 ? (
           <li className="rounded-xl border border-dashed border-stone-300 bg-white p-10 text-center text-stone-500">
-            Aucune commande pour ces filtres.
+            {searchActive
+              ? "Aucune commande ne correspond à cette recherche ou aux filtres actifs."
+              : "Aucune commande pour ces filtres."}
           </li>
         ) : (
           filtered.map((o) => (
