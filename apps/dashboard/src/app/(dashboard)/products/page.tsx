@@ -19,6 +19,7 @@ export default function ProductsPage() {
   const categories = useCategories();
 
   const [activeCategoryId, setActiveCategoryId] = useState<string | null>(null);
+  const [showCreateForm, setShowCreateForm] = useState(false);
 
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -55,6 +56,7 @@ export default function ProductsPage() {
       setDescription("");
       setPrice("");
       setProductPosition("0");
+      setShowCreateForm(false);
       if (fileRef.current) fileRef.current.value = "";
       void qc.invalidateQueries({ queryKey: ["products"] });
     },
@@ -105,100 +107,50 @@ export default function ProductsPage() {
     return <p className="text-red-600">{(products.error ?? categories.error)?.message}</p>;
   }
 
+  function openCreateForm() {
+    if (activeCategoryId) setCategoryId(activeCategoryId);
+    setShowCreateForm(true);
+  }
+
+  function cancelCreateForm() {
+    setShowCreateForm(false);
+    setName("");
+    setDescription("");
+    setPrice("");
+    setProductPosition("0");
+    if (fileRef.current) fileRef.current.value = "";
+  }
+
   return (
     <div>
-      <h1 className="text-2xl font-extrabold text-stone-900">Produits</h1>
-      <p className="mt-2 max-w-2xl text-sm text-stone-600">
-        L’ordre d’affichage dans l’app mobile suit le champ <span className="font-medium">Position</span> (plus
-        petit en premier) par catégorie. Les onglets de catégories suivent la page{" "}
-        <span className="font-medium">Catégories</span>.
-      </p>
-      <form
-        className="mt-6 max-w-2xl space-y-3 rounded-2xl border border-stone-200 bg-white p-6 shadow-sm"
-        onSubmit={(e) => {
-          e.preventDefault();
-          if (!name.trim()) return;
-          createMut.mutate();
-        }}
-      >
-        <div className="grid gap-3 md:grid-cols-2">
-          <div>
-            <label className="text-sm font-semibold text-stone-700">Nom</label>
-            <input
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="mt-1 w-full rounded-xl border border-stone-300 px-3 py-2"
-              required
-            />
-          </div>
-          <div>
-            <label className="text-sm font-semibold text-stone-700">Prix (TND)</label>
-            <input
-              type="number"
-              step="0.01"
-              value={price}
-              onChange={(e) => setPrice(e.target.value)}
-              className="mt-1 w-full rounded-xl border border-stone-300 px-3 py-2"
-              required
-            />
-          </div>
-        </div>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <label className="text-sm font-semibold text-stone-700">Catégorie</label>
-          <select
-            value={categoryId || cats[0]?.id}
-            onChange={(e) => setCategoryId(e.target.value)}
-            className="mt-1 w-full rounded-xl border border-stone-300 px-3 py-2"
-          >
-            {cats.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label className="text-sm font-semibold text-stone-700">Position dans la catégorie</label>
-          <input
-            type="number"
-            value={productPosition}
-            onChange={(e) => setProductPosition(e.target.value)}
-            className="mt-1 w-full max-w-xs rounded-xl border border-stone-300 px-3 py-2"
-          />
-          <p className="mt-1 text-xs text-stone-500">Plus petit = affiché plus haut dans le menu (même catégorie).</p>
-        </div>
-        <div>
-          <label className="text-sm font-semibold text-stone-700">Description</label>
-          <textarea
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            className="mt-1 w-full rounded-xl border border-stone-300 px-3 py-2"
-            rows={3}
-          />
-        </div>
-        <div>
-          <label className="text-sm font-semibold text-stone-700">Image</label>
-          <input ref={fileRef} type="file" accept="image/*" className="mt-1 block w-full text-sm" />
-        </div>
-        {createMut.error ? (
-          <p className="text-sm text-red-600">
-            {createMut.error instanceof Error ? createMut.error.message : "Erreur"}
+          <h1 className="text-2xl font-extrabold text-stone-900">Produits</h1>
+          <p className="mt-2 max-w-2xl text-sm text-stone-600">
+            L’ordre d’affichage dans l’app mobile suit le champ <span className="font-medium">Position</span> (plus
+            petit en premier) par catégorie. Les onglets de catégories suivent la page{" "}
+            <span className="font-medium">Catégories</span>.
           </p>
-        ) : null}
+        </div>
         <button
-          type="submit"
-          disabled={createMut.isPending}
-          className="rounded-xl bg-orange-600 px-4 py-2 font-semibold text-white disabled:opacity-50"
+          type="button"
+          onClick={() => (showCreateForm ? cancelCreateForm() : openCreateForm())}
+          className={`shrink-0 rounded-xl px-4 py-2.5 text-sm font-semibold transition ${
+            showCreateForm
+              ? "border border-stone-300 bg-white text-stone-800 hover:bg-stone-50"
+              : "bg-orange-600 text-white hover:bg-orange-700"
+          }`}
         >
-          Créer le produit
+          {showCreateForm ? "Fermer le formulaire" : "Nouveau produit"}
         </button>
-      </form>
+      </div>
 
-      <h2 className="mt-10 text-lg font-bold text-stone-900">Catalogue</h2>
+      <h2 className="mt-8 text-lg font-bold text-stone-900">Menu</h2>
 
       {allProducts.length === 0 ? (
         <p className="mt-6 rounded-xl border border-dashed border-stone-300 bg-white p-8 text-center text-stone-500">
-          Aucun produit pour le moment. Créez-en un avec le formulaire ci-dessus.
+          Aucun produit pour le moment. Cliquez sur <span className="font-semibold">Nouveau produit</span> pour en
+          ajouter un.
         </p>
       ) : (
         <>
@@ -229,6 +181,100 @@ export default function ProductsPage() {
           </ul>
         </>
       )}
+
+      {showCreateForm ? (
+        <form
+          className="mt-10 max-w-2xl space-y-3 rounded-2xl border border-stone-200 bg-white p-6 shadow-sm"
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (!name.trim()) return;
+            createMut.mutate();
+          }}
+        >
+          <p className="text-sm font-semibold text-stone-900">Nouveau produit</p>
+          <div className="grid gap-3 md:grid-cols-2">
+            <div>
+              <label className="text-sm font-semibold text-stone-700">Nom</label>
+              <input
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="mt-1 w-full rounded-xl border border-stone-300 px-3 py-2"
+                required
+              />
+            </div>
+            <div>
+              <label className="text-sm font-semibold text-stone-700">Prix (TND)</label>
+              <input
+                type="number"
+                step="0.01"
+                value={price}
+                onChange={(e) => setPrice(e.target.value)}
+                className="mt-1 w-full rounded-xl border border-stone-300 px-3 py-2"
+                required
+              />
+            </div>
+          </div>
+          <div>
+            <label className="text-sm font-semibold text-stone-700">Catégorie</label>
+            <select
+              value={categoryId || cats[0]?.id}
+              onChange={(e) => setCategoryId(e.target.value)}
+              className="mt-1 w-full rounded-xl border border-stone-300 px-3 py-2"
+            >
+              {cats.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="text-sm font-semibold text-stone-700">Position dans la catégorie</label>
+            <input
+              type="number"
+              value={productPosition}
+              onChange={(e) => setProductPosition(e.target.value)}
+              className="mt-1 w-full max-w-xs rounded-xl border border-stone-300 px-3 py-2"
+            />
+            <p className="mt-1 text-xs text-stone-500">Plus petit = affiché plus haut dans le menu (même catégorie).</p>
+          </div>
+          <div>
+            <label className="text-sm font-semibold text-stone-700">Description</label>
+            <textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              className="mt-1 w-full rounded-xl border border-stone-300 px-3 py-2"
+              rows={3}
+            />
+          </div>
+          <div>
+            <label className="text-sm font-semibold text-stone-700">Image</label>
+            <input ref={fileRef} type="file" accept="image/*" className="mt-1 block w-full text-sm" />
+          </div>
+          {createMut.error ? (
+            <p className="text-sm text-red-600">
+              {createMut.error instanceof Error ? createMut.error.message : "Erreur"}
+            </p>
+          ) : null}
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="submit"
+              disabled={createMut.isPending}
+              className="rounded-xl bg-orange-600 px-4 py-2 font-semibold text-white disabled:opacity-50"
+            >
+              Créer le produit
+            </button>
+            <button
+              type="button"
+              disabled={createMut.isPending}
+              onClick={cancelCreateForm}
+              className="rounded-xl border border-stone-300 bg-white px-4 py-2 font-semibold text-stone-800 hover:bg-stone-50 disabled:opacity-50"
+            >
+              Annuler
+            </button>
+          </div>
+        </form>
+      ) : null}
     </div>
   );
 }
