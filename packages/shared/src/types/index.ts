@@ -83,6 +83,8 @@ export type CartLine = {
   selectedOptions: OrderLineOptionChoice[];
   /** Libellés du type « Groupe : option » (affichage panier). */
   optionSummary?: string[];
+  /** Aperçu liste panier (URL publique produit). */
+  image_url?: string | null;
 };
 
 export type CreateOrderLineInput = {

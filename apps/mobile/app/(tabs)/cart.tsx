@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, Pressable, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, Pressable, ScrollView, Image } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { WtButton } from '../../components/WtButton';
@@ -38,36 +38,47 @@ export default function CartTabScreen() {
         </Text>
         {lines.map((l) => (
           <WtCard key={l.lineKey} style={styles.row}>
-            <View style={styles.rowTop}>
-              <Text style={styles.name}>{l.name}</Text>
-              <Pressable onPress={() => removeLine(l.lineKey)} hitSlop={8}>
-                <Text style={styles.remove}>Retirer</Text>
-              </Pressable>
-            </View>
-            {l.optionSummary && l.optionSummary.length > 0 ? (
-              <Text style={styles.opts} numberOfLines={4}>
-                {l.optionSummary.join(' · ')}
-              </Text>
-            ) : null}
-            <Text style={styles.meta}>
-              {l.unitPrice.toFixed(2)} TND × {l.quantity} = {(l.unitPrice * l.quantity).toFixed(2)} TND
-            </Text>
-            <View style={styles.qtyRow}>
-              <Pressable
-                onPress={() => setQuantity(l.lineKey, l.quantity - 1)}
-                style={styles.qtyBtn}
-                accessibilityRole="button"
-              >
-                <Text style={styles.qtyBtnText}>−</Text>
-              </Pressable>
-              <Text style={styles.qty}>{l.quantity}</Text>
-              <Pressable
-                onPress={() => setQuantity(l.lineKey, l.quantity + 1)}
-                style={styles.qtyBtn}
-                accessibilityRole="button"
-              >
-                <Text style={styles.qtyBtnText}>+</Text>
-              </Pressable>
+            <View style={styles.rowMain}>
+              {l.image_url ? (
+                <Image source={{ uri: l.image_url }} style={styles.thumb} resizeMode="cover" />
+              ) : (
+                <View style={styles.thumbPlaceholder}>
+                  <Text style={styles.thumbPlaceholderText}>Photo</Text>
+                </View>
+              )}
+              <View style={styles.rowContent}>
+                <View style={styles.rowTop}>
+                  <Text style={styles.name}>{l.name}</Text>
+                  <Pressable onPress={() => removeLine(l.lineKey)} hitSlop={8}>
+                    <Text style={styles.remove}>Retirer</Text>
+                  </Pressable>
+                </View>
+                {l.optionSummary && l.optionSummary.length > 0 ? (
+                  <Text style={styles.opts} numberOfLines={4}>
+                    {l.optionSummary.join(' · ')}
+                  </Text>
+                ) : null}
+                <Text style={styles.meta}>
+                  {l.unitPrice.toFixed(2)} TND × {l.quantity} = {(l.unitPrice * l.quantity).toFixed(2)} TND
+                </Text>
+                <View style={styles.qtyRow}>
+                  <Pressable
+                    onPress={() => setQuantity(l.lineKey, l.quantity - 1)}
+                    style={styles.qtyBtn}
+                    accessibilityRole="button"
+                  >
+                    <Text style={styles.qtyBtnText}>−</Text>
+                  </Pressable>
+                  <Text style={styles.qty}>{l.quantity}</Text>
+                  <Pressable
+                    onPress={() => setQuantity(l.lineKey, l.quantity + 1)}
+                    style={styles.qtyBtn}
+                    accessibilityRole="button"
+                  >
+                    <Text style={styles.qtyBtnText}>+</Text>
+                  </Pressable>
+                </View>
+              </View>
             </View>
           </WtCard>
         ))}
@@ -95,8 +106,27 @@ const styles = StyleSheet.create({
     marginBottom: 4,
     lineHeight: 18,
   },
-  row: { gap: 8 },
-  rowTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  row: { gap: 0 },
+  rowMain: { flexDirection: 'row', alignItems: 'flex-start', gap: 12 },
+  thumb: {
+    width: 80,
+    height: 80,
+    borderRadius: 12,
+    backgroundColor: wt.surfaceMuted,
+  },
+  thumbPlaceholder: {
+    width: 80,
+    height: 80,
+    borderRadius: 12,
+    backgroundColor: wt.surfaceMuted,
+    borderWidth: 1,
+    borderColor: wt.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  thumbPlaceholderText: { fontSize: 11, color: wt.textMuted, fontWeight: '600' },
+  rowContent: { flex: 1, minWidth: 0, gap: 6 },
+  rowTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8 },
   name: { fontSize: 16, fontWeight: '700', color: wt.text, flex: 1 },
   opts: { fontSize: 12, color: wt.textMuted },
   remove: { color: wt.error, fontWeight: '600', fontSize: 14 },

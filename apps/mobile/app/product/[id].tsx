@@ -112,6 +112,7 @@ export default function ProductDetailScreen() {
         quantity: 1,
         selectedOptions: choices,
         optionSummary: snapshots.map((s) => s.option_name),
+        image_url: data.image_url,
       });
     } catch (e: unknown) {
       Alert.alert('Options', e instanceof Error ? e.message : 'Sélection invalide');

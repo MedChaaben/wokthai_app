@@ -58,6 +58,7 @@ function MenuProductRow({
       unitPrice,
       quantity: 1,
       selectedOptions: [],
+      image_url: p.image_url,
     });
   }
 
