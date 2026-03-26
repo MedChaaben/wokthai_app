@@ -1,5 +1,5 @@
 import type { WokthaiSupabaseClient } from '../supabase/client';
-import type { AddressInsert, AddressRow } from '../types';
+import type { AddressInsert, AddressRow, AddressUpdate } from '../types';
 
 export async function fetchMyAddresses(client: WokthaiSupabaseClient): Promise<AddressRow[]> {
   const { data, error } = await client.from('addresses').select('*').order('created_at', { ascending: false });
@@ -23,4 +23,19 @@ export async function createAddress(
     .single();
   if (error) throw error;
   return data;
+}
+
+export async function updateAddress(
+  client: WokthaiSupabaseClient,
+  id: string,
+  patch: Omit<AddressUpdate, 'id' | 'user_id'>
+): Promise<AddressRow> {
+  const { data, error } = await client.from('addresses').update(patch).eq('id', id).select().single();
+  if (error) throw error;
+  return data;
+}
+
+export async function deleteAddress(client: WokthaiSupabaseClient, id: string): Promise<void> {
+  const { error } = await client.from('addresses').delete().eq('id', id);
+  if (error) throw error;
 }
