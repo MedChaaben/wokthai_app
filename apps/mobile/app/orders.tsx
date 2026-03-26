@@ -65,9 +65,6 @@ export default function MyOrdersScreen() {
             {new Date(item.created_at).toLocaleString('fr-TN')}
           </Text>
           <Text style={styles.total}>{Number(item.total_price).toFixed(2)} TND</Text>
-          <Text style={styles.mono} numberOfLines={1}>
-            {item.id}
-          </Text>
         </WtCard>
       </Pressable>
     );
@@ -147,7 +144,6 @@ const styles = StyleSheet.create({
   status: { fontSize: 17, fontWeight: '800', color: wt.text },
   meta: { marginTop: 6, fontSize: 14, color: wt.textMuted },
   total: { marginTop: 8, fontSize: 16, fontWeight: '700', color: wt.accentLight },
-  mono: { marginTop: 6, fontSize: 11, color: wt.textSecondary },
   error: { padding: 24, color: wt.errorStrong },
   empty: { textAlign: 'center', color: wt.textMuted, paddingVertical: 32, paddingHorizontal: 16, fontSize: 15 },
 });

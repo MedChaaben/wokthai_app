@@ -18,6 +18,20 @@ function fmtMoney(n: string | number): string {
   return Number(n).toFixed(2);
 }
 
+function fmtOrderDateTime(iso: string | null | undefined): string {
+  if (!iso) return '—';
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return '—';
+  return d.toLocaleString('fr-FR', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
+
 export default function OrderTrackingScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { data, isLoading, error } = useOrder(id);
@@ -44,7 +58,7 @@ export default function OrderTrackingScreen() {
     <ScrollView contentContainerStyle={styles.screen}>
       <WtCard>
         <Text style={styles.title}>Commande</Text>
-        <Text style={styles.mono}>{data.id}</Text>
+        <Text style={styles.orderTime}>{fmtOrderDateTime(data.created_at)}</Text>
         <Text style={styles.row}>
           <Text style={styles.label}>Statut : </Text>
           <Text style={styles.value}>{STATUS_LABEL[data.status] ?? data.status}</Text>
@@ -157,7 +171,7 @@ const styles = StyleSheet.create({
   center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: wt.bg },
   errorTitle: { fontSize: 16, fontWeight: '600', color: wt.text },
   title: { fontSize: 20, fontWeight: '800', color: wt.text },
-  mono: { marginTop: 4, fontSize: 12, color: wt.textMuted },
+  orderTime: { marginTop: 6, fontSize: 15, color: wt.textMuted, fontWeight: '600' },
   row: { marginTop: 10, fontSize: 15 },
   label: { color: wt.textMuted, fontWeight: '600' },
   value: { color: wt.text, fontWeight: '700' },
