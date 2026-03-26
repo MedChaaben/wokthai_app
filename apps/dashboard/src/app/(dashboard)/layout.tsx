@@ -222,10 +222,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       </aside>
 
       <div className="flex min-h-0 min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-30 flex items-center gap-2 wt-header-mobile px-3 py-2.5 md:hidden">
+        <header className="relative sticky top-0 z-30 flex min-h-12 items-center justify-center wt-header-mobile px-3 py-2.5 md:hidden">
           <button
             type="button"
-            className="rounded-lg p-2 text-zinc-700 dark:text-zinc-300 hover:bg-stone-100 dark:hover:bg-zinc-800"
+            className="absolute start-3 top-1/2 z-10 -translate-y-1/2 rounded-lg p-2 text-zinc-700 dark:text-zinc-300 hover:bg-stone-100 dark:hover:bg-zinc-800"
             aria-expanded={mobileNavOpen}
             aria-controls="dashboard-sidebar"
             aria-label="Ouvrir le menu"
@@ -235,19 +235,25 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <path d="M4 7h16M4 12h16M4 17h16" strokeLinecap="round" />
             </svg>
           </button>
-          <Link href="/orders" className="flex min-w-0 flex-1 items-center justify-center" onClick={() => setMobileNavOpen(false)}>
+          <Link
+            href="/orders"
+            className="flex max-w-[min(100%,220px)] items-center justify-center"
+            onClick={() => setMobileNavOpen(false)}
+          >
             <span className="wt-logo-surface max-w-full">
               <Image
                 src="/wokthai-logo.png"
                 alt="Wok Thaï"
                 width={180}
                 height={44}
-                className="h-8 w-auto max-w-[min(100%,200px)]"
+                className="h-8 w-auto max-w-full"
                 priority
               />
             </span>
           </Link>
-          <ThemeToggle className="shrink-0" />
+          <div className="absolute end-3 top-1/2 z-10 -translate-y-1/2">
+            <ThemeToggle className="shrink-0" />
+          </div>
         </header>
         {newOrderAlert ? (
           <div
