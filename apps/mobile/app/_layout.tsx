@@ -1,0 +1,62 @@
+import { Stack } from 'expo-router';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { useMemo, useState } from 'react';
+import { Text, View, StyleSheet } from 'react-native';
+import { SupabaseProvider } from '@wokthai/shared';
+import { AuthDeepLinkHandler } from '../components/AuthDeepLinkHandler';
+import { CartProvider } from '../contexts/CartContext';
+import { getSupabase, supabaseReady } from '../lib/supabase';
+
+export default function RootLayout() {
+  const [queryClient] = useState(() => new QueryClient());
+  const supabaseClient = useMemo(() => {
+    if (!supabaseReady) return null;
+    return getSupabase();
+  }, []);
+
+  if (!supabaseClient) {
+    return (
+      <View style={styles.center}>
+        <Text style={styles.title}>Configuration Supabase</Text>
+        <Text style={styles.body}>
+          Définissez EXPO_PUBLIC_SUPABASE_URL et EXPO_PUBLIC_SUPABASE_ANON_KEY dans .env.local à la racine du
+          monorepo ou dans apps/mobile/.env — puis redémarrez Expo (clear cache si besoin : npx expo start -c).
+        </Text>
+      </View>
+    );
+  }
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <SupabaseProvider client={supabaseClient}>
+        <CartProvider>
+          <AuthDeepLinkHandler />
+          <Stack
+            screenOptions={{
+              headerTintColor: '#ea580c',
+              headerTitleStyle: { fontWeight: '700' },
+              contentStyle: { backgroundColor: '#fafaf9' },
+            }}
+          >
+            <Stack.Screen name="index" options={{ headerShown: false }} />
+            <Stack.Screen name="login" options={{ title: 'Connexion' }} />
+            <Stack.Screen name="forgot-password" options={{ title: 'Mot de passe oublié' }} />
+            <Stack.Screen name="reset-password" options={{ title: 'Nouveau mot de passe' }} />
+            <Stack.Screen name="menu" options={{ title: 'Menu' }} />
+            <Stack.Screen name="orders" options={{ title: 'Mes commandes' }} />
+            <Stack.Screen name="product/[id]" options={{ title: 'Produit' }} />
+            <Stack.Screen name="cart" options={{ title: 'Panier' }} />
+            <Stack.Screen name="checkout" options={{ title: 'Commande' }} />
+            <Stack.Screen name="order/[id]" options={{ title: 'Suivi' }} />
+          </Stack>
+        </CartProvider>
+      </SupabaseProvider>
+    </QueryClientProvider>
+  );
+}
+
+const styles = StyleSheet.create({
+  center: { flex: 1, justifyContent: 'center', padding: 24, backgroundColor: '#fafaf9' },
+  title: { fontSize: 20, fontWeight: '700', marginBottom: 8, color: '#1c1917' },
+  body: { fontSize: 15, color: '#57534e', lineHeight: 22 },
+});

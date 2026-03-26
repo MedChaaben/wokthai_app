@@ -1,0 +1,23 @@
+{
+  "name": "@wokthai/shared",
+  "version": "0.0.1",
+  "private": true,
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "peerDependencies": {
+    "@supabase/supabase-js": "^2.49.0",
+    "@tanstack/react-query": "^5.62.0",
+    "react": ">=18.0.0"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@supabase/supabase-js": "^2.49.1",
+    "@tanstack/react-query": "^5.62.8",
+    "@types/react": "~19.1.10",
+    "react": "19.1.0",
+    "typescript": "^5.7.2"
+  }
+}

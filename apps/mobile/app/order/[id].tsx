@@ -1,0 +1,182 @@
+import { useLocalSearchParams } from 'expo-router';
+import { View, Text, StyleSheet, ActivityIndicator, ScrollView } from 'react-native';
+import { useOrder, useOrderRealtime } from '@wokthai/shared';
+import { WtCard } from '../../components/WtCard';
+
+const STATUS_LABEL: Record<string, string> = {
+  pending: 'En attente',
+  confirmed: 'Confirmée',
+  preparing: 'En préparation',
+  ready: 'Prête',
+  delivered: 'Livrée',
+  cancelled: 'Annulée',
+};
+
+function fmtMoney(n: string | number): string {
+  return Number(n).toFixed(2);
+}
+
+export default function OrderTrackingScreen() {
+  const { id } = useLocalSearchParams<{ id: string }>();
+  const { data, isLoading, error } = useOrder(id);
+  useOrderRealtime(id);
+
+  if (isLoading) {
+    return (
+      <View style={styles.center}>
+        <ActivityIndicator size="large" color="#ea580c" />
+      </View>
+    );
+  }
+  if (error || !data) {
+    return (
+      <View style={styles.center}>
+        <Text>Commande introuvable</Text>
+      </View>
+    );
+  }
+
+  const items = data.order_items ?? [];
+
+  return (
+    <ScrollView contentContainerStyle={styles.screen}>
+      <WtCard>
+        <Text style={styles.title}>Commande</Text>
+        <Text style={styles.mono}>{data.id}</Text>
+        <Text style={styles.row}>
+          <Text style={styles.label}>Statut : </Text>
+          <Text style={styles.value}>{STATUS_LABEL[data.status] ?? data.status}</Text>
+        </Text>
+        <Text style={styles.row}>
+          <Text style={styles.label}>Type : </Text>
+          <Text style={styles.value}>{data.type === 'delivery' ? 'Livraison' : 'À emporter'}</Text>
+        </Text>
+        <Text style={styles.row}>
+          <Text style={styles.label}>Paiement : </Text>
+          <Text style={styles.value}>
+            {data.payment_status === 'paid_on_delivery' ? 'À la livraison' : 'Non payé'}
+          </Text>
+        </Text>
+        <Text style={styles.row}>
+          <Text style={styles.label}>Total : </Text>
+          <Text style={styles.value}>{fmtMoney(data.total_price)} TND</Text>
+        </Text>
+      </WtCard>
+
+      <Text style={styles.sectionTitle}>Lieu</Text>
+      <WtCard>
+        {data.type === 'pickup' ? (
+          data.stores ? (
+            <>
+              <Text style={styles.placeKind}>Retrait au magasin</Text>
+              <Text style={styles.placeName}>{data.stores.name}</Text>
+              <Text style={styles.placeAddr}>
+                {data.stores.address}
+                {'\n'}
+                {data.stores.city}
+              </Text>
+            </>
+          ) : (
+            <Text style={styles.muted}>Magasin non renseigné</Text>
+          )
+        ) : data.addresses ? (
+          <>
+            <Text style={styles.placeKind}>Adresse de livraison</Text>
+            <Text style={styles.placeName}>{data.addresses.label}</Text>
+            <Text style={styles.placeAddr}>
+              {data.addresses.address}
+              {'\n'}
+              {data.addresses.city}
+            </Text>
+            {data.addresses.instructions ? (
+              <Text style={styles.instructions}>Note : {data.addresses.instructions}</Text>
+            ) : null}
+          </>
+        ) : (
+          <Text style={styles.muted}>Adresse non disponible</Text>
+        )}
+      </WtCard>
+
+      {data.delivery_notes ? (
+        <>
+          <Text style={styles.sectionTitle}>Instructions</Text>
+          <WtCard>
+            <Text style={styles.notes}>{data.delivery_notes}</Text>
+          </WtCard>
+        </>
+      ) : null}
+
+      <Text style={styles.sectionTitle}>Articles</Text>
+      {items.length === 0 ? (
+        <WtCard>
+          <Text style={styles.muted}>Aucune ligne enregistrée.</Text>
+        </WtCard>
+      ) : (
+        items.map((line) => {
+          const name = line.products?.name ?? 'Produit';
+          const lineTotal = Number(line.unit_price) * line.quantity;
+          const opts = line.order_item_options ?? [];
+          return (
+            <WtCard key={line.id} style={styles.lineCard}>
+              <View style={styles.lineHeader}>
+                <Text style={styles.lineName}>{name}</Text>
+                <Text style={styles.linePrice}>{fmtMoney(lineTotal)} TND</Text>
+              </View>
+              <Text style={styles.lineQty}>
+                {line.quantity} × {fmtMoney(line.unit_price)} TND
+              </Text>
+              {opts.length > 0 ? (
+                <View style={styles.opts}>
+                  {opts.map((o, i) => {
+                    const mod = Number(o.price_modifier);
+                    const extra =
+                      mod !== 0 ? (mod > 0 ? ` (+${fmtMoney(mod)} TND)` : ` (${fmtMoney(mod)} TND)`) : '';
+                    return (
+                      <Text key={`${line.id}-opt-${i}`} style={styles.optItem}>
+                        · {o.option_name}
+                        {extra}
+                      </Text>
+                    );
+                  })}
+                </View>
+              ) : null}
+            </WtCard>
+          );
+        })
+      )}
+
+      <Text style={styles.hint}>Mise à jour en temps réel lorsque le restaurant change le statut.</Text>
+    </ScrollView>
+  );
+}
+
+const styles = StyleSheet.create({
+  screen: { padding: 16, paddingBottom: 32, backgroundColor: '#fafaf9', gap: 10 },
+  center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#fafaf9' },
+  title: { fontSize: 20, fontWeight: '800', color: '#1c1917' },
+  mono: { marginTop: 4, fontSize: 12, color: '#78716c' },
+  row: { marginTop: 10, fontSize: 15 },
+  label: { color: '#57534e', fontWeight: '600' },
+  value: { color: '#1c1917', fontWeight: '700' },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#1c1917',
+    marginTop: 6,
+    marginBottom: 2,
+  },
+  placeKind: { fontSize: 13, fontWeight: '700', color: '#ea580c', textTransform: 'uppercase' },
+  placeName: { marginTop: 8, fontSize: 17, fontWeight: '800', color: '#1c1917' },
+  placeAddr: { marginTop: 6, fontSize: 15, color: '#44403c', lineHeight: 22 },
+  instructions: { marginTop: 10, fontSize: 14, color: '#57534e', fontStyle: 'italic' },
+  notes: { fontSize: 15, color: '#44403c', lineHeight: 22 },
+  muted: { fontSize: 14, color: '#78716c' },
+  lineCard: { marginBottom: 8 },
+  lineHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 },
+  lineName: { flex: 1, fontSize: 16, fontWeight: '700', color: '#1c1917' },
+  linePrice: { fontSize: 16, fontWeight: '800', color: '#ea580c' },
+  lineQty: { marginTop: 4, fontSize: 13, color: '#78716c' },
+  opts: { marginTop: 8, gap: 4 },
+  optItem: { fontSize: 13, color: '#57534e' },
+  hint: { fontSize: 13, color: '#78716c', paddingHorizontal: 4, marginTop: 8 },
+});
