@@ -19,6 +19,7 @@ import {
   type AllowedCity,
 } from '@wokthai/shared';
 import { AddressCardActions } from '../components/AddressCardActions';
+import { AddressMapPreview } from '../components/AddressMapPreview';
 import { MapAddressPickerModal } from '../components/MapAddressPickerModal';
 import { WtButton } from '../components/WtButton';
 import { WtCard } from '../components/WtCard';
@@ -185,6 +186,7 @@ export default function AddressesScreen() {
 
           <View style={styles.positionBlock}>
             <Text style={styles.sectionLabel}>Où livrer</Text>
+            <AddressMapPreview lat={lat} lng={lng} onOpenPicker={() => setMapPickerVisible(true)} />
             <WtButton title="Choisir sur la carte" onPress={() => setMapPickerVisible(true)} />
             <Text style={[styles.coords, lat != null && lng != null ? styles.coordsOk : null]}>
               {lat != null && lng != null

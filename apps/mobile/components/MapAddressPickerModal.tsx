@@ -1,18 +1,12 @@
 import { useLayoutEffect, useRef, useState } from 'react';
 import { Modal, View, Text, StyleSheet, Platform, Alert } from 'react-native';
-import MapView, { Marker, type Region } from 'react-native-maps';
+import MapView, { Marker } from 'react-native-maps';
 import * as Location from 'expo-location';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { REGION_MODAL } from '../lib/mapRegion';
 import { WtButton } from './WtButton';
 import { isNativeMapsAvailable } from '../lib/nativeMapsAvailable';
 import { wt } from '../lib/theme';
-
-const TUNIS_CENTER: Region = {
-  latitude: 36.8065,
-  longitude: 10.1815,
-  latitudeDelta: 0.012,
-  longitudeDelta: 0.012,
-};
 
 type Props = {
   visible: boolean;
@@ -32,14 +26,14 @@ export function MapAddressPickerModal({
   const mapRef = useRef<MapView>(null);
   const [mapKey, setMapKey] = useState(0);
   const [coord, setCoord] = useState<{ latitude: number; longitude: number }>({
-    latitude: TUNIS_CENTER.latitude,
-    longitude: TUNIS_CENTER.longitude,
+    latitude: REGION_MODAL.latitude,
+    longitude: REGION_MODAL.longitude,
   });
 
   useLayoutEffect(() => {
     if (!visible) return;
-    const lat = initialLat ?? TUNIS_CENTER.latitude;
-    const lng = initialLng ?? TUNIS_CENTER.longitude;
+    const lat = initialLat ?? REGION_MODAL.latitude;
+    const lng = initialLng ?? REGION_MODAL.longitude;
     setCoord({ latitude: lat, longitude: lng });
     setMapKey((k) => k + 1);
   }, [visible, initialLat, initialLng]);
@@ -60,8 +54,8 @@ export function MapAddressPickerModal({
       mapRef.current.animateToRegion(
         {
           ...next,
-          latitudeDelta: TUNIS_CENTER.latitudeDelta,
-          longitudeDelta: TUNIS_CENTER.longitudeDelta,
+          latitudeDelta: REGION_MODAL.latitudeDelta,
+          longitudeDelta: REGION_MODAL.longitudeDelta,
         },
         400
       );
@@ -117,8 +111,8 @@ export function MapAddressPickerModal({
           initialRegion={{
             latitude: coord.latitude,
             longitude: coord.longitude,
-            latitudeDelta: TUNIS_CENTER.latitudeDelta,
-            longitudeDelta: TUNIS_CENTER.longitudeDelta,
+            latitudeDelta: REGION_MODAL.latitudeDelta,
+            longitudeDelta: REGION_MODAL.longitudeDelta,
           }}
           showsUserLocation
         >
