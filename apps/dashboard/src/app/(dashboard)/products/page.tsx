@@ -11,6 +11,7 @@ import {
   deleteProduct,
 } from "@wokthai/shared";
 import type { ProductRow as ProductRowType } from "@wokthai/shared";
+import { Modal } from "../../../components/Modal";
 
 export default function ProductsPage() {
   const supabase = useSupabase();
@@ -134,14 +135,10 @@ export default function ProductsPage() {
         </div>
         <button
           type="button"
-          onClick={() => (showCreateForm ? cancelCreateForm() : openCreateForm())}
-          className={`shrink-0 rounded-xl px-4 py-2.5 text-sm font-semibold transition ${
-            showCreateForm
-              ? "border border-stone-300 bg-white text-stone-800 hover:bg-stone-50"
-              : "bg-orange-600 text-white hover:bg-orange-700"
-          }`}
+          onClick={openCreateForm}
+          className="shrink-0 rounded-xl bg-orange-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-orange-700"
         >
-          {showCreateForm ? "Fermer le formulaire" : "Nouveau produit"}
+          Nouveau produit
         </button>
       </div>
 
@@ -182,16 +179,20 @@ export default function ProductsPage() {
         </>
       )}
 
-      {showCreateForm ? (
+      <Modal
+        open={showCreateForm}
+        onClose={cancelCreateForm}
+        title="Nouveau produit"
+        maxWidthClassName="max-w-2xl"
+      >
         <form
-          className="mt-10 max-w-2xl space-y-3 rounded-2xl border border-stone-200 bg-white p-6 shadow-sm"
+          className="space-y-3"
           onSubmit={(e) => {
             e.preventDefault();
             if (!name.trim()) return;
             createMut.mutate();
           }}
         >
-          <p className="text-sm font-semibold text-stone-900">Nouveau produit</p>
           <div className="grid gap-3 md:grid-cols-2">
             <div>
               <label className="text-sm font-semibold text-stone-700">Nom</label>
@@ -274,7 +275,7 @@ export default function ProductsPage() {
             </button>
           </div>
         </form>
-      ) : null}
+      </Modal>
     </div>
   );
 }
