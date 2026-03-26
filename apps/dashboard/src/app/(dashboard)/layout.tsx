@@ -3,8 +3,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
-import { useStaffProfile, useStoreOrdersRealtime, useSupabase } from "@wokthai/shared";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useOrders, useStaffProfile, useStoreOrdersRealtime, useSupabase } from "@wokthai/shared";
 
 const nav = [
   { href: "/orders", label: "Commandes" },
@@ -30,6 +30,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const pathname = usePathname();
   const staff = useStaffProfile();
   const storeId = staff.data?.store_id;
+  const orders = useOrders({ mode: "staff", storeId });
+  const pendingOrdersCount = useMemo(
+    () => (orders.data ?? []).filter((o) => o.status === "pending").length,
+    [orders.data]
+  );
   const [newOrderAlert, setNewOrderAlert] = useState<{ id: string } | null>(null);
   const alertOrderIdRef = useRef<string | null>(null);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
@@ -117,16 +122,27 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     <nav className="mt-4 flex flex-col gap-1" aria-label="Navigation principale">
       {nav.map((item) => {
         const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
+        const showPendingBadge = item.href === "/orders" && pendingOrdersCount > 0;
         return (
           <Link
             key={item.href}
             href={item.href}
             onClick={() => setMobileNavOpen(false)}
-            className={`rounded-lg px-3 py-2 text-sm font-medium ${
+            aria-label={
+              showPendingBadge
+                ? `Commandes, ${pendingOrdersCount} commande${pendingOrdersCount > 1 ? "s" : ""} en attente`
+                : undefined
+            }
+            className={`flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium ${
               active ? "bg-orange-50 text-orange-800" : "text-stone-700 hover:bg-stone-100"
             }`}
           >
-            {item.label}
+            <span className="min-w-0 flex-1">{item.label}</span>
+            {showPendingBadge ? (
+              <span className="inline-flex min-h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-amber-500 px-1.5 text-[10px] font-bold leading-none text-white tabular-nums">
+                {pendingOrdersCount > 99 ? "99+" : pendingOrdersCount}
+              </span>
+            ) : null}
           </Link>
         );
       })}
