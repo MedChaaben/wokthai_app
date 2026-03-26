@@ -92,7 +92,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   if (staff.isLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center text-stone-600">
+      <div className="flex min-h-screen items-center justify-center text-zinc-400">
         Chargement du profil…
       </div>
     );
@@ -101,16 +101,16 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   if (!staff.data) {
     return (
       <div className="mx-auto max-w-lg px-4 py-20 text-center">
-        <h1 className="text-xl font-bold text-stone-900">Accès refusé</h1>
-        <p className="mt-2 text-stone-600">
-          Ce compte n’est pas lié à un profil <code className="rounded bg-stone-200 px-1">staff</code> en base.
-          Ajoutez une ligne dans la table <code className="rounded bg-stone-200 px-1">staff</code> avec votre{" "}
-          <code className="rounded bg-stone-200 px-1">user_id</code> Supabase.
+        <h1 className="text-xl font-bold text-zinc-100">Accès refusé</h1>
+        <p className="mt-2 text-zinc-400">
+          Ce compte n’est pas lié à un profil <code className="rounded bg-zinc-700 px-1">staff</code> en base.
+          Ajoutez une ligne dans la table <code className="rounded bg-zinc-700 px-1">staff</code> avec votre{" "}
+          <code className="rounded bg-zinc-700 px-1">user_id</code> Supabase.
         </p>
         <button
           type="button"
           onClick={() => void logout()}
-          className="mt-6 rounded-xl bg-stone-900 px-4 py-2 text-sm font-semibold text-white"
+          className="mt-6 rounded-xl bg-orange-600 px-4 py-2 text-sm font-semibold text-white"
         >
           Déconnexion
         </button>
@@ -134,7 +134,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 : undefined
             }
             className={`flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium ${
-              active ? "bg-orange-50 text-orange-800" : "text-stone-700 hover:bg-stone-100"
+              active ? "bg-orange-950/50 text-orange-300" : "text-zinc-300 hover:bg-zinc-800"
             }`}
           >
             <span className="min-w-0 flex-1">{item.label}</span>
@@ -154,17 +154,17 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <div className="flex items-start justify-between gap-2 md:block">
         <Link href="/orders" className="inline-block shrink-0 px-1" onClick={() => setMobileNavOpen(false)}>
           <Image
-            src="/logo.svg"
-            alt="WokThai"
-            width={160}
-            height={36}
-            className="h-9 w-auto"
+            src="/wokthai-logo.png"
+            alt="Wok Thaï"
+            width={200}
+            height={48}
+            className="h-10 w-auto max-w-[200px]"
             priority
           />
         </Link>
         <button
           type="button"
-          className="rounded-lg p-2 text-stone-600 hover:bg-stone-100 md:hidden"
+          className="rounded-lg p-2 text-zinc-400 hover:bg-zinc-800 md:hidden"
           aria-label="Fermer le menu"
           onClick={() => setMobileNavOpen(false)}
         >
@@ -173,18 +173,18 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </svg>
         </button>
       </div>
-      <p className="mt-4 px-3 text-sm text-stone-600">Magasin assigné (commandes filtrées)</p>
-      <p className="px-3 text-sm font-semibold text-stone-900">
+      <p className="mt-4 px-3 text-sm text-zinc-400">Magasin assigné (commandes filtrées)</p>
+      <p className="px-3 text-sm font-semibold text-zinc-100">
         {staff.data.stores?.name ?? "—"}
         {staff.data.stores?.city ? (
-          <span className="block text-xs font-normal text-stone-500">{staff.data.stores.city}</span>
+          <span className="block text-xs font-normal text-zinc-500">{staff.data.stores.city}</span>
         ) : null}
       </p>
       {navLinks}
       <button
         type="button"
         onClick={() => void logout()}
-        className="mt-6 rounded-lg px-3 py-2 text-left text-sm font-medium text-stone-500 hover:bg-stone-100"
+        className="mt-6 rounded-lg px-3 py-2 text-left text-sm font-medium text-zinc-500 hover:bg-zinc-800"
       >
         Déconnexion
       </button>
@@ -196,7 +196,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       {mobileNavOpen ? (
         <button
           type="button"
-          className="fixed inset-0 z-40 bg-stone-900/40 md:hidden"
+          className="fixed inset-0 z-40 bg-black/50 md:hidden"
           aria-label="Fermer le menu"
           onClick={() => setMobileNavOpen(false)}
         />
@@ -206,7 +206,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         id="dashboard-sidebar"
         inert={mobileDrawerClosed ? true : undefined}
         aria-hidden={mobileDrawerClosed ? true : undefined}
-        className={`fixed inset-y-0 left-0 z-50 flex w-[min(100vw-2rem,18rem)] max-w-[calc(100vw-2rem)] flex-col border-r border-stone-200 bg-white p-4 shadow-lg transition-transform duration-200 ease-out md:static md:z-0 md:w-56 md:max-w-none md:translate-x-0 md:shadow-none ${
+        className={`fixed inset-y-0 left-0 z-50 flex w-[min(100vw-2rem,18rem)] max-w-[calc(100vw-2rem)] flex-col border-r border-zinc-800 bg-zinc-900 p-4 shadow-lg transition-transform duration-200 ease-out md:static md:z-0 md:w-56 md:max-w-none md:translate-x-0 md:shadow-none ${
           mobileNavOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
         }`}
       >
@@ -214,10 +214,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       </aside>
 
       <div className="flex min-h-0 min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-30 flex items-center gap-3 border-b border-stone-200 bg-white px-3 py-2.5 md:hidden">
+        <header className="sticky top-0 z-30 flex items-center gap-3 border-b border-zinc-800 bg-zinc-900 px-3 py-2.5 md:hidden">
           <button
             type="button"
-            className="rounded-lg p-2 text-stone-700 hover:bg-stone-100"
+            className="rounded-lg p-2 text-zinc-300 hover:bg-zinc-800"
             aria-expanded={mobileNavOpen}
             aria-controls="dashboard-sidebar"
             aria-label="Ouvrir le menu"
@@ -229,11 +229,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </button>
           <Link href="/orders" className="flex min-w-0 flex-1 items-center" onClick={() => setMobileNavOpen(false)}>
             <Image
-              src="/logo.svg"
-              alt="WokThai"
-              width={140}
-              height={32}
-              className="h-8 w-auto max-w-[min(100%,180px)]"
+              src="/wokthai-logo.png"
+              alt="Wok Thaï"
+              width={180}
+              height={44}
+              className="h-9 w-auto max-w-[min(100%,200px)]"
               priority
             />
           </Link>
@@ -242,7 +242,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <div
             role="alert"
             aria-live="assertive"
-            className="flex flex-wrap items-center justify-between gap-3 border-b border-orange-200 bg-orange-50 px-4 py-3 text-sm text-orange-950"
+            className="flex flex-wrap items-center justify-between gap-3 border-b border-orange-900/50 bg-orange-950/50 px-4 py-3 text-sm text-orange-100"
           >
             <p className="font-semibold">
               Nouvelle commande — en attente de confirmation
@@ -256,7 +256,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               </Link>
               <button
                 type="button"
-                className="rounded-lg px-2 py-1 text-xs font-medium text-orange-800 underline-offset-2 hover:underline"
+                className="rounded-lg px-2 py-1 text-xs font-medium text-orange-300 underline-offset-2 hover:underline"
                 onClick={() => clearOrderAlert()}
               >
                 Fermer

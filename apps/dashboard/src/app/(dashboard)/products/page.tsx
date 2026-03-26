@@ -102,7 +102,7 @@ export default function ProductsPage() {
     activeCategoryId != null ? (productsByCategory.get(activeCategoryId) ?? []) : [];
 
   if (products.isLoading || categories.isLoading) {
-    return <p className="text-stone-600">Chargement…</p>;
+    return <p className="text-zinc-400">Chargement…</p>;
   }
   if (products.error || categories.error) {
     return <p className="text-red-600">{(products.error ?? categories.error)?.message}</p>;
@@ -126,8 +126,8 @@ export default function ProductsPage() {
     <div>
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h1 className="text-2xl font-extrabold text-stone-900">Produits</h1>
-          <p className="mt-2 max-w-2xl text-sm text-stone-600">
+          <h1 className="text-2xl font-extrabold text-zinc-100">Produits</h1>
+          <p className="mt-2 max-w-2xl text-sm text-zinc-400">
             L’ordre d’affichage dans l’app mobile suit le champ <span className="font-medium">Position</span> (plus
             petit en premier) par catégorie. Les onglets de catégories suivent la page{" "}
             <span className="font-medium">Catégories</span>.
@@ -142,10 +142,10 @@ export default function ProductsPage() {
         </button>
       </div>
 
-      <h2 className="mt-8 text-lg font-bold text-stone-900">Menu</h2>
+      <h2 className="mt-8 text-lg font-bold text-zinc-100">Menu</h2>
 
       {allProducts.length === 0 ? (
-        <p className="mt-6 rounded-xl border border-dashed border-stone-300 bg-white p-8 text-center text-stone-500">
+        <p className="mt-6 rounded-xl border border-dashed border-zinc-700 bg-zinc-900 p-8 text-center text-zinc-500">
           Aucun produit pour le moment. Cliquez sur <span className="font-semibold">Nouveau produit</span> pour en
           ajouter un.
         </p>
@@ -159,8 +159,8 @@ export default function ProductsPage() {
                 onClick={() => setActiveCategoryId(c.id)}
                 className={`shrink-0 rounded-full px-4 py-2 text-sm font-semibold transition ${
                   activeCategoryId === c.id
-                    ? "bg-orange-50 text-orange-900 ring-1 ring-orange-200"
-                    : "bg-stone-100 text-stone-600 hover:bg-stone-200"
+                    ? "bg-orange-950/50 text-orange-900 ring-1 ring-orange-900/40"
+                    : "bg-zinc-800 text-zinc-400 hover:bg-zinc-700"
                 }`}
               >
                 {c.name}
@@ -195,32 +195,32 @@ export default function ProductsPage() {
         >
           <div className="grid gap-3 md:grid-cols-2">
             <div>
-              <label className="text-sm font-semibold text-stone-700">Nom</label>
+              <label className="text-sm font-semibold text-zinc-300">Nom</label>
               <input
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="mt-1 w-full rounded-xl border border-stone-300 px-3 py-2"
+                className="mt-1 w-full rounded-xl border border-zinc-700 px-3 py-2"
                 required
               />
             </div>
             <div>
-              <label className="text-sm font-semibold text-stone-700">Prix (TND)</label>
+              <label className="text-sm font-semibold text-zinc-300">Prix (TND)</label>
               <input
                 type="number"
                 step="0.01"
                 value={price}
                 onChange={(e) => setPrice(e.target.value)}
-                className="mt-1 w-full rounded-xl border border-stone-300 px-3 py-2"
+                className="mt-1 w-full rounded-xl border border-zinc-700 px-3 py-2"
                 required
               />
             </div>
           </div>
           <div>
-            <label className="text-sm font-semibold text-stone-700">Catégorie</label>
+            <label className="text-sm font-semibold text-zinc-300">Catégorie</label>
             <select
               value={categoryId || cats[0]?.id}
               onChange={(e) => setCategoryId(e.target.value)}
-              className="mt-1 w-full rounded-xl border border-stone-300 px-3 py-2"
+              className="mt-1 w-full rounded-xl border border-zinc-700 px-3 py-2"
             >
               {cats.map((c) => (
                 <option key={c.id} value={c.id}>
@@ -230,26 +230,26 @@ export default function ProductsPage() {
             </select>
           </div>
           <div>
-            <label className="text-sm font-semibold text-stone-700">Position dans la catégorie</label>
+            <label className="text-sm font-semibold text-zinc-300">Position dans la catégorie</label>
             <input
               type="number"
               value={productPosition}
               onChange={(e) => setProductPosition(e.target.value)}
-              className="mt-1 w-full max-w-xs rounded-xl border border-stone-300 px-3 py-2"
+              className="mt-1 w-full max-w-xs rounded-xl border border-zinc-700 px-3 py-2"
             />
-            <p className="mt-1 text-xs text-stone-500">Plus petit = affiché plus haut dans le menu (même catégorie).</p>
+            <p className="mt-1 text-xs text-zinc-500">Plus petit = affiché plus haut dans le menu (même catégorie).</p>
           </div>
           <div>
-            <label className="text-sm font-semibold text-stone-700">Description</label>
+            <label className="text-sm font-semibold text-zinc-300">Description</label>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="mt-1 w-full rounded-xl border border-stone-300 px-3 py-2"
+              className="mt-1 w-full rounded-xl border border-zinc-700 px-3 py-2"
               rows={3}
             />
           </div>
           <div>
-            <label className="text-sm font-semibold text-stone-700">Image</label>
+            <label className="text-sm font-semibold text-zinc-300">Image</label>
             <input ref={fileRef} type="file" accept="image/*" className="mt-1 block w-full text-sm" />
           </div>
           {createMut.error ? (
@@ -269,7 +269,7 @@ export default function ProductsPage() {
               type="button"
               disabled={createMut.isPending}
               onClick={cancelCreateForm}
-              className="rounded-xl border border-stone-300 bg-white px-4 py-2 font-semibold text-stone-800 hover:bg-stone-50 disabled:opacity-50"
+              className="rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-2 font-semibold text-zinc-200 hover:bg-zinc-950 disabled:opacity-50"
             >
               Annuler
             </button>
@@ -381,8 +381,8 @@ function ProductListRow({
 
   return (
     <li
-      className={`rounded-xl border bg-white p-4 shadow-sm ${
-        isEditing ? "border-orange-200 ring-1 ring-orange-100" : "border-stone-200"
+      className={`rounded-xl border bg-zinc-900 p-4 shadow-sm ${
+        isEditing ? "border-orange-900/50 ring-1 ring-orange-900/40" : "border-zinc-800"
       }`}
     >
       <div className="flex flex-col gap-3 md:flex-row">
@@ -394,7 +394,7 @@ function ProductListRow({
             className="h-28 w-28 shrink-0 rounded-lg object-cover"
           />
         ) : (
-          <div className="flex h-28 w-28 shrink-0 items-center justify-center rounded-lg bg-stone-100 text-xs text-stone-500">
+          <div className="flex h-28 w-28 shrink-0 items-center justify-center rounded-lg bg-zinc-800 text-xs text-zinc-500">
             Pas d’image
           </div>
         )}
@@ -402,28 +402,28 @@ function ProductListRow({
           {!isEditing ? (
             <>
               <div>
-                <p className="text-lg font-bold text-stone-900">{product.name}</p>
+                <p className="text-lg font-bold text-zinc-100">{product.name}</p>
                 {product.description ? (
-                  <p className="mt-2 whitespace-pre-wrap text-sm text-stone-600">{product.description}</p>
+                  <p className="mt-2 whitespace-pre-wrap text-sm text-zinc-400">{product.description}</p>
                 ) : (
-                  <p className="mt-2 text-sm italic text-stone-400">Pas de description</p>
+                  <p className="mt-2 text-sm italic text-zinc-600">Pas de description</p>
                 )}
               </div>
-              <div className="flex flex-wrap gap-x-6 gap-y-1 text-sm text-stone-700">
+              <div className="flex flex-wrap gap-x-6 gap-y-1 text-sm text-zinc-300">
                 <p>
-                  <span className="font-semibold text-stone-600">Prix : </span>
+                  <span className="font-semibold text-zinc-400">Prix : </span>
                   {Number(product.price).toFixed(2)} TND
                 </p>
                 <p>
-                  <span className="font-semibold text-stone-600">Catégorie : </span>
+                  <span className="font-semibold text-zinc-400">Catégorie : </span>
                   {categoryLabel}
                 </p>
                 <p>
-                  <span className="font-semibold text-stone-600">Position : </span>
+                  <span className="font-semibold text-zinc-400">Position : </span>
                   {product.position}
                 </p>
                 <p>
-                  <span className="font-semibold text-stone-600">Vente : </span>
+                  <span className="font-semibold text-zinc-400">Vente : </span>
                   {product.is_available ? (
                     <span className="text-emerald-700">Disponible</span>
                   ) : (
@@ -452,41 +452,41 @@ function ProductListRow({
             </>
           ) : (
             <>
-              <p className="text-xs font-semibold uppercase tracking-wide text-orange-800">Édition en cours</p>
+              <p className="text-xs font-semibold uppercase tracking-wide text-orange-300">Édition en cours</p>
               <div>
-                <label className="text-xs font-semibold text-stone-600">Nom</label>
+                <label className="text-xs font-semibold text-zinc-400">Nom</label>
                 <input
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="mt-1 w-full rounded-xl border border-stone-300 px-3 py-2 text-stone-900"
+                  className="mt-1 w-full rounded-xl border border-zinc-700 px-3 py-2 text-zinc-100"
                 />
               </div>
               <div>
-                <label className="text-xs font-semibold text-stone-600">Description</label>
+                <label className="text-xs font-semibold text-zinc-400">Description</label>
                 <textarea
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   rows={3}
-                  className="mt-1 w-full rounded-xl border border-stone-300 px-3 py-2 text-stone-900"
+                  className="mt-1 w-full rounded-xl border border-zinc-700 px-3 py-2 text-zinc-100"
                 />
               </div>
               <div className="flex flex-wrap items-end gap-3">
                 <div>
-                  <label className="text-xs font-semibold text-stone-600">Prix (TND)</label>
+                  <label className="text-xs font-semibold text-zinc-400">Prix (TND)</label>
                   <input
                     type="number"
                     step="0.01"
                     value={price}
                     onChange={(e) => setPrice(e.target.value)}
-                    className="mt-1 w-32 rounded-xl border border-stone-300 px-3 py-2"
+                    className="mt-1 w-32 rounded-xl border border-zinc-700 px-3 py-2"
                   />
                 </div>
                 <div>
-                  <label className="text-xs font-semibold text-stone-600">Catégorie</label>
+                  <label className="text-xs font-semibold text-zinc-400">Catégorie</label>
                   <select
                     value={categoryId}
                     onChange={(e) => setCategoryId(e.target.value)}
-                    className="mt-1 min-w-[10rem] rounded-xl border border-stone-300 px-3 py-2"
+                    className="mt-1 min-w-[10rem] rounded-xl border border-zinc-700 px-3 py-2"
                   >
                     {categories.map((c) => (
                       <option key={c.id} value={c.id}>
@@ -496,15 +496,15 @@ function ProductListRow({
                   </select>
                 </div>
                 <div>
-                  <label className="text-xs font-semibold text-stone-600">Position (ordre dans la catégorie)</label>
+                  <label className="text-xs font-semibold text-zinc-400">Position (ordre dans la catégorie)</label>
                   <input
                     type="number"
                     value={position}
                     onChange={(e) => setPosition(e.target.value)}
-                    className="mt-1 w-24 rounded-xl border border-stone-300 px-3 py-2"
+                    className="mt-1 w-24 rounded-xl border border-zinc-700 px-3 py-2"
                   />
                 </div>
-                <label className="flex cursor-pointer items-center gap-2 pb-2 text-sm font-medium text-stone-700">
+                <label className="flex cursor-pointer items-center gap-2 pb-2 text-sm font-medium text-zinc-300">
                   <input
                     type="checkbox"
                     checked={isAvailable}
@@ -514,12 +514,12 @@ function ProductListRow({
                 </label>
               </div>
               <div>
-                <label className="text-xs font-semibold text-stone-600">Nouvelle image (optionnel)</label>
+                <label className="text-xs font-semibold text-zinc-400">Nouvelle image (optionnel)</label>
                 <input
                   ref={fileRef}
                   type="file"
                   accept="image/*"
-                  className="mt-1 block w-full text-sm text-stone-600"
+                  className="mt-1 block w-full text-sm text-zinc-400"
                   onChange={(e) => {
                     const f = e.target.files?.[0];
                     setImagePreview((prev) => {
@@ -542,7 +542,7 @@ function ProductListRow({
                   type="button"
                   disabled={save.isPending}
                   onClick={cancelEdit}
-                  className="rounded-xl border border-stone-300 bg-white px-4 py-2 text-sm font-semibold text-stone-800"
+                  className="rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-2 text-sm font-semibold text-zinc-200"
                 >
                   Annuler
                 </button>

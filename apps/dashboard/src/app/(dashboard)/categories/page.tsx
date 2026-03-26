@@ -82,7 +82,7 @@ export default function CategoriesPage() {
     reorderMut.mutate(reordered.map((c) => c.id));
   }
 
-  if (categories.isLoading) return <p className="text-stone-600">Chargement…</p>;
+  if (categories.isLoading) return <p className="text-zinc-400">Chargement…</p>;
   if (categories.error) return <p className="text-red-600">{categories.error.message}</p>;
 
   const list = categories.data ?? [];
@@ -97,8 +97,8 @@ export default function CategoriesPage() {
     <div>
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h1 className="text-2xl font-extrabold text-stone-900">Catégories</h1>
-          <p className="mt-2 max-w-xl text-sm text-stone-600">
+          <h1 className="text-2xl font-extrabold text-zinc-100">Catégories</h1>
+          <p className="mt-2 max-w-xl text-sm text-zinc-400">
             Glissez-déposez les lignes pour définir l’ordre des onglets dans l’app mobile (haut → premier onglet).
             Les positions sont enregistrées automatiquement.
           </p>
@@ -112,7 +112,7 @@ export default function CategoriesPage() {
         </button>
       </div>
 
-      <h2 className="mt-8 text-lg font-bold text-stone-900">Menu</h2>
+      <h2 className="mt-8 text-lg font-bold text-zinc-100">Menu</h2>
 
       {reorderMut.isError ? (
         <p className="mt-4 text-sm text-red-600">
@@ -121,7 +121,7 @@ export default function CategoriesPage() {
       ) : null}
 
       {list.length === 0 ? (
-        <p className="mt-6 rounded-xl border border-dashed border-stone-300 bg-white p-8 text-center text-stone-500">
+        <p className="mt-6 rounded-xl border border-dashed border-zinc-700 bg-zinc-900 p-8 text-center text-zinc-500">
           Aucune catégorie pour le moment. Cliquez sur <span className="font-semibold">Nouvelle catégorie</span> pour en
           ajouter une.
         </p>
@@ -157,11 +157,11 @@ export default function CategoriesPage() {
         >
           <div className="flex flex-col gap-3 md:flex-row md:items-end">
             <div className="min-w-0 flex-1">
-              <label className="text-sm font-semibold text-stone-700">Nom</label>
+              <label className="text-sm font-semibold text-zinc-300">Nom</label>
               <input
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="mt-1 w-full rounded-xl border border-stone-300 px-3 py-2"
+                className="mt-1 w-full rounded-xl border border-zinc-700 px-3 py-2"
               />
             </div>
             <div className="flex flex-wrap gap-2">
@@ -176,7 +176,7 @@ export default function CategoriesPage() {
                 type="button"
                 disabled={createMut.isPending}
                 onClick={cancelCreateForm}
-                className="rounded-xl border border-stone-300 bg-white px-4 py-2 font-semibold text-stone-800 hover:bg-stone-50 disabled:opacity-50"
+                className="rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-2 font-semibold text-zinc-200 hover:bg-zinc-950 disabled:opacity-50"
               >
                 Annuler
               </button>
@@ -217,11 +217,11 @@ function SortableCategoryRow({
     <li
       ref={setNodeRef}
       style={style}
-      className="flex flex-col gap-2 rounded-xl border border-stone-200 bg-white p-3 shadow-sm md:flex-row md:items-center md:gap-3"
+      className="flex flex-col gap-2 rounded-xl border border-zinc-800 bg-zinc-900 p-3 shadow-sm md:flex-row md:items-center md:gap-3"
     >
       <button
         type="button"
-        className="flex h-11 w-11 shrink-0 cursor-grab items-center justify-center rounded-lg border border-stone-200 bg-stone-50 text-stone-500 touch-none hover:bg-stone-100 active:cursor-grabbing"
+        className="flex h-11 w-11 shrink-0 cursor-grab items-center justify-center rounded-lg border border-zinc-800 bg-zinc-950 text-zinc-500 touch-none hover:bg-zinc-800 active:cursor-grabbing"
         {...attributes}
         {...listeners}
         aria-label="Réordonner la catégorie"
@@ -261,13 +261,13 @@ function CategoryRowEditor({ category }: { category: CategoryRow }) {
       <input
         value={name}
         onChange={(e) => setName(e.target.value)}
-        className="min-w-0 flex-1 rounded-xl border border-stone-300 px-3 py-2"
+        className="min-w-0 flex-1 rounded-xl border border-zinc-700 px-3 py-2"
       />
       <button
         type="button"
         disabled={save.isPending || name.trim() === category.name}
         onClick={() => save.mutate()}
-        className="rounded-xl border border-stone-300 px-3 py-2 text-sm font-semibold text-stone-800 hover:bg-stone-50 disabled:opacity-40"
+        className="rounded-xl border border-zinc-700 px-3 py-2 text-sm font-semibold text-zinc-200 hover:bg-zinc-950 disabled:opacity-40"
       >
         Enregistrer le nom
       </button>

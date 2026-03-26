@@ -52,7 +52,7 @@ export default function OrderDetailPage() {
   useOrderRealtime(id);
   const updateStatus = useUpdateOrderStatus();
 
-  if (order.isLoading) return <p className="text-stone-600">Chargement…</p>;
+  if (order.isLoading) return <p className="text-zinc-400">Chargement…</p>;
   if (order.error || !order.data) {
     return (
       <div>
@@ -73,17 +73,17 @@ export default function OrderDetailPage() {
       <Link href="/orders" className="text-sm font-semibold text-orange-600">
         ← Commandes
       </Link>
-      <h1 className="mt-4 text-2xl font-extrabold text-stone-900">Détail commande</h1>
-      <p className="mt-2 font-mono text-xs text-stone-500">{o.id}</p>
+      <h1 className="mt-4 text-2xl font-extrabold text-zinc-100">Détail commande</h1>
+      <p className="mt-2 font-mono text-xs text-zinc-500">{o.id}</p>
 
       <div className="mt-6 space-y-6">
-        <div className="space-y-4 rounded-2xl border border-stone-200 bg-white p-6 shadow-sm">
+        <div className="space-y-4 rounded-2xl border border-zinc-800 bg-zinc-900 p-6 shadow-sm">
           <div>
-            <p className="text-sm font-semibold text-stone-700">Contact</p>
-            <p className="mt-1 text-lg font-bold text-stone-900">{formatCustomerDisplayName(o.users)}</p>
-            <dl className="mt-3 space-y-3 text-sm text-stone-700">
+            <p className="text-sm font-semibold text-zinc-300">Contact</p>
+            <p className="mt-1 text-lg font-bold text-zinc-100">{formatCustomerDisplayName(o.users)}</p>
+            <dl className="mt-3 space-y-3 text-sm text-zinc-300">
               <div>
-                <dt className="font-medium text-stone-500">Téléphone</dt>
+                <dt className="font-medium text-zinc-500">Téléphone</dt>
                 <dd className="mt-0.5">
                   {o.users?.phone?.trim() ? (
                     <a
@@ -93,12 +93,12 @@ export default function OrderDetailPage() {
                       {o.users.phone.trim()}
                     </a>
                   ) : (
-                    <span className="text-stone-400">—</span>
+                    <span className="text-zinc-600">—</span>
                   )}
                 </dd>
               </div>
               <div>
-                <dt className="font-medium text-stone-500">E-mail</dt>
+                <dt className="font-medium text-zinc-500">E-mail</dt>
                 <dd className="mt-0.5 break-all">
                   {o.users?.email?.trim() ? (
                     <a
@@ -108,14 +108,14 @@ export default function OrderDetailPage() {
                       {o.users.email.trim()}
                     </a>
                   ) : (
-                    <span className="text-stone-400">—</span>
+                    <span className="text-zinc-600">—</span>
                   )}
                 </dd>
               </div>
             </dl>
           </div>
           <div>
-            <p className="text-sm font-semibold text-stone-700">Statut</p>
+            <p className="text-sm font-semibold text-zinc-300">Statut</p>
             <select
               value={o.status}
               disabled={updateStatus.isPending}
@@ -123,7 +123,7 @@ export default function OrderDetailPage() {
                 const status = e.target.value as OrderRow["status"];
                 void updateStatus.mutateAsync({ orderId: o.id, status });
               }}
-              className="mt-1 w-full max-w-md rounded-xl border border-stone-300 px-3 py-2 text-stone-900"
+              className="mt-1 w-full max-w-md rounded-xl border border-zinc-700 px-3 py-2 text-zinc-100"
             >
               {STATUSES.map((s) => (
                 <option key={s} value={s}>
@@ -132,7 +132,7 @@ export default function OrderDetailPage() {
               ))}
             </select>
           </div>
-          <div className="text-sm text-stone-700">
+          <div className="text-sm text-zinc-300">
             <p>
               <span className="font-semibold">Type :</span>{" "}
               {o.type === "delivery" ? "Livraison" : "À emporter"}
@@ -153,8 +153,8 @@ export default function OrderDetailPage() {
         </div>
 
         <div>
-          <h2 className="text-lg font-bold text-stone-900">Suivi du statut</h2>
-          <div className="mt-2 rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
+          <h2 className="text-lg font-bold text-zinc-100">Suivi du statut</h2>
+          <div className="mt-2 rounded-2xl border border-zinc-800 bg-zinc-900 p-5 shadow-sm">
             <ul className="flex flex-col">
               {statusEvents.map((ev, i) => {
                 const isLast = i === statusEvents.length - 1;
@@ -163,16 +163,16 @@ export default function OrderDetailPage() {
                     <div className="flex w-[22px] shrink-0 flex-col items-center self-stretch">
                       <div
                         className={`h-3 w-3 shrink-0 rounded-full border-2 ${
-                          isLast ? "border-orange-500 bg-orange-100" : "border-stone-400 bg-stone-200"
+                          isLast ? "border-orange-500 bg-orange-950/50" : "border-zinc-600 bg-zinc-700"
                         }`}
                       />
                       {!isLast ? (
-                        <div className="mt-1 min-h-[10px] w-0.5 flex-1 rounded-full bg-stone-200" />
+                        <div className="mt-1 min-h-[10px] w-0.5 flex-1 rounded-full bg-zinc-700" />
                       ) : null}
                     </div>
                     <div className={`min-w-0 flex-1 ${isLast ? "" : "pb-5"}`}>
-                      <p className="font-bold text-stone-900">{LABELS[ev.status] ?? ev.status}</p>
-                      <p className="mt-1 text-sm text-stone-500">{fmtTimelineTime(ev.created_at)}</p>
+                      <p className="font-bold text-zinc-100">{LABELS[ev.status] ?? ev.status}</p>
+                      <p className="mt-1 text-sm text-zinc-500">{fmtTimelineTime(ev.created_at)}</p>
                     </div>
                   </li>
                 );
@@ -182,54 +182,54 @@ export default function OrderDetailPage() {
         </div>
 
         <div>
-          <h2 className="text-lg font-bold text-stone-900">Lieu</h2>
-          <div className="mt-2 rounded-2xl border border-stone-200 bg-white p-5 shadow-sm text-sm text-stone-700">
+          <h2 className="text-lg font-bold text-zinc-100">Lieu</h2>
+          <div className="mt-2 rounded-2xl border border-zinc-800 bg-zinc-900 p-5 shadow-sm text-sm text-zinc-300">
             {o.type === "pickup" ? (
               o.stores ? (
                 <>
                   <p className="text-xs font-bold uppercase tracking-wide text-orange-600">Retrait au magasin</p>
-                  <p className="mt-2 text-base font-semibold text-stone-900">{o.stores.name}</p>
-                  <p className="mt-1 whitespace-pre-line text-stone-600">
+                  <p className="mt-2 text-base font-semibold text-zinc-100">{o.stores.name}</p>
+                  <p className="mt-1 whitespace-pre-line text-zinc-400">
                     {o.stores.address}
                     {"\n"}
                     {o.stores.city}
                   </p>
                 </>
               ) : (
-                <p className="text-stone-500">Magasin non renseigné.</p>
+                <p className="text-zinc-500">Magasin non renseigné.</p>
               )
             ) : o.addresses ? (
               <>
                 <p className="text-xs font-bold uppercase tracking-wide text-orange-600">Livraison</p>
-                <p className="mt-2 text-base font-semibold text-stone-900">{o.addresses.label}</p>
-                <p className="mt-1 whitespace-pre-line text-stone-600">
+                <p className="mt-2 text-base font-semibold text-zinc-100">{o.addresses.label}</p>
+                <p className="mt-1 whitespace-pre-line text-zinc-400">
                   {o.addresses.address}
                   {"\n"}
                   {o.addresses.city}
                 </p>
                 {o.addresses.instructions ? (
-                  <p className="mt-3 text-stone-600 italic">Note : {o.addresses.instructions}</p>
+                  <p className="mt-3 text-zinc-400 italic">Note : {o.addresses.instructions}</p>
                 ) : null}
               </>
             ) : (
-              <p className="text-stone-500">Adresse non disponible.</p>
+              <p className="text-zinc-500">Adresse non disponible.</p>
             )}
           </div>
         </div>
 
         {o.delivery_notes ? (
           <div>
-            <h2 className="text-lg font-bold text-stone-900">Instructions client</h2>
-            <p className="mt-2 rounded-2xl border border-stone-200 bg-white p-5 text-sm text-stone-700 shadow-sm">
+            <h2 className="text-lg font-bold text-zinc-100">Instructions client</h2>
+            <p className="mt-2 rounded-2xl border border-zinc-800 bg-zinc-900 p-5 text-sm text-zinc-300 shadow-sm">
               {o.delivery_notes}
             </p>
           </div>
         ) : null}
 
         <div>
-          <h2 className="text-lg font-bold text-stone-900">Articles</h2>
+          <h2 className="text-lg font-bold text-zinc-100">Articles</h2>
           {items.length === 0 ? (
-            <p className="mt-2 rounded-2xl border border-dashed border-stone-300 bg-white p-8 text-center text-stone-500">
+            <p className="mt-2 rounded-2xl border border-dashed border-zinc-700 bg-zinc-900 p-8 text-center text-zinc-500">
               Aucune ligne enregistrée.
             </p>
           ) : (
@@ -244,7 +244,7 @@ export default function OrderDetailPage() {
                 return (
                   <li
                     key={line.id}
-                    className="overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-sm"
+                    className="overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900 shadow-sm"
                   >
                     <div className="flex flex-col gap-4 p-4 sm:flex-row sm:items-start">
                       {p?.image_url ? (
@@ -255,21 +255,21 @@ export default function OrderDetailPage() {
                           className="h-28 w-full shrink-0 rounded-xl object-cover sm:h-28 sm:w-28"
                         />
                       ) : (
-                        <div className="flex h-28 w-full shrink-0 items-center justify-center rounded-xl bg-stone-100 text-xs text-stone-500 sm:w-28">
+                        <div className="flex h-28 w-full shrink-0 items-center justify-center rounded-xl bg-zinc-800 text-xs text-zinc-500 sm:w-28">
                           Pas d’image
                         </div>
                       )}
                       <div className="min-w-0 flex-1">
                         <div className="flex flex-wrap items-baseline justify-between gap-2">
-                          <p className="text-base font-bold text-stone-900">{name}</p>
+                          <p className="text-base font-bold text-zinc-100">{name}</p>
                           <p className="text-lg font-bold text-orange-600">{fmtMoney(lineTotal)} TND</p>
                         </div>
-                        <p className="mt-1 text-sm text-stone-500">
+                        <p className="mt-1 text-sm text-zinc-500">
                           {line.quantity} × {fmtMoney(line.unit_price)} TND
                         </p>
                         {opts.length > 0 ? (
-                          <ul className="mt-3 space-y-1 border-t border-stone-100 pt-3">
-                            <li className="text-xs font-semibold uppercase tracking-wide text-stone-500">
+                          <ul className="mt-3 space-y-1 border-t border-zinc-800 pt-3">
+                            <li className="text-xs font-semibold uppercase tracking-wide text-zinc-500">
                               Options
                             </li>
                             {opts.map((opt, i) => {
@@ -281,7 +281,7 @@ export default function OrderDetailPage() {
                                     : ` (${fmtMoney(mod)} TND)`
                                   : "";
                               return (
-                                <li key={`${line.id}-opt-${i}`} className="text-sm text-stone-700">
+                                <li key={`${line.id}-opt-${i}`} className="text-sm text-zinc-300">
                                   · {opt.option_name}
                                   {extra}
                                 </li>
@@ -290,11 +290,11 @@ export default function OrderDetailPage() {
                           </ul>
                         ) : null}
                         {desc ? (
-                          <div className="mt-3 border-t border-stone-100 pt-3">
-                            <p className="text-xs font-semibold uppercase tracking-wide text-stone-500">
+                          <div className="mt-3 border-t border-zinc-800 pt-3">
+                            <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500">
                               Description / ingrédients (fiche produit)
                             </p>
-                            <p className="mt-1 whitespace-pre-wrap text-sm text-stone-600">{desc}</p>
+                            <p className="mt-1 whitespace-pre-wrap text-sm text-zinc-400">{desc}</p>
                           </div>
                         ) : null}
                       </div>

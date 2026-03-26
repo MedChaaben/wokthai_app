@@ -39,7 +39,7 @@ export function Modal({ open, onClose, title, children, maxWidthClassName = "max
     <div className="fixed inset-0 z-[100] flex items-end justify-center p-0 sm:items-center sm:p-6">
       <button
         type="button"
-        className="absolute inset-0 bg-stone-900/50"
+        className="absolute inset-0 bg-black/60"
         aria-label="Fermer la fenêtre"
         onClick={onClose}
       />
@@ -47,17 +47,17 @@ export function Modal({ open, onClose, title, children, maxWidthClassName = "max
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
-        className={`relative z-10 flex max-h-[min(92vh,800px)] w-full flex-col overflow-hidden rounded-t-2xl border border-stone-200 bg-white shadow-xl sm:rounded-2xl ${maxWidthClassName}`}
+        className={`relative z-10 flex max-h-[min(92vh,800px)] w-full flex-col overflow-hidden rounded-t-2xl border border-zinc-800 bg-zinc-900 shadow-xl sm:rounded-2xl ${maxWidthClassName}`}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex shrink-0 items-center justify-between gap-3 border-b border-stone-100 px-5 py-4">
-          <h2 id={titleId} className="text-lg font-bold text-stone-900">
+        <div className="flex shrink-0 items-center justify-between gap-3 border-b border-zinc-800 px-5 py-4">
+          <h2 id={titleId} className="text-lg font-bold text-zinc-100">
             {title}
           </h2>
           <button
             type="button"
             onClick={onClose}
-            className="rounded-lg p-1.5 text-stone-500 hover:bg-stone-100 hover:text-stone-800"
+            className="rounded-lg p-1.5 text-zinc-500 hover:bg-zinc-800 hover:text-zinc-200"
             aria-label="Fermer"
           >
             <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
