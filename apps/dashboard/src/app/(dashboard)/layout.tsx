@@ -185,10 +185,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         ) : null}
       </p>
       {navLinks}
-      <div className="mt-4 hidden items-center justify-between gap-2 px-1 md:flex">
-        <span className="text-xs font-medium text-stone-600 dark:text-zinc-500">Affichage</span>
-        <ThemeToggle />
-      </div>
       <button
         type="button"
         onClick={() => void logout()}
@@ -196,6 +192,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       >
         Déconnexion
       </button>
+      <div className="mt-auto hidden flex-col items-center gap-1 border-t border-zinc-200/80 pt-3 dark:border-zinc-800 md:flex">
+        <span className="text-[10px] font-medium uppercase tracking-wider text-zinc-400 dark:text-zinc-600">
+          Thème
+        </span>
+        <ThemeToggle className="!h-8 !w-8 opacity-90" />
+      </div>
     </>
   );
 
@@ -214,11 +216,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         id="dashboard-sidebar"
         inert={mobileDrawerClosed ? true : undefined}
         aria-hidden={mobileDrawerClosed ? true : undefined}
-        className={`fixed inset-y-0 left-0 z-50 flex w-[min(100vw-2rem,18rem)] max-w-[calc(100vw-2rem)] flex-col wt-sidebar p-4 shadow-lg transition-transform duration-200 ease-out md:static md:z-0 md:w-56 md:max-w-none md:translate-x-0 md:shadow-none ${
+        className={`fixed inset-y-0 left-0 z-50 flex w-[min(100vw-2rem,18rem)] max-w-[calc(100vw-2rem)] flex-col wt-sidebar p-4 shadow-lg transition-transform duration-200 ease-out md:static md:z-0 md:w-56 md:max-w-none md:min-h-screen md:translate-x-0 md:shadow-none ${
           mobileNavOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
         }`}
       >
-        <div className="flex flex-col gap-1">{sidebarInner}</div>
+        <div className="flex min-h-0 flex-1 flex-col gap-1 md:min-h-0">{sidebarInner}</div>
       </aside>
 
       <div className="flex min-h-0 min-w-0 flex-1 flex-col">
