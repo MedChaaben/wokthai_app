@@ -1,11 +1,11 @@
-import { View, Text, StyleSheet, Pressable } from 'react-native';
+import { View, Text, StyleSheet, Pressable, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
-import { WtButton } from '../components/WtButton';
-import { WtCard } from '../components/WtCard';
-import { useCart } from '../contexts/CartContext';
-import { wt } from '../lib/theme';
+import { WtButton } from '../../components/WtButton';
+import { WtCard } from '../../components/WtCard';
+import { useCart } from '../../contexts/CartContext';
+import { wt } from '../../lib/theme';
 
-export default function CartScreen() {
+export default function CartTabScreen() {
   const router = useRouter();
   const { lines, subtotal, setQuantity, removeLine } = useCart();
 
@@ -13,13 +13,13 @@ export default function CartScreen() {
     return (
       <View style={styles.empty}>
         <Text style={styles.emptyTitle}>Panier vide</Text>
-        <WtButton title="Parcourir le menu" onPress={() => router.replace('/menu')} />
+        <WtButton title="Parcourir le menu" onPress={() => router.replace('/(tabs)')} />
       </View>
     );
   }
 
   return (
-    <View style={styles.screen}>
+    <ScrollView contentContainerStyle={styles.scroll} style={styles.screen}>
       {lines.map((l) => (
         <WtCard key={l.lineKey} style={styles.row}>
           <View style={styles.rowTop}>
@@ -59,12 +59,13 @@ export default function CartScreen() {
         <Text style={styles.total}>Sous-total : {subtotal.toFixed(2)} TND</Text>
         <WtButton title="Commander" onPress={() => router.push('/checkout')} />
       </View>
-    </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, padding: 16, gap: 12, backgroundColor: wt.bg },
+  screen: { flex: 1, backgroundColor: wt.bg },
+  scroll: { padding: 16, paddingBottom: 40, gap: 12 },
   empty: { flex: 1, justifyContent: 'center', padding: 24, gap: 16, backgroundColor: wt.bg },
   emptyTitle: { fontSize: 20, fontWeight: '700', textAlign: 'center', color: wt.textMuted },
   row: { gap: 8 },

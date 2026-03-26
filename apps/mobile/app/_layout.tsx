@@ -45,13 +45,13 @@ export default function RootLayout() {
             }}
           >
             <Stack.Screen name="index" options={{ headerShown: false }} />
+            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
             <Stack.Screen name="login" options={{ title: 'Connexion' }} />
             <Stack.Screen name="forgot-password" options={{ title: 'Mot de passe oublié' }} />
             <Stack.Screen name="reset-password" options={{ title: 'Nouveau mot de passe' }} />
-            <Stack.Screen name="menu" options={{ title: 'Menu' }} />
             <Stack.Screen name="orders" options={{ title: 'Mes commandes' }} />
+            <Stack.Screen name="addresses" options={{ title: 'Mes adresses' }} />
             <Stack.Screen name="product/[id]" options={{ title: 'Produit' }} />
-            <Stack.Screen name="cart" options={{ title: 'Panier' }} />
             <Stack.Screen name="checkout" options={{ title: 'Commande' }} />
             <Stack.Screen name="order/[id]" options={{ title: 'Suivi' }} />
           </Stack>

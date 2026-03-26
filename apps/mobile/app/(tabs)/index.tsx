@@ -14,15 +14,14 @@ import { useRouter } from 'expo-router';
 import {
   useCategories,
   useProducts,
-  useSupabase,
   useProductIdsWithRequiredOptions,
   buildCartLineKey,
   validateLineOptionsAndPrice,
   type ProductRow,
 } from '@wokthai/shared';
-import { WtCard } from '../components/WtCard';
-import { useCart } from '../contexts/CartContext';
-import { wt } from '../lib/theme';
+import { WtCard } from '../../components/WtCard';
+import { useCart } from '../../contexts/CartContext';
+import { wt } from '../../lib/theme';
 
 function MenuProductRow({
   product: p,
@@ -63,7 +62,7 @@ function MenuProductRow({
 
   function decrement() {
     if (!canQuickAdd) {
-      if (totalInCart > 0) router.push('/cart');
+      if (totalInCart > 0) router.push('/(tabs)/cart');
       return;
     }
     if (quickQty <= 0) return;
@@ -115,10 +114,7 @@ function MenuProductRow({
   );
 }
 
-export default function MenuScreen() {
-  const router = useRouter();
-  const supabase = useSupabase();
-  const { subtotal, lines } = useCart();
+export default function HomeMenuScreen() {
   const categories = useCategories();
   const products = useProducts({ onlyAvailable: true });
   const requiredIds = useProductIdsWithRequiredOptions();
@@ -162,28 +158,8 @@ export default function MenuScreen() {
   const visibleProducts =
     activeCategoryId != null ? (byCategory.get(activeCategoryId) ?? []) : [];
 
-  async function signOut() {
-    await supabase.auth.signOut();
-    router.replace('/login');
-  }
-
   return (
     <View style={styles.screen}>
-      <View style={styles.toolbar}>
-        <View style={styles.toolbarMain}>
-          <Pressable onPress={() => router.push('/cart')} style={styles.toolbarBtn}>
-            <Text style={styles.toolbarText}>Panier ({lines.length})</Text>
-            {subtotal > 0 ? <Text style={styles.toolbarSub}>{subtotal.toFixed(2)} TND</Text> : null}
-          </Pressable>
-          <Pressable onPress={() => router.push('/orders')} style={styles.ordersBtn}>
-            <Text style={styles.ordersBtnText}>Mes commandes</Text>
-          </Pressable>
-        </View>
-        <Pressable onPress={signOut} accessibilityRole="button">
-          <Text style={styles.signOut}>Déconnexion</Text>
-        </Pressable>
-      </View>
-
       {loading ? (
         <ActivityIndicator style={{ marginTop: 32 }} color={wt.accent} size="large" />
       ) : err ? (
@@ -249,24 +225,6 @@ export default function MenuScreen() {
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: wt.bg },
   menuBody: { flex: 1 },
-  toolbar: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    gap: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: wt.border,
-    backgroundColor: wt.bgElevated,
-  },
-  toolbarMain: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 12 },
-  toolbarBtn: { flexShrink: 1 },
-  ordersBtn: { paddingVertical: 4 },
-  ordersBtnText: { fontWeight: '700', color: wt.accentLight, fontSize: 14 },
-  toolbarText: { fontWeight: '700', color: wt.text, fontSize: 15 },
-  toolbarSub: { color: wt.textMuted, marginTop: 2, fontSize: 13 },
-  signOut: { color: wt.accentLight, fontWeight: '600', fontSize: 14 },
   tabBar: {
     maxHeight: 52,
     borderBottomWidth: 1,

@@ -1,14 +1,8 @@
 const { getDefaultConfig } = require('expo/metro-config');
-const path = require('path');
 
-const projectRoot = __dirname;
-const workspaceRoot = path.resolve(projectRoot, '../..');
-
-const config = getDefaultConfig(projectRoot);
-const defaultWatchFolders = config.watchFolders ?? [projectRoot];
-config.watchFolders = [...new Set([...defaultWatchFolders, workspaceRoot])];
-config.resolver.nodeModulesPaths = [
-  path.resolve(projectRoot, 'node_modules'),
-  path.resolve(workspaceRoot, 'node_modules'),
-];
-module.exports = config;
+/**
+ * Laisser Expo gérer le monorepo (watchFolders, résolution node_modules).
+ * Un metro.config surchargé (extraNodeModules, etc.) peut dupliquer React avec pnpm
+ * → dispatcher null / useContext dans les composants RN.
+ */
+module.exports = getDefaultConfig(__dirname);

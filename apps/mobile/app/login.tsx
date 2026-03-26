@@ -49,7 +49,7 @@ export default function LoginScreen() {
       const user = data.user;
       if (user) await syncUserRow(user.id, user.email ?? trimmed);
       setPendingVerificationEmail(null);
-      router.replace('/menu');
+      router.replace('/(tabs)');
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : 'Réessayez plus tard.';
       Alert.alert('Connexion impossible', msg);
@@ -80,7 +80,7 @@ export default function LoginScreen() {
       if (user) await syncUserRow(user.id, user.email ?? trimmed);
       if (data.session) {
         setPendingVerificationEmail(null);
-        router.replace('/menu');
+        router.replace('/(tabs)');
       } else {
         setPendingVerificationEmail(trimmed);
         Alert.alert(

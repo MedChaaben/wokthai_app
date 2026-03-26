@@ -39,6 +39,6 @@ export function parseSupabaseAuthCallback(url: string): ParsedAuthCallback | nul
 }
 
 /** Après setSession depuis l’URL : où router selon le flux Auth. */
-export function routeAfterAuthCallback(type: string | null): '/reset-password' | '/menu' {
-  return type === 'recovery' ? '/reset-password' : '/menu';
+export function routeAfterAuthCallback(type: string | null): '/reset-password' | '/(tabs)' {
+  return type === 'recovery' ? '/reset-password' : '/(tabs)';
 }

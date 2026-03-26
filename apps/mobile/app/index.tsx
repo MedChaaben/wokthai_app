@@ -63,7 +63,7 @@ export default function Index() {
     );
   }
   if (!hasSession) return <Redirect href="/login" />;
-  return <Redirect href="/menu" />;
+  return <Redirect href="/(tabs)" />;
 }
 
 const styles = StyleSheet.create({
