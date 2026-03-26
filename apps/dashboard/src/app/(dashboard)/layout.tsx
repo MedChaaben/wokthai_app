@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useOrders, useStaffProfile, useStoreOrdersRealtime, useSupabase } from "@wokthai/shared";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 const nav = [
   { href: "/orders", label: "Commandes" },
@@ -92,7 +93,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   if (staff.isLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center text-zinc-400">
+      <div className="flex min-h-screen items-center justify-center text-stone-600 dark:text-zinc-400">
         Chargement du profil…
       </div>
     );
@@ -101,17 +102,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   if (!staff.data) {
     return (
       <div className="mx-auto max-w-lg px-4 py-20 text-center">
-        <h1 className="text-xl font-bold text-zinc-100">Accès refusé</h1>
-        <p className="mt-2 text-zinc-400">
-          Ce compte n’est pas lié à un profil <code className="rounded bg-zinc-700 px-1">staff</code> en base.
-          Ajoutez une ligne dans la table <code className="rounded bg-zinc-700 px-1">staff</code> avec votre{" "}
-          <code className="rounded bg-zinc-700 px-1">user_id</code> Supabase.
+        <h1 className="text-xl font-bold text-zinc-900 dark:text-zinc-100">Accès refusé</h1>
+        <p className="mt-2 text-stone-600 dark:text-zinc-400">
+          Ce compte n’est pas lié à un profil <code className="rounded bg-stone-200 dark:bg-zinc-700 px-1">staff</code> en base.
+          Ajoutez une ligne dans la table <code className="rounded bg-stone-200 dark:bg-zinc-700 px-1">staff</code> avec votre{" "}
+          <code className="rounded bg-stone-200 dark:bg-zinc-700 px-1">user_id</code> Supabase.
         </p>
-        <button
-          type="button"
-          onClick={() => void logout()}
-          className="mt-6 rounded-xl bg-orange-600 px-4 py-2 text-sm font-semibold text-white"
-        >
+        <button type="button" onClick={() => void logout()} className="mt-6 wt-btn-primary">
           Déconnexion
         </button>
       </div>
@@ -134,12 +131,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 : undefined
             }
             className={`flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium ${
-              active ? "bg-orange-950/50 text-orange-300" : "text-zinc-300 hover:bg-zinc-800"
+              active
+                ? "bg-wt-bordeaux-muted text-wt-bordeaux dark:bg-wt-bordeaux/25 dark:text-wt-white"
+                : "text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800"
             }`}
           >
             <span className="min-w-0 flex-1">{item.label}</span>
             {showPendingBadge ? (
-              <span className="inline-flex min-h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-amber-500 px-1.5 text-[10px] font-bold leading-none text-white tabular-nums">
+              <span className="inline-flex min-h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-wt-bordeaux px-1.5 text-[10px] font-bold leading-none text-white tabular-nums">
                 {pendingOrdersCount > 99 ? "99+" : pendingOrdersCount}
               </span>
             ) : null}
@@ -152,39 +151,48 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const sidebarInner = (
     <>
       <div className="flex items-start justify-between gap-2 md:block">
-        <Link href="/orders" className="inline-block shrink-0 px-1" onClick={() => setMobileNavOpen(false)}>
-          <Image
-            src="/wokthai-logo.png"
-            alt="Wok Thaï"
-            width={200}
-            height={48}
-            className="h-10 w-auto max-w-[200px]"
-            priority
-          />
+        <Link href="/orders" className="inline-block shrink-0" onClick={() => setMobileNavOpen(false)}>
+          <span className="wt-logo-surface">
+            <Image
+              src="/wokthai-logo.png"
+              alt="Wok Thaï"
+              width={200}
+              height={48}
+              className="h-9 w-auto max-w-[200px]"
+              priority
+            />
+          </span>
         </Link>
-        <button
-          type="button"
-          className="rounded-lg p-2 text-zinc-400 hover:bg-zinc-800 md:hidden"
-          aria-label="Fermer le menu"
-          onClick={() => setMobileNavOpen(false)}
-        >
+        <div className="flex shrink-0 items-center gap-1 md:hidden">
+          <ThemeToggle />
+          <button
+            type="button"
+            className="rounded-lg p-2 text-stone-600 dark:text-zinc-400 hover:bg-stone-100 dark:hover:bg-zinc-800"
+            aria-label="Fermer le menu"
+            onClick={() => setMobileNavOpen(false)}
+          >
           <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <path d="M6 6l12 12M18 6L6 18" strokeLinecap="round" />
           </svg>
         </button>
+        </div>
       </div>
-      <p className="mt-4 px-3 text-sm text-zinc-400">Magasin assigné (commandes filtrées)</p>
-      <p className="px-3 text-sm font-semibold text-zinc-100">
+      <p className="mt-4 px-3 text-sm text-stone-600 dark:text-zinc-400">Magasin assigné (commandes filtrées)</p>
+      <p className="px-3 text-sm font-semibold text-zinc-900 dark:text-zinc-100">
         {staff.data.stores?.name ?? "—"}
         {staff.data.stores?.city ? (
-          <span className="block text-xs font-normal text-zinc-500">{staff.data.stores.city}</span>
+          <span className="block text-xs font-normal text-stone-600 dark:text-zinc-500">{staff.data.stores.city}</span>
         ) : null}
       </p>
       {navLinks}
+      <div className="mt-4 hidden items-center justify-between gap-2 px-1 md:flex">
+        <span className="text-xs font-medium text-stone-600 dark:text-zinc-500">Affichage</span>
+        <ThemeToggle />
+      </div>
       <button
         type="button"
         onClick={() => void logout()}
-        className="mt-6 rounded-lg px-3 py-2 text-left text-sm font-medium text-zinc-500 hover:bg-zinc-800"
+        className="mt-6 rounded-lg px-3 py-2 text-left text-sm font-medium text-stone-600 dark:text-zinc-500 hover:bg-stone-100 dark:hover:bg-zinc-800"
       >
         Déconnexion
       </button>
@@ -206,7 +214,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         id="dashboard-sidebar"
         inert={mobileDrawerClosed ? true : undefined}
         aria-hidden={mobileDrawerClosed ? true : undefined}
-        className={`fixed inset-y-0 left-0 z-50 flex w-[min(100vw-2rem,18rem)] max-w-[calc(100vw-2rem)] flex-col border-r border-zinc-800 bg-zinc-900 p-4 shadow-lg transition-transform duration-200 ease-out md:static md:z-0 md:w-56 md:max-w-none md:translate-x-0 md:shadow-none ${
+        className={`fixed inset-y-0 left-0 z-50 flex w-[min(100vw-2rem,18rem)] max-w-[calc(100vw-2rem)] flex-col wt-sidebar p-4 shadow-lg transition-transform duration-200 ease-out md:static md:z-0 md:w-56 md:max-w-none md:translate-x-0 md:shadow-none ${
           mobileNavOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
         }`}
       >
@@ -214,10 +222,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       </aside>
 
       <div className="flex min-h-0 min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-30 flex items-center gap-3 border-b border-zinc-800 bg-zinc-900 px-3 py-2.5 md:hidden">
+        <header className="sticky top-0 z-30 flex items-center gap-2 wt-header-mobile px-3 py-2.5 md:hidden">
           <button
             type="button"
-            className="rounded-lg p-2 text-zinc-300 hover:bg-zinc-800"
+            className="rounded-lg p-2 text-zinc-700 dark:text-zinc-300 hover:bg-stone-100 dark:hover:bg-zinc-800"
             aria-expanded={mobileNavOpen}
             aria-controls="dashboard-sidebar"
             aria-label="Ouvrir le menu"
@@ -227,22 +235,25 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <path d="M4 7h16M4 12h16M4 17h16" strokeLinecap="round" />
             </svg>
           </button>
-          <Link href="/orders" className="flex min-w-0 flex-1 items-center" onClick={() => setMobileNavOpen(false)}>
-            <Image
-              src="/wokthai-logo.png"
-              alt="Wok Thaï"
-              width={180}
-              height={44}
-              className="h-9 w-auto max-w-[min(100%,200px)]"
-              priority
-            />
+          <Link href="/orders" className="flex min-w-0 flex-1 items-center justify-center" onClick={() => setMobileNavOpen(false)}>
+            <span className="wt-logo-surface max-w-full">
+              <Image
+                src="/wokthai-logo.png"
+                alt="Wok Thaï"
+                width={180}
+                height={44}
+                className="h-8 w-auto max-w-[min(100%,200px)]"
+                priority
+              />
+            </span>
           </Link>
+          <ThemeToggle className="shrink-0" />
         </header>
         {newOrderAlert ? (
           <div
             role="alert"
             aria-live="assertive"
-            className="flex flex-wrap items-center justify-between gap-3 border-b border-orange-900/50 bg-orange-950/50 px-4 py-3 text-sm text-orange-100"
+            className="flex flex-wrap items-center justify-between gap-3 border-b border-wt-bordeaux/25 bg-wt-bordeaux-muted px-4 py-3 text-sm text-wt-bordeaux dark:border-wt-bordeaux/35 dark:bg-wt-bordeaux/20 dark:text-wt-white"
           >
             <p className="font-semibold">
               Nouvelle commande — en attente de confirmation
@@ -250,13 +261,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <div className="flex flex-wrap items-center gap-2">
               <Link
                 href={`/orders/${newOrderAlert.id}`}
-                className="rounded-lg bg-orange-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-orange-700"
+                className="rounded-lg bg-wt-bordeaux px-3 py-1.5 text-xs font-semibold text-white hover:bg-wt-bordeaux-hover"
               >
                 Ouvrir la commande
               </Link>
               <button
                 type="button"
-                className="rounded-lg px-2 py-1 text-xs font-medium text-orange-300 underline-offset-2 hover:underline"
+                className="rounded-lg px-2 py-1 text-xs font-medium text-wt-bordeaux underline-offset-2 hover:underline dark:text-wt-white/90"
                 onClick={() => clearOrderAlert()}
               >
                 Fermer
@@ -264,7 +275,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </div>
           </div>
         ) : null}
-        <main className="flex-1 overflow-auto p-4 md:p-8">{children}</main>
+        <main className="flex-1 overflow-auto bg-background p-4 md:p-8">{children}</main>
       </div>
     </div>
   );

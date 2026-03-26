@@ -47,17 +47,17 @@ export function Modal({ open, onClose, title, children, maxWidthClassName = "max
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
-        className={`relative z-10 flex max-h-[min(92vh,800px)] w-full flex-col overflow-hidden rounded-t-2xl border border-zinc-800 bg-zinc-900 shadow-xl sm:rounded-2xl ${maxWidthClassName}`}
+        className={`relative z-10 flex max-h-[min(92vh,800px)] w-full flex-col overflow-hidden rounded-t-2xl wt-modal-shell sm:rounded-2xl ${maxWidthClassName}`}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex shrink-0 items-center justify-between gap-3 border-b border-zinc-800 px-5 py-4">
-          <h2 id={titleId} className="text-lg font-bold text-zinc-100">
+        <div className="flex shrink-0 items-center justify-between gap-3 border-b border-stone-200 dark:border-zinc-800 px-5 py-4">
+          <h2 id={titleId} className="text-lg font-bold text-zinc-900 dark:text-zinc-100">
             {title}
           </h2>
           <button
             type="button"
             onClick={onClose}
-            className="rounded-lg p-1.5 text-zinc-500 hover:bg-zinc-800 hover:text-zinc-200"
+            className="rounded-lg p-1.5 text-stone-600 dark:text-zinc-500 hover:bg-stone-100 dark:hover:bg-zinc-800 hover:text-zinc-800 dark:hover:text-zinc-200"
             aria-label="Fermer"
           >
             <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

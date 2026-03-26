@@ -1,22 +1,61 @@
 @import "tailwindcss";
 
-/* Thème sombre (aligné sur l’app mobile Wok Thaï) */
+/* Mode sombre piloté par la classe .dark sur <html> (next-themes), pas par prefers-color-scheme */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Palette Wok Thaï : noir, blanc, bordeaux */
 :root {
-  --background: #0a0a0a;
-  --foreground: #fafafa;
-  --surface: #181818;
-  --border: #2e2e2e;
-  --muted: #a8a8a8;
+  --wt-bordeaux: #6b1520;
+  --wt-bordeaux-hover: #8b2230;
+  --wt-bordeaux-muted: #f5e8ea;
+  --wt-black: #0a0a0a;
+  --wt-white: #fafafa;
+
+  --background: #ffffff;
+  --foreground: var(--wt-black);
+  --surface: #ffffff;
+  --border: #e4e4e7;
+  --muted: #71717a;
+  --input-bg: #ffffff;
+  --input-fg: var(--wt-black);
+  --input-placeholder: #a1a1aa;
+  --accent: var(--wt-bordeaux);
+  --accent-hover: var(--wt-bordeaux-hover);
+}
+
+.dark {
+  --background: var(--wt-black);
+  --foreground: var(--wt-white);
+  --surface: #141416;
+  --border: #3f3f46;
+  --muted: #a1a1aa;
+  --input-bg: #0f0f11;
+  --input-fg: var(--wt-white);
+  --input-placeholder: #71717a;
+  --accent: #a83240;
+  --accent-hover: #c44756;
+  --wt-bordeaux-muted: #2a1518;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-wt-bordeaux: var(--wt-bordeaux);
+  --color-wt-bordeaux-hover: var(--wt-bordeaux-hover);
+  --color-wt-bordeaux-muted: var(--wt-bordeaux-muted);
+  --color-wt-black: var(--wt-black);
+  --color-wt-white: var(--wt-white);
+  --color-wt-accent: var(--accent);
+  --color-wt-accent-hover: var(--accent-hover);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
 html {
+  color-scheme: light;
+}
+
+html.dark {
   color-scheme: dark;
 }
 
@@ -25,15 +64,84 @@ body {
   color: var(--foreground);
 }
 
-/* Champs formulaire lisibles sur fond sombre */
 input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
 select,
 textarea {
-  background-color: rgb(24 24 27 / 0.85);
-  color: rgb(244 244 245);
+  background-color: var(--input-bg);
+  color: var(--input-fg);
 }
 
 input::placeholder,
 textarea::placeholder {
-  color: rgb(113 113 122);
+  color: var(--input-placeholder);
+}
+
+select option {
+  background-color: var(--surface);
+  color: var(--foreground);
+}
+
+@layer components {
+  /* Logo PNG transparent : toujours sur fond noir */
+  .wt-logo-surface {
+    @apply inline-flex items-center justify-center rounded-lg bg-wt-black px-3 py-2 ring-1 ring-white/15;
+  }
+
+  .wt-card {
+    @apply rounded-xl border border-zinc-200 bg-white shadow-sm
+      dark:border-zinc-700/85 dark:bg-zinc-900
+      dark:shadow-[0_4px_24px_-6px_rgba(0,0,0,0.65)]
+      dark:ring-1 dark:ring-white/[0.06];
+  }
+
+  .wt-panel {
+    @apply rounded-2xl border border-zinc-200 bg-white shadow-sm
+      dark:border-zinc-700/85 dark:bg-zinc-900
+      dark:shadow-[0_6px_28px_-8px_rgba(0,0,0,0.65)]
+      dark:ring-1 dark:ring-white/[0.06];
+  }
+
+  .wt-modal-shell {
+    @apply border border-zinc-200 bg-white shadow-xl
+      dark:border-zinc-700/85 dark:bg-zinc-900
+      dark:shadow-[0_8px_40px_-10px_rgba(0,0,0,0.75)]
+      dark:ring-1 dark:ring-white/[0.07];
+  }
+
+  .wt-dashed-empty {
+    @apply rounded-xl border border-dashed border-zinc-300 bg-white p-8 text-center
+      dark:border-zinc-600/75 dark:bg-zinc-900/98
+      dark:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05)];
+  }
+
+  .wt-inset {
+    @apply bg-zinc-100 text-zinc-600 dark:bg-zinc-950 dark:text-zinc-500
+      dark:ring-1 dark:ring-inset dark:ring-zinc-800/90;
+  }
+
+  .wt-sidebar {
+    @apply border-r border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900
+      dark:shadow-[4px_0_32px_-12px_rgba(0,0,0,0.55)];
+  }
+
+  .wt-header-mobile {
+    @apply border-b border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900/95 dark:backdrop-blur-sm
+      dark:shadow-[0_1px_0_0_rgba(255,255,255,0.05)];
+  }
+
+  .wt-stat-inactive {
+    @apply dark:ring-1 dark:ring-white/[0.05] dark:shadow-[0_2px_16px_-8px_rgba(0,0,0,0.55)];
+  }
+
+  /* Bouton d’accent (bordeaux Wok Thaï) */
+  .wt-btn-primary {
+    @apply rounded-xl bg-wt-bordeaux px-4 py-2 text-sm font-semibold text-white shadow-sm transition
+      hover:bg-wt-bordeaux-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-400 dark:focus-visible:outline-wt-bordeaux/80;
+  }
+
+  .wt-theme-toggle {
+    @apply inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-zinc-300 bg-white text-wt-black shadow-sm transition
+      hover:border-wt-bordeaux/50 hover:bg-wt-bordeaux-muted
+      dark:border-zinc-600 dark:bg-zinc-900 dark:text-wt-white dark:hover:border-wt-bordeaux/60 dark:hover:bg-zinc-800;
+  }
 }

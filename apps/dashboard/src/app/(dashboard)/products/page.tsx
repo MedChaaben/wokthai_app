@@ -102,10 +102,12 @@ export default function ProductsPage() {
     activeCategoryId != null ? (productsByCategory.get(activeCategoryId) ?? []) : [];
 
   if (products.isLoading || categories.isLoading) {
-    return <p className="text-zinc-400">Chargement…</p>;
+    return <p className="text-stone-600 dark:text-zinc-400">Chargement…</p>;
   }
   if (products.error || categories.error) {
-    return <p className="text-red-600">{(products.error ?? categories.error)?.message}</p>;
+    return (
+      <p className="text-red-600 dark:text-red-400">{(products.error ?? categories.error)?.message}</p>
+    );
   }
 
   function openCreateForm() {
@@ -126,8 +128,8 @@ export default function ProductsPage() {
     <div>
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h1 className="text-2xl font-extrabold text-zinc-100">Produits</h1>
-          <p className="mt-2 max-w-2xl text-sm text-zinc-400">
+          <h1 className="text-2xl font-extrabold text-zinc-900 dark:text-zinc-100">Produits</h1>
+          <p className="mt-2 max-w-2xl text-sm text-stone-600 dark:text-zinc-400">
             L’ordre d’affichage dans l’app mobile suit le champ <span className="font-medium">Position</span> (plus
             petit en premier) par catégorie. Les onglets de catégories suivent la page{" "}
             <span className="font-medium">Catégories</span>.
@@ -136,16 +138,16 @@ export default function ProductsPage() {
         <button
           type="button"
           onClick={openCreateForm}
-          className="shrink-0 rounded-xl bg-orange-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-orange-700"
+          className="shrink-0 rounded-xl bg-wt-bordeaux px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-wt-bordeaux-hover"
         >
           Nouveau produit
         </button>
       </div>
 
-      <h2 className="mt-8 text-lg font-bold text-zinc-100">Menu</h2>
+      <h2 className="mt-8 text-lg font-bold text-zinc-900 dark:text-zinc-100">Menu</h2>
 
       {allProducts.length === 0 ? (
-        <p className="mt-6 rounded-xl border border-dashed border-zinc-700 bg-zinc-900 p-8 text-center text-zinc-500">
+        <p className="mt-6 wt-dashed-empty text-stone-600 dark:text-zinc-500">
           Aucun produit pour le moment. Cliquez sur <span className="font-semibold">Nouveau produit</span> pour en
           ajouter un.
         </p>
@@ -159,8 +161,8 @@ export default function ProductsPage() {
                 onClick={() => setActiveCategoryId(c.id)}
                 className={`shrink-0 rounded-full px-4 py-2 text-sm font-semibold transition ${
                   activeCategoryId === c.id
-                    ? "bg-orange-950/50 text-orange-900 ring-1 ring-orange-900/40"
-                    : "bg-zinc-800 text-zinc-400 hover:bg-zinc-700"
+                    ? "bg-wt-bordeaux-muted text-wt-bordeaux ring-1 ring-wt-bordeaux/30 dark:bg-wt-bordeaux/25 dark:text-white dark:ring-wt-bordeaux/50"
+                    : "bg-stone-100 dark:bg-zinc-800 text-stone-600 dark:text-zinc-400 hover:bg-stone-200 dark:hover:bg-zinc-700"
                 }`}
               >
                 {c.name}
@@ -195,32 +197,32 @@ export default function ProductsPage() {
         >
           <div className="grid gap-3 md:grid-cols-2">
             <div>
-              <label className="text-sm font-semibold text-zinc-300">Nom</label>
+              <label className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">Nom</label>
               <input
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="mt-1 w-full rounded-xl border border-zinc-700 px-3 py-2"
+                className="mt-1 w-full rounded-xl border border-stone-300 dark:border-zinc-700 px-3 py-2"
                 required
               />
             </div>
             <div>
-              <label className="text-sm font-semibold text-zinc-300">Prix (TND)</label>
+              <label className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">Prix (TND)</label>
               <input
                 type="number"
                 step="0.01"
                 value={price}
                 onChange={(e) => setPrice(e.target.value)}
-                className="mt-1 w-full rounded-xl border border-zinc-700 px-3 py-2"
+                className="mt-1 w-full rounded-xl border border-stone-300 dark:border-zinc-700 px-3 py-2"
                 required
               />
             </div>
           </div>
           <div>
-            <label className="text-sm font-semibold text-zinc-300">Catégorie</label>
+            <label className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">Catégorie</label>
             <select
               value={categoryId || cats[0]?.id}
               onChange={(e) => setCategoryId(e.target.value)}
-              className="mt-1 w-full rounded-xl border border-zinc-700 px-3 py-2"
+              className="mt-1 w-full rounded-xl border border-stone-300 dark:border-zinc-700 px-3 py-2"
             >
               {cats.map((c) => (
                 <option key={c.id} value={c.id}>
@@ -230,30 +232,30 @@ export default function ProductsPage() {
             </select>
           </div>
           <div>
-            <label className="text-sm font-semibold text-zinc-300">Position dans la catégorie</label>
+            <label className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">Position dans la catégorie</label>
             <input
               type="number"
               value={productPosition}
               onChange={(e) => setProductPosition(e.target.value)}
-              className="mt-1 w-full max-w-xs rounded-xl border border-zinc-700 px-3 py-2"
+              className="mt-1 w-full max-w-xs rounded-xl border border-stone-300 dark:border-zinc-700 px-3 py-2"
             />
-            <p className="mt-1 text-xs text-zinc-500">Plus petit = affiché plus haut dans le menu (même catégorie).</p>
+            <p className="mt-1 text-xs text-stone-600 dark:text-zinc-500">Plus petit = affiché plus haut dans le menu (même catégorie).</p>
           </div>
           <div>
-            <label className="text-sm font-semibold text-zinc-300">Description</label>
+            <label className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">Description</label>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="mt-1 w-full rounded-xl border border-zinc-700 px-3 py-2"
+              className="mt-1 w-full rounded-xl border border-stone-300 dark:border-zinc-700 px-3 py-2"
               rows={3}
             />
           </div>
           <div>
-            <label className="text-sm font-semibold text-zinc-300">Image</label>
+            <label className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">Image</label>
             <input ref={fileRef} type="file" accept="image/*" className="mt-1 block w-full text-sm" />
           </div>
           {createMut.error ? (
-            <p className="text-sm text-red-600">
+            <p className="text-sm text-red-600 dark:text-red-400">
               {createMut.error instanceof Error ? createMut.error.message : "Erreur"}
             </p>
           ) : null}
@@ -261,7 +263,7 @@ export default function ProductsPage() {
             <button
               type="submit"
               disabled={createMut.isPending}
-              className="rounded-xl bg-orange-600 px-4 py-2 font-semibold text-white disabled:opacity-50"
+              className="rounded-xl bg-wt-bordeaux px-4 py-2 font-semibold text-white hover:bg-wt-bordeaux-hover disabled:opacity-50"
             >
               Créer le produit
             </button>
@@ -269,7 +271,7 @@ export default function ProductsPage() {
               type="button"
               disabled={createMut.isPending}
               onClick={cancelCreateForm}
-              className="rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-2 font-semibold text-zinc-200 hover:bg-zinc-950 disabled:opacity-50"
+              className="rounded-xl border border-stone-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-4 py-2 font-semibold text-zinc-800 dark:text-zinc-200 hover:bg-stone-100 dark:hover:bg-zinc-950 disabled:opacity-50"
             >
               Annuler
             </button>
@@ -381,8 +383,10 @@ function ProductListRow({
 
   return (
     <li
-      className={`rounded-xl border bg-zinc-900 p-4 shadow-sm ${
-        isEditing ? "border-orange-900/50 ring-1 ring-orange-900/40" : "border-zinc-800"
+      className={`wt-card p-4 ${
+        isEditing
+          ? "border-wt-bordeaux ring-2 ring-wt-bordeaux/35 dark:border-wt-bordeaux dark:ring-wt-bordeaux/40"
+          : ""
       }`}
     >
       <div className="flex flex-col gap-3 md:flex-row">
@@ -394,7 +398,7 @@ function ProductListRow({
             className="h-28 w-28 shrink-0 rounded-lg object-cover"
           />
         ) : (
-          <div className="flex h-28 w-28 shrink-0 items-center justify-center rounded-lg bg-zinc-800 text-xs text-zinc-500">
+          <div className="flex h-28 w-28 shrink-0 items-center justify-center rounded-lg wt-inset text-xs">
             Pas d’image
           </div>
         )}
@@ -402,32 +406,32 @@ function ProductListRow({
           {!isEditing ? (
             <>
               <div>
-                <p className="text-lg font-bold text-zinc-100">{product.name}</p>
+                <p className="text-lg font-bold text-zinc-900 dark:text-zinc-100">{product.name}</p>
                 {product.description ? (
-                  <p className="mt-2 whitespace-pre-wrap text-sm text-zinc-400">{product.description}</p>
+                  <p className="mt-2 whitespace-pre-wrap text-sm text-stone-600 dark:text-zinc-400">{product.description}</p>
                 ) : (
-                  <p className="mt-2 text-sm italic text-zinc-600">Pas de description</p>
+                  <p className="mt-2 text-sm italic text-stone-600 dark:text-zinc-400">Pas de description</p>
                 )}
               </div>
-              <div className="flex flex-wrap gap-x-6 gap-y-1 text-sm text-zinc-300">
+              <div className="flex flex-wrap gap-x-6 gap-y-1 text-sm text-zinc-700 dark:text-zinc-300">
                 <p>
-                  <span className="font-semibold text-zinc-400">Prix : </span>
+                  <span className="font-semibold text-stone-600 dark:text-zinc-400">Prix : </span>
                   {Number(product.price).toFixed(2)} TND
                 </p>
                 <p>
-                  <span className="font-semibold text-zinc-400">Catégorie : </span>
+                  <span className="font-semibold text-stone-600 dark:text-zinc-400">Catégorie : </span>
                   {categoryLabel}
                 </p>
                 <p>
-                  <span className="font-semibold text-zinc-400">Position : </span>
+                  <span className="font-semibold text-stone-600 dark:text-zinc-400">Position : </span>
                   {product.position}
                 </p>
                 <p>
-                  <span className="font-semibold text-zinc-400">Vente : </span>
+                  <span className="font-semibold text-stone-600 dark:text-zinc-400">Vente : </span>
                   {product.is_available ? (
-                    <span className="text-emerald-700">Disponible</span>
+                    <span className="text-emerald-700 dark:text-emerald-400">Disponible</span>
                   ) : (
-                    <span className="text-amber-800">Indisponible</span>
+                    <span className="text-amber-800 dark:text-amber-400">Indisponible</span>
                   )}
                 </p>
               </div>
@@ -435,7 +439,7 @@ function ProductListRow({
                 <button
                   type="button"
                   onClick={beginEdit}
-                  className="rounded-xl bg-orange-600 px-4 py-2 text-sm font-semibold text-white"
+                  className="rounded-xl bg-wt-bordeaux px-4 py-2 text-sm font-semibold text-white hover:bg-wt-bordeaux-hover"
                 >
                   Modifier
                 </button>
@@ -444,7 +448,7 @@ function ProductListRow({
                   onClick={() => {
                     if (confirm("Supprimer ce produit ?")) onDelete();
                   }}
-                  className="rounded-xl border border-red-200 px-4 py-2 text-sm font-semibold text-red-600"
+                  className="rounded-xl border border-red-200 px-4 py-2 text-sm font-semibold text-red-600 dark:border-red-900/60 dark:text-red-400"
                 >
                   Supprimer
                 </button>
@@ -452,41 +456,43 @@ function ProductListRow({
             </>
           ) : (
             <>
-              <p className="text-xs font-semibold uppercase tracking-wide text-orange-300">Édition en cours</p>
+              <p className="text-xs font-semibold uppercase tracking-wide text-wt-bordeaux dark:text-wt-accent">
+                Édition en cours
+              </p>
               <div>
-                <label className="text-xs font-semibold text-zinc-400">Nom</label>
+                <label className="text-xs font-semibold text-stone-600 dark:text-zinc-400">Nom</label>
                 <input
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="mt-1 w-full rounded-xl border border-zinc-700 px-3 py-2 text-zinc-100"
+                  className="mt-1 w-full rounded-xl border border-stone-300 dark:border-zinc-700 px-3 py-2 text-zinc-900 dark:text-zinc-100"
                 />
               </div>
               <div>
-                <label className="text-xs font-semibold text-zinc-400">Description</label>
+                <label className="text-xs font-semibold text-stone-600 dark:text-zinc-400">Description</label>
                 <textarea
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   rows={3}
-                  className="mt-1 w-full rounded-xl border border-zinc-700 px-3 py-2 text-zinc-100"
+                  className="mt-1 w-full rounded-xl border border-stone-300 dark:border-zinc-700 px-3 py-2 text-zinc-900 dark:text-zinc-100"
                 />
               </div>
               <div className="flex flex-wrap items-end gap-3">
                 <div>
-                  <label className="text-xs font-semibold text-zinc-400">Prix (TND)</label>
+                  <label className="text-xs font-semibold text-stone-600 dark:text-zinc-400">Prix (TND)</label>
                   <input
                     type="number"
                     step="0.01"
                     value={price}
                     onChange={(e) => setPrice(e.target.value)}
-                    className="mt-1 w-32 rounded-xl border border-zinc-700 px-3 py-2"
+                    className="mt-1 w-32 rounded-xl border border-stone-300 dark:border-zinc-700 px-3 py-2"
                   />
                 </div>
                 <div>
-                  <label className="text-xs font-semibold text-zinc-400">Catégorie</label>
+                  <label className="text-xs font-semibold text-stone-600 dark:text-zinc-400">Catégorie</label>
                   <select
                     value={categoryId}
                     onChange={(e) => setCategoryId(e.target.value)}
-                    className="mt-1 min-w-[10rem] rounded-xl border border-zinc-700 px-3 py-2"
+                    className="mt-1 min-w-[10rem] rounded-xl border border-stone-300 dark:border-zinc-700 px-3 py-2"
                   >
                     {categories.map((c) => (
                       <option key={c.id} value={c.id}>
@@ -496,15 +502,15 @@ function ProductListRow({
                   </select>
                 </div>
                 <div>
-                  <label className="text-xs font-semibold text-zinc-400">Position (ordre dans la catégorie)</label>
+                  <label className="text-xs font-semibold text-stone-600 dark:text-zinc-400">Position (ordre dans la catégorie)</label>
                   <input
                     type="number"
                     value={position}
                     onChange={(e) => setPosition(e.target.value)}
-                    className="mt-1 w-24 rounded-xl border border-zinc-700 px-3 py-2"
+                    className="mt-1 w-24 rounded-xl border border-stone-300 dark:border-zinc-700 px-3 py-2"
                   />
                 </div>
-                <label className="flex cursor-pointer items-center gap-2 pb-2 text-sm font-medium text-zinc-300">
+                <label className="flex cursor-pointer items-center gap-2 pb-2 text-sm font-medium text-zinc-700 dark:text-zinc-300">
                   <input
                     type="checkbox"
                     checked={isAvailable}
@@ -514,12 +520,12 @@ function ProductListRow({
                 </label>
               </div>
               <div>
-                <label className="text-xs font-semibold text-zinc-400">Nouvelle image (optionnel)</label>
+                <label className="text-xs font-semibold text-stone-600 dark:text-zinc-400">Nouvelle image (optionnel)</label>
                 <input
                   ref={fileRef}
                   type="file"
                   accept="image/*"
-                  className="mt-1 block w-full text-sm text-zinc-400"
+                  className="mt-1 block w-full text-sm text-stone-600 dark:text-zinc-400"
                   onChange={(e) => {
                     const f = e.target.files?.[0];
                     setImagePreview((prev) => {
@@ -534,7 +540,7 @@ function ProductListRow({
                   type="button"
                   disabled={save.isPending || !name.trim()}
                   onClick={() => save.mutate()}
-                  className="rounded-xl bg-orange-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
+                  className="rounded-xl bg-wt-bordeaux px-4 py-2 text-sm font-semibold text-white hover:bg-wt-bordeaux-hover disabled:opacity-50"
                 >
                   {save.isPending ? "Enregistrement…" : "Enregistrer"}
                 </button>
@@ -542,13 +548,13 @@ function ProductListRow({
                   type="button"
                   disabled={save.isPending}
                   onClick={cancelEdit}
-                  className="rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-2 text-sm font-semibold text-zinc-200"
+                  className="rounded-xl border border-stone-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-4 py-2 text-sm font-semibold text-zinc-800 dark:text-zinc-200"
                 >
                   Annuler
                 </button>
               </div>
               {save.isError ? (
-                <p className="text-sm text-red-600">
+                <p className="text-sm text-red-600 dark:text-red-400">
                   {save.error instanceof Error ? save.error.message : "Erreur à l’enregistrement"}
                 </p>
               ) : null}
