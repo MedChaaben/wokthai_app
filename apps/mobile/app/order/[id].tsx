@@ -32,6 +32,17 @@ function fmtOrderDateTime(iso: string | null | undefined): string {
   });
 }
 
+function fmtTimelineTime(iso: string): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return '—';
+  return d.toLocaleString('fr-FR', {
+    day: 'numeric',
+    month: 'short',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
+
 export default function OrderTrackingScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { data, isLoading, error } = useOrder(id);
@@ -53,6 +64,7 @@ export default function OrderTrackingScreen() {
   }
 
   const items = data.order_items ?? [];
+  const statusEvents = data.order_status_events ?? [{ status: data.status, created_at: data.created_at }];
 
   return (
     <ScrollView contentContainerStyle={styles.screen}>
@@ -77,6 +89,27 @@ export default function OrderTrackingScreen() {
           <Text style={styles.label}>Total : </Text>
           <Text style={styles.value}>{fmtMoney(data.total_price)} TND</Text>
         </Text>
+      </WtCard>
+
+      <Text style={styles.sectionTitle}>Suivi du statut</Text>
+      <WtCard>
+        <View style={styles.timeline}>
+          {statusEvents.map((ev, i) => {
+            const isLast = i === statusEvents.length - 1;
+            return (
+              <View key={`${ev.created_at}-${ev.status}-${i}`} style={styles.timelineRow}>
+                <View style={styles.timelineTrack}>
+                  <View style={[styles.timelineDot, isLast && styles.timelineDotCurrent]} />
+                  {!isLast ? <View style={styles.timelineLine} /> : null}
+                </View>
+                <View style={[styles.timelineBody, isLast && styles.timelineBodyLast]}>
+                  <Text style={styles.timelineLabel}>{STATUS_LABEL[ev.status] ?? ev.status}</Text>
+                  <Text style={styles.timelineMeta}>{fmtTimelineTime(ev.created_at)}</Text>
+                </View>
+              </View>
+            );
+          })}
+        </View>
       </WtCard>
 
       <Text style={styles.sectionTitle}>Lieu</Text>
@@ -196,4 +229,37 @@ const styles = StyleSheet.create({
   opts: { marginTop: 8, gap: 4 },
   optItem: { fontSize: 13, color: wt.textMuted },
   hint: { fontSize: 13, color: wt.textSecondary, paddingHorizontal: 4, marginTop: 8 },
+  timeline: { gap: 0 },
+  timelineRow: { flexDirection: 'row', alignItems: 'stretch' },
+  timelineTrack: {
+    width: 22,
+    marginRight: 12,
+    flexDirection: 'column',
+    alignItems: 'center',
+    alignSelf: 'stretch',
+  },
+  timelineDot: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: wt.border,
+    borderWidth: 2,
+    borderColor: wt.textMuted,
+  },
+  timelineDotCurrent: {
+    backgroundColor: wt.accentMuted,
+    borderColor: wt.accentLight,
+  },
+  timelineLine: {
+    width: 2,
+    flex: 1,
+    minHeight: 10,
+    marginTop: 4,
+    backgroundColor: wt.border,
+    borderRadius: 1,
+  },
+  timelineBody: { flex: 1, paddingBottom: 18 },
+  timelineBodyLast: { paddingBottom: 0 },
+  timelineLabel: { fontSize: 16, fontWeight: '700', color: wt.text },
+  timelineMeta: { marginTop: 4, fontSize: 13, color: wt.textMuted },
 });

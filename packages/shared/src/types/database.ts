@@ -230,6 +230,27 @@ export type Database = {
         };
         Relationships: [];
       };
+      order_status_events: {
+        Row: {
+          id: string;
+          order_id: string;
+          status: OrderStatusEnum;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          order_id: string;
+          status: OrderStatusEnum;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          order_id?: string;
+          status?: OrderStatusEnum;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
       order_items: {
         Row: {
           id: string;

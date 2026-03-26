@@ -36,11 +36,18 @@ export type OrderItemDetail = {
   order_item_options: Pick<OrderItemOptionRow, 'option_name' | 'price_modifier'>[] | null;
 };
 
+/** Événement d’historique de statut (timeline). */
+export type OrderStatusEventRow = Pick<
+  Database['public']['Tables']['order_status_events']['Row'],
+  'status' | 'created_at'
+>;
+
 /** Commande avec magasin, adresse et lignes (fetchOrderById enrichi). */
 export type OrderDetailRow = OrderRow & {
   stores: Pick<StoreRow, 'id' | 'name' | 'address' | 'city'> | null;
   addresses: Pick<AddressRow, 'label' | 'address' | 'city' | 'instructions'> | null;
   order_items: OrderItemDetail[] | null;
+  order_status_events: OrderStatusEventRow[] | null;
 };
 
 /** Liste staff : commande avec client, adresse livraison et magasin (retrait). */

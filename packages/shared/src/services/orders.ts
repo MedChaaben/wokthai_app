@@ -7,6 +7,7 @@ import type {
   OrderItemDetail,
   OrderListRow,
   OrderRow,
+  OrderStatusEventRow,
 } from '../types';
 import { fetchActiveStores } from './stores';
 import { fetchDeliveryZones } from './delivery-zones';
@@ -66,10 +67,18 @@ function normalizeOrderDetail(raw: OrderDetailRow): OrderDetailRow {
     raw.addresses as OrderDetailRow['addresses'] | OrderDetailRow['addresses'][] | null | undefined
   );
   const items = raw.order_items ?? [];
+  const rawEvents = raw.order_status_events ?? [];
+  const eventsList = Array.isArray(rawEvents) ? rawEvents : [rawEvents];
+  const sorted = [...eventsList]
+    .filter((e): e is OrderStatusEventRow => e != null && typeof e === 'object' && 'status' in e && 'created_at' in e)
+    .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+  const order_status_events: OrderStatusEventRow[] =
+    sorted.length > 0 ? sorted : [{ status: raw.status, created_at: raw.created_at }];
   return {
     ...raw,
     stores,
     addresses,
+    order_status_events,
     order_items: items.map((line) => ({
       ...line,
       products: asSingle(
@@ -109,7 +118,8 @@ export async function fetchOrderById(
         unit_price,
         products!order_items_product_id_fkey ( name, image_url, description ),
         order_item_options ( option_name, price_modifier )
-      )
+      ),
+      order_status_events ( status, created_at )
     `
     )
     .eq('id', orderId)

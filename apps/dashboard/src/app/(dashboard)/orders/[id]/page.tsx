@@ -29,6 +29,17 @@ function fmtMoney(n: string | number): string {
   return Number(n).toFixed(2);
 }
 
+function fmtTimelineTime(iso: string): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "—";
+  return d.toLocaleString("fr-FR", {
+    day: "numeric",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
 export default function OrderDetailPage() {
   const params = useParams();
   const id = typeof params.id === "string" ? params.id : undefined;
@@ -50,6 +61,7 @@ export default function OrderDetailPage() {
 
   const o = order.data;
   const items = o.order_items ?? [];
+  const statusEvents = o.order_status_events ?? [{ status: o.status, created_at: o.created_at }];
 
   return (
     <div className="max-w-3xl">
@@ -96,6 +108,35 @@ export default function OrderDetailPage() {
               <span className="font-semibold">Créée :</span>{" "}
               {new Date(o.created_at).toLocaleString("fr-TN")}
             </p>
+          </div>
+        </div>
+
+        <div>
+          <h2 className="text-lg font-bold text-stone-900">Suivi du statut</h2>
+          <div className="mt-2 rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
+            <ul className="flex flex-col">
+              {statusEvents.map((ev, i) => {
+                const isLast = i === statusEvents.length - 1;
+                return (
+                  <li key={`${ev.created_at}-${ev.status}-${i}`} className="flex gap-3">
+                    <div className="flex w-[22px] shrink-0 flex-col items-center self-stretch">
+                      <div
+                        className={`h-3 w-3 shrink-0 rounded-full border-2 ${
+                          isLast ? "border-orange-500 bg-orange-100" : "border-stone-400 bg-stone-200"
+                        }`}
+                      />
+                      {!isLast ? (
+                        <div className="mt-1 min-h-[10px] w-0.5 flex-1 rounded-full bg-stone-200" />
+                      ) : null}
+                    </div>
+                    <div className={`min-w-0 flex-1 ${isLast ? "" : "pb-5"}`}>
+                      <p className="font-bold text-stone-900">{LABELS[ev.status] ?? ev.status}</p>
+                      <p className="mt-1 text-sm text-stone-500">{fmtTimelineTime(ev.created_at)}</p>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
           </div>
         </div>
 
