@@ -285,7 +285,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </div>
           </div>
         ) : null}
-        <main className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden bg-background p-4 md:p-8">
+        <main className="min-h-0 flex-1 overflow-y-auto overflow-x-clip bg-background p-4 md:p-8">
           {children}
         </main>
       </div>

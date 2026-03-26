@@ -271,91 +271,100 @@ export default function OrdersPage() {
         </div>
       </section>
 
-      {/* Vues + type */}
-      <section className="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
-        <div className="flex flex-wrap gap-2" role="group" aria-label="Vue liste">
-          <span className="mr-1 self-center text-xs font-semibold uppercase text-stone-600 dark:text-zinc-500">Vue</span>
-          {(
-            [
-              ["active", "En cours", "Commandes à préparer / livrer"],
-              ["all", "Toutes", "Inclut terminées et annulées"],
-              ["history", "Historique", "Livrées et annulées"],
-            ] as const
-          ).map(([key, label, title]) => (
-            <button
-              key={key}
-              type="button"
-              title={title}
-              onClick={() => {
-                setView(key);
-                if (key !== "active") setStatusFilter("all");
-              }}
-              className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
-                view === key
-                  ? "bg-wt-bordeaux text-white shadow-sm hover:bg-wt-bordeaux-hover"
-                  : "bg-white text-zinc-700 shadow-sm ring-1 ring-stone-300 hover:bg-stone-100 dark:bg-zinc-900 dark:text-zinc-300 dark:shadow-[0_2px_12px_-4px_rgba(0,0,0,0.45)] dark:ring-zinc-700 dark:hover:bg-zinc-950"
-              }`}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
-        <div className="flex flex-wrap gap-2" role="group" aria-label="Type de commande">
-          <span className="mr-1 self-center text-xs font-semibold uppercase text-stone-600 dark:text-zinc-500">Type</span>
-          {(
-            [
-              ["all", "Tous"],
-              ["delivery", "Livraison"],
-              ["pickup", "À emporter"],
-            ] as const
-          ).map(([key, label]) => (
-            <button
-              key={key}
-              type="button"
-              onClick={() => setTypeFilter(key)}
-              className={`rounded-full px-3 py-1.5 text-sm font-medium transition ${
-                typeFilter === key
-                  ? "bg-wt-bordeaux text-white hover:bg-wt-bordeaux-hover"
-                  : "bg-stone-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-stone-200 dark:hover:bg-zinc-700"
-              }`}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
-      </section>
+      {/* Barre d’outils : sticky doit rester enfant du bloc page (pas un wrapper court) sinon le parent limite la zone de collage. -top-* compense le padding du <main>. */}
+      <div
+        className="sticky -top-4 z-20 -mx-4 mt-6 border-b border-stone-200/90 bg-background/95 px-4 pb-4 pt-4 backdrop-blur-md supports-[backdrop-filter]:bg-background/85 dark:border-zinc-800 md:-top-8 md:-mx-8 md:px-8 md:pt-8"
+        aria-label="Filtres et recherche"
+      >
+          {/* Vues + type */}
+          <section className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+            <div className="flex flex-wrap gap-2" role="group" aria-label="Vue liste">
+              <span className="mr-1 self-center text-xs font-semibold uppercase text-stone-600 dark:text-zinc-500">Vue</span>
+              {(
+                [
+                  ["active", "En cours", "Commandes à préparer / livrer"],
+                  ["all", "Toutes", "Inclut terminées et annulées"],
+                  ["history", "Historique", "Livrées et annulées"],
+                ] as const
+              ).map(([key, label, title]) => (
+                <button
+                  key={key}
+                  type="button"
+                  title={title}
+                  onClick={() => {
+                    setView(key);
+                    if (key !== "active") setStatusFilter("all");
+                  }}
+                  className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
+                    view === key
+                      ? "bg-wt-bordeaux text-white shadow-sm hover:bg-wt-bordeaux-hover"
+                      : "bg-white text-zinc-700 shadow-sm ring-1 ring-stone-300 hover:bg-stone-100 dark:bg-zinc-900 dark:text-zinc-300 dark:shadow-[0_2px_12px_-4px_rgba(0,0,0,0.45)] dark:ring-zinc-700 dark:hover:bg-zinc-950"
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+            <div className="flex flex-wrap gap-2" role="group" aria-label="Type de commande">
+              <span className="mr-1 self-center text-xs font-semibold uppercase text-stone-600 dark:text-zinc-500">Type</span>
+              {(
+                [
+                  ["all", "Tous"],
+                  ["delivery", "Livraison"],
+                  ["pickup", "À emporter"],
+                ] as const
+              ).map(([key, label]) => (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => setTypeFilter(key)}
+                  className={`rounded-full px-3 py-1.5 text-sm font-medium transition ${
+                    typeFilter === key
+                      ? "bg-wt-bordeaux text-white hover:bg-wt-bordeaux-hover"
+                      : "bg-stone-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-stone-200 dark:hover:bg-zinc-700"
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </section>
 
-      <section className="mt-6" aria-label="Recherche client">
-        <label htmlFor="orders-client-search" className="mb-2 block text-xs font-semibold uppercase tracking-wide text-stone-600 dark:text-zinc-500">
-          Recherche client (toutes les commandes du magasin)
-        </label>
-        <div className="flex max-w-xl flex-col gap-2 sm:flex-row sm:items-center">
-          <input
-            id="orders-client-search"
-            type="search"
-            value={clientSearch}
-            onChange={(e) => setClientSearch(e.target.value)}
-            placeholder="Nom, prénom, e-mail, téléphone…"
-            autoComplete="off"
-            className="w-full rounded-xl border border-stone-300 dark:border-zinc-700 px-3 py-2.5 text-zinc-900 dark:text-zinc-100 outline-none ring-wt-bordeaux/20 dark:ring-wt-bordeaux/30 placeholder:text-zinc-400 dark:placeholder:text-zinc-600 focus:border-wt-bordeaux focus:ring-2 focus:ring-wt-bordeaux/30"
-          />
-          {searchActive ? (
-            <button
-              type="button"
-              onClick={() => setClientSearch("")}
-              className="shrink-0 rounded-xl border border-stone-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-4 py-2.5 text-sm font-semibold text-zinc-700 dark:text-zinc-300 hover:bg-stone-100 dark:hover:bg-zinc-950"
+          <section className="mt-6" aria-label="Recherche client">
+            <label
+              htmlFor="orders-client-search"
+              className="mb-2 block text-xs font-semibold uppercase tracking-wide text-stone-600 dark:text-zinc-500"
             >
-              Effacer
-            </button>
-          ) : null}
-        </div>
-        {searchActive ? (
-          <p className="mt-2 text-sm text-wt-bordeaux dark:text-wt-accent">
-            Filtre « vue » (En cours / Toutes / Historique) désactivé pendant la recherche — portée : toutes les
-            commandes du magasin, avec les filtres type et statut ci-dessous si actifs.
-          </p>
-        ) : null}
-      </section>
+              Recherche client (toutes les commandes du magasin)
+            </label>
+            <div className="flex max-w-xl flex-col gap-2 sm:flex-row sm:items-center">
+              <input
+                id="orders-client-search"
+                type="search"
+                value={clientSearch}
+                onChange={(e) => setClientSearch(e.target.value)}
+                placeholder="Nom, prénom, e-mail, téléphone…"
+                autoComplete="off"
+                className="w-full rounded-xl border border-stone-300 dark:border-zinc-700 px-3 py-2.5 text-zinc-900 dark:text-zinc-100 outline-none ring-wt-bordeaux/20 dark:ring-wt-bordeaux/30 placeholder:text-zinc-400 dark:placeholder:text-zinc-600 focus:border-wt-bordeaux focus:ring-2 focus:ring-wt-bordeaux/30"
+              />
+              {searchActive ? (
+                <button
+                  type="button"
+                  onClick={() => setClientSearch("")}
+                  className="shrink-0 rounded-xl border border-stone-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-4 py-2.5 text-sm font-semibold text-zinc-700 dark:text-zinc-300 hover:bg-stone-100 dark:hover:bg-zinc-950"
+                >
+                  Effacer
+                </button>
+              ) : null}
+            </div>
+            {searchActive ? (
+              <p className="mt-2 text-sm text-wt-bordeaux dark:text-wt-accent">
+                Filtre « vue » (En cours / Toutes / Historique) désactivé pendant la recherche — portée : toutes les
+                commandes du magasin, avec les filtres type et statut ci-dessous si actifs.
+              </p>
+            ) : null}
+          </section>
+      </div>
 
       {(statusFilter !== "all" || typeFilter !== "all") && (
         <p className="mt-3 text-sm text-stone-600 dark:text-zinc-400">
@@ -386,7 +395,7 @@ export default function OrdersPage() {
         {searchActive ? " (recherche active)" : ""}
       </p>
 
-      <ul className="mt-4 space-y-3">
+      <ul className="relative z-0 mt-4 space-y-3">
         {filtered.length === 0 ? (
           <li className="wt-dashed-empty p-10 text-stone-600 dark:text-zinc-500">
             {searchActive
