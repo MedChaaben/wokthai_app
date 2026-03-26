@@ -9,7 +9,6 @@ import {
   Alert,
   ActivityIndicator,
 } from 'react-native';
-import * as Location from 'expo-location';
 import {
   useMyAddresses,
   createAddress,
@@ -20,6 +19,7 @@ import {
   type AllowedCity,
 } from '@wokthai/shared';
 import { AddressCardActions } from '../components/AddressCardActions';
+import { MapAddressPickerModal } from '../components/MapAddressPickerModal';
 import { WtButton } from '../components/WtButton';
 import { WtCard } from '../components/WtCard';
 import { wt } from '../lib/theme';
@@ -40,6 +40,7 @@ export default function AddressesScreen() {
   const [lng, setLng] = useState<number | null>(null);
   const [savingAddress, setSavingAddress] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [mapPickerVisible, setMapPickerVisible] = useState(false);
 
   function resetForm() {
     setEditingId(null);
@@ -72,24 +73,13 @@ export default function AddressesScreen() {
     resetForm();
   }
 
-  async function captureLocation() {
-    const { status } = await Location.requestForegroundPermissionsAsync();
-    if (status !== 'granted') {
-      Alert.alert('Permission refusée', 'Activez la localisation pour enregistrer les coordonnées.');
-      return;
-    }
-    const pos = await Location.getCurrentPositionAsync({});
-    setLat(pos.coords.latitude);
-    setLng(pos.coords.longitude);
-  }
-
   async function saveAddress() {
     if (!label.trim() || !addressLine.trim()) {
       Alert.alert('Champs requis', 'Libellé et adresse sont obligatoires.');
       return;
     }
     if (lat == null || lng == null) {
-      Alert.alert('Position', 'Utilisez « Utiliser ma position » pour enregistrer lat/lng.');
+      Alert.alert('Position', 'Appuyez sur « Choisir sur la carte » pour indiquer où livrer.');
       return;
     }
     const instr = instructions.trim() ? instructions.trim() : null;
@@ -187,30 +177,23 @@ export default function AddressesScreen() {
       />
 
       {showForm ? (
-        <WtCard style={{ gap: 10 }}>
+        <WtCard style={{ gap: 12 }}>
           <Text style={styles.formTitle}>{editingId ? 'Modifier l’adresse' : 'Nouvelle adresse'}</Text>
-          <TextInput
-            placeholder="Libellé (ex. Maison)"
-            placeholderTextColor={wt.placeholder}
-            value={label}
-            onChangeText={setLabel}
-            style={styles.input}
-          />
-          <TextInput
-            placeholder="Adresse complète"
-            placeholderTextColor={wt.placeholder}
-            value={addressLine}
-            onChangeText={setAddressLine}
-            style={styles.input}
-          />
-          <TextInput
-            placeholder="Instructions pour le livreur (optionnel)"
-            placeholderTextColor={wt.placeholder}
-            value={instructions}
-            onChangeText={setInstructions}
-            style={styles.input}
-            multiline
-          />
+          <Text style={styles.formHint}>
+            Placez d’abord le point sur la carte (entrée, immeuble), puis complétez le texte pour le livreur.
+          </Text>
+
+          <View style={styles.positionBlock}>
+            <Text style={styles.sectionLabel}>Où livrer</Text>
+            <WtButton title="Choisir sur la carte" onPress={() => setMapPickerVisible(true)} />
+            <Text style={[styles.coords, lat != null && lng != null ? styles.coordsOk : null]}>
+              {lat != null && lng != null
+                ? `Point enregistré · ${lat.toFixed(5)}, ${lng.toFixed(5)}`
+                : 'À faire : ouvrir la carte et valider la position'}
+            </Text>
+          </View>
+
+          <Text style={styles.sectionLabel}>Ville</Text>
           <View style={styles.cityRow}>
             {CITIES.map((c) => (
               <Pressable key={c} onPress={() => setCity(c)} style={styles.cityChipWrap}>
@@ -218,12 +201,35 @@ export default function AddressesScreen() {
               </Pressable>
             ))}
           </View>
-          <WtButton title="Utiliser ma position (lat/lng)" variant="ghost" onPress={captureLocation} />
-          <Text style={styles.coords}>
-            {lat != null && lng != null
-              ? `${lat.toFixed(5)}, ${lng.toFixed(5)}`
-              : 'Position non enregistrée'}
-          </Text>
+
+          <Text style={styles.sectionLabel}>Libellé</Text>
+          <TextInput
+            placeholder="Ex. Maison, Bureau"
+            placeholderTextColor={wt.placeholder}
+            value={label}
+            onChangeText={setLabel}
+            style={styles.input}
+          />
+
+          <Text style={styles.sectionLabel}>Adresse écrite</Text>
+          <TextInput
+            placeholder="Rue, numéro, étage, digicode…"
+            placeholderTextColor={wt.placeholder}
+            value={addressLine}
+            onChangeText={setAddressLine}
+            style={styles.input}
+          />
+
+          <Text style={styles.sectionLabel}>Instructions (optionnel)</Text>
+          <TextInput
+            placeholder="Repères pour le livreur"
+            placeholderTextColor={wt.placeholder}
+            value={instructions}
+            onChangeText={setInstructions}
+            style={styles.input}
+            multiline
+          />
+
           <WtButton
             title={editingId ? 'Enregistrer les modifications' : 'Enregistrer l’adresse'}
             loading={savingAddress}
@@ -232,6 +238,17 @@ export default function AddressesScreen() {
           <WtButton title="Annuler" variant="ghost" onPress={closeForm} />
         </WtCard>
       ) : null}
+
+      <MapAddressPickerModal
+        visible={mapPickerVisible}
+        onClose={() => setMapPickerVisible(false)}
+        initialLat={lat}
+        initialLng={lng}
+        onConfirm={(la, ln) => {
+          setLat(la);
+          setLng(ln);
+        }}
+      />
     </ScrollView>
   );
 }
@@ -239,7 +256,17 @@ export default function AddressesScreen() {
 const styles = StyleSheet.create({
   screen: { padding: 16, paddingBottom: 40, gap: 12, backgroundColor: wt.bg },
   intro: { fontSize: 14, color: wt.textMuted, lineHeight: 20, marginBottom: 4 },
-  formTitle: { fontSize: 17, fontWeight: '700', color: wt.text, marginBottom: 4 },
+  formTitle: { fontSize: 17, fontWeight: '700', color: wt.text, marginBottom: 2 },
+  formHint: { fontSize: 14, color: wt.textMuted, lineHeight: 20, marginBottom: 4 },
+  sectionLabel: { fontSize: 13, fontWeight: '700', color: wt.textSecondary, marginBottom: 6 },
+  positionBlock: {
+    padding: 12,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: wt.border,
+    backgroundColor: wt.surface,
+    gap: 8,
+  },
   addrCard: { marginBottom: 4 },
   addrTitle: { fontWeight: '700', fontSize: 16, color: wt.text },
   addrMeta: { marginTop: 6, color: wt.textMuted, lineHeight: 22 },
@@ -265,5 +292,6 @@ const styles = StyleSheet.create({
     color: wt.textMuted,
   },
   cityChipActive: { backgroundColor: wt.accentMuted, borderColor: wt.accent, color: wt.accentLight },
-  coords: { fontSize: 13, color: wt.textMuted },
+  coords: { fontSize: 13, color: wt.textMuted, lineHeight: 18 },
+  coordsOk: { color: wt.accentLight },
 });

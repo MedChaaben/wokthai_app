@@ -9,7 +9,6 @@ import {
   Alert,
   ActivityIndicator,
 } from 'react-native';
-import * as Location from 'expo-location';
 import { useRouter } from 'expo-router';
 import {
   useCreateOrder,
@@ -22,6 +21,7 @@ import {
   type AllowedCity,
   type PaymentStatus,
 } from '@wokthai/shared';
+import { MapAddressPickerModal } from '../components/MapAddressPickerModal';
 import { WtButton } from '../components/WtButton';
 import { WtCard } from '../components/WtCard';
 import { useCart } from '../contexts/CartContext';
@@ -57,17 +57,7 @@ export default function CheckoutScreen() {
   const [lat, setLat] = useState<number | null>(null);
   const [lng, setLng] = useState<number | null>(null);
   const [savingAddress, setSavingAddress] = useState(false);
-
-  async function captureLocation() {
-    const { status } = await Location.requestForegroundPermissionsAsync();
-    if (status !== 'granted') {
-      Alert.alert('Permission refusée', 'Activez la localisation pour enregistrer les coordonnées.');
-      return;
-    }
-    const pos = await Location.getCurrentPositionAsync({});
-    setLat(pos.coords.latitude);
-    setLng(pos.coords.longitude);
-  }
+  const [mapPickerVisible, setMapPickerVisible] = useState(false);
 
   async function saveNewAddress() {
     if (!label.trim() || !addressLine.trim()) {
@@ -75,7 +65,7 @@ export default function CheckoutScreen() {
       return;
     }
     if (lat == null || lng == null) {
-      Alert.alert('Position', 'Utilisez « Utiliser ma position » pour enregistrer lat/lng.');
+      Alert.alert('Position', 'Appuyez sur « Choisir sur la carte » pour indiquer où livrer.');
       return;
     }
     setSavingAddress(true);
@@ -243,21 +233,20 @@ export default function CheckoutScreen() {
             onPress={() => setShowNewAddress((v) => !v)}
           />
           {showNewAddress ? (
-            <WtCard style={{ gap: 10 }}>
-              <TextInput
-                placeholder="Libellé (ex. Maison)"
-                placeholderTextColor={wt.placeholder}
-                value={label}
-                onChangeText={setLabel}
-                style={styles.input}
-              />
-              <TextInput
-                placeholder="Adresse complète"
-                placeholderTextColor={wt.placeholder}
-                value={addressLine}
-                onChangeText={setAddressLine}
-                style={styles.input}
-              />
+            <WtCard style={{ gap: 12 }}>
+              <Text style={styles.formHint}>
+                Carte d’abord pour le point exact, puis les détails pour le livreur.
+              </Text>
+              <View style={styles.positionBlock}>
+                <Text style={styles.sectionLabel}>Où livrer</Text>
+                <WtButton title="Choisir sur la carte" onPress={() => setMapPickerVisible(true)} />
+                <Text style={[styles.coords, lat != null && lng != null ? styles.coordsOk : null]}>
+                  {lat != null && lng != null
+                    ? `Point enregistré · ${lat.toFixed(5)}, ${lng.toFixed(5)}`
+                    : 'À faire : ouvrir la carte et valider la position'}
+                </Text>
+              </View>
+              <Text style={styles.sectionLabel}>Ville</Text>
               <View style={styles.cityRow}>
                 {CITIES.map((c) => (
                   <Pressable key={c} onPress={() => setCity(c)} style={styles.cityChipWrap}>
@@ -265,12 +254,22 @@ export default function CheckoutScreen() {
                   </Pressable>
                 ))}
               </View>
-              <WtButton title="Utiliser ma position (lat/lng)" variant="ghost" onPress={captureLocation} />
-              <Text style={styles.coords}>
-                {lat != null && lng != null
-                  ? `${lat.toFixed(5)}, ${lng.toFixed(5)}`
-                  : 'Position non enregistrée'}
-              </Text>
+              <Text style={styles.sectionLabel}>Libellé</Text>
+              <TextInput
+                placeholder="Ex. Maison, Bureau"
+                placeholderTextColor={wt.placeholder}
+                value={label}
+                onChangeText={setLabel}
+                style={styles.input}
+              />
+              <Text style={styles.sectionLabel}>Adresse écrite</Text>
+              <TextInput
+                placeholder="Rue, numéro, étage, digicode…"
+                placeholderTextColor={wt.placeholder}
+                value={addressLine}
+                onChangeText={setAddressLine}
+                style={styles.input}
+              />
               <WtButton title="Enregistrer l’adresse" loading={savingAddress} onPress={saveNewAddress} />
             </WtCard>
           ) : null}
@@ -310,6 +309,17 @@ export default function CheckoutScreen() {
         title="Valider la commande"
         loading={createOrder.isPending}
         onPress={() => void submitOrder()}
+      />
+
+      <MapAddressPickerModal
+        visible={mapPickerVisible}
+        onClose={() => setMapPickerVisible(false)}
+        initialLat={lat}
+        initialLng={lng}
+        onConfirm={(la, ln) => {
+          setLat(la);
+          setLng(ln);
+        }}
       />
     </ScrollView>
   );
@@ -356,7 +366,18 @@ const styles = StyleSheet.create({
     color: wt.textMuted,
   },
   cityChipActive: { backgroundColor: wt.accentMuted, borderColor: wt.accent, color: wt.accentLight },
-  coords: { fontSize: 13, color: wt.textMuted },
+  formHint: { fontSize: 14, color: wt.textMuted, lineHeight: 20 },
+  sectionLabel: { fontSize: 13, fontWeight: '700', color: wt.textSecondary, marginBottom: 6 },
+  positionBlock: {
+    padding: 12,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: wt.border,
+    backgroundColor: wt.surface,
+    gap: 8,
+  },
+  coords: { fontSize: 13, color: wt.textMuted, lineHeight: 18 },
+  coordsOk: { color: wt.accentLight },
   body: { fontSize: 14, color: wt.textMuted, lineHeight: 20 },
   total: { fontSize: 18, fontWeight: '800', color: wt.text },
   hint: { marginTop: 6, fontSize: 13, color: wt.textSecondary },
