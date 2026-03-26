@@ -2,13 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import {
-  useOrders,
-  useStaffProfile,
-  useStoreOrdersRealtime,
-  formatCustomerDisplayName,
-  type OrderListRow,
-} from "@wokthai/shared";
+import { useOrders, useStaffProfile, formatCustomerDisplayName, type OrderListRow } from "@wokthai/shared";
 import type { OrderRow } from "@wokthai/shared";
 
 const STATUS_LABEL: Record<OrderRow["status"], string> = {
@@ -92,7 +86,6 @@ export default function OrdersPage() {
   const staff = useStaffProfile();
   const storeId = staff.data?.store_id;
   const orders = useOrders({ mode: "staff", storeId });
-  useStoreOrdersRealtime(storeId);
 
   const [view, setView] = useState<ViewMode>("active");
   const [statusFilter, setStatusFilter] = useState<OrderRow["status"] | "all">("all");

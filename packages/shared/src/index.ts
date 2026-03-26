@@ -29,7 +29,10 @@ export { useUpdateOrderStatus } from './hooks/useUpdateOrderStatus';
 export { useOrder } from './hooks/useOrder';
 export { useOrderRealtime } from './hooks/useOrderRealtime';
 export { useMyOrdersRealtime } from './hooks/useMyOrdersRealtime';
-export { useStoreOrdersRealtime } from './hooks/useStoreOrdersRealtime';
+export {
+  useStoreOrdersRealtime,
+  type StoreOrdersRealtimeOptions,
+} from './hooks/useStoreOrdersRealtime';
 export { useStaffProfile } from './hooks/useStaffProfile';
 export { useMyAddresses } from './hooks/useMyAddresses';
 export { useMyUserProfile } from './hooks/useMyUserProfile';

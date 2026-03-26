@@ -3,8 +3,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import { useStaffProfile, useSupabase } from "@wokthai/shared";
+import { useEffect, useRef, useState } from "react";
+import { useStaffProfile, useStoreOrdersRealtime, useSupabase } from "@wokthai/shared";
 
 const nav = [
   { href: "/orders", label: "Commandes" },
@@ -29,7 +29,27 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const router = useRouter();
   const pathname = usePathname();
   const staff = useStaffProfile();
+  const storeId = staff.data?.store_id;
+  const [newOrderAlert, setNewOrderAlert] = useState<{ id: string } | null>(null);
+  const alertOrderIdRef = useRef<string | null>(null);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+
+  function clearOrderAlert() {
+    alertOrderIdRef.current = null;
+    setNewOrderAlert(null);
+  }
+
+  useStoreOrdersRealtime(storeId, {
+    onInsert: ({ id }) => {
+      alertOrderIdRef.current = id;
+      setNewOrderAlert({ id });
+    },
+    onUpdate: ({ id, status }) => {
+      if (id === alertOrderIdRef.current && status === "confirmed") {
+        clearOrderAlert();
+      }
+    },
+  });
   const isMd = useIsMdUp();
   const mobileDrawerClosed = isMd === false && !mobileNavOpen;
 
@@ -202,6 +222,32 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             />
           </Link>
         </header>
+        {newOrderAlert ? (
+          <div
+            role="alert"
+            aria-live="assertive"
+            className="flex flex-wrap items-center justify-between gap-3 border-b border-orange-200 bg-orange-50 px-4 py-3 text-sm text-orange-950"
+          >
+            <p className="font-semibold">
+              Nouvelle commande — en attente de confirmation
+            </p>
+            <div className="flex flex-wrap items-center gap-2">
+              <Link
+                href={`/orders/${newOrderAlert.id}`}
+                className="rounded-lg bg-orange-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-orange-700"
+              >
+                Ouvrir la commande
+              </Link>
+              <button
+                type="button"
+                className="rounded-lg px-2 py-1 text-xs font-medium text-orange-800 underline-offset-2 hover:underline"
+                onClick={() => clearOrderAlert()}
+              >
+                Fermer
+              </button>
+            </div>
+          </div>
+        ) : null}
         <main className="flex-1 overflow-auto p-4 md:p-8">{children}</main>
       </div>
     </div>
