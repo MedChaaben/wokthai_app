@@ -14,6 +14,10 @@ import type { ProductRow as ProductRowType } from "@wokthai/shared";
 import { CategoryMenuManager } from "../../../components/CategoryMenuManager";
 import { Modal } from "../../../components/Modal";
 
+/** Alignée sur la page Commandes : compense le padding du <main>, z-20 au-dessus de la liste. */
+const CATEGORY_PILLS_STICKY =
+  "sticky -top-4 z-20 -mx-4 mt-4 border-b border-stone-200/90 bg-background/95 px-4 pb-3 pt-2 backdrop-blur-md supports-[backdrop-filter]:bg-background/85 dark:border-zinc-800 md:-top-8 md:-mx-8 md:px-8 md:pb-4 md:pt-3";
+
 export default function ProductsPage() {
   const supabase = useSupabase();
   const qc = useQueryClient();
@@ -186,22 +190,24 @@ export default function ProductsPage() {
         </p>
       ) : allProducts.length === 0 ? (
         <>
-          <div className="mt-4 flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            {cats.map((c) => (
-              <button
-                key={c.id}
-                type="button"
-                onClick={() => setActiveCategoryId(c.id)}
-                className={`shrink-0 rounded-full px-4 py-2 text-sm font-semibold transition ${
-                  activeCategoryId === c.id
-                    ? "bg-wt-bordeaux-muted text-wt-bordeaux ring-1 ring-wt-bordeaux/30 dark:bg-wt-bordeaux/25 dark:text-white dark:ring-wt-bordeaux/50"
-                    : "bg-stone-100 dark:bg-zinc-800 text-stone-600 dark:text-zinc-400 hover:bg-stone-200 dark:hover:bg-zinc-700"
-                }`}
-              >
-                {c.name}
-                <span className="ml-1.5 text-xs font-medium opacity-80">(0)</span>
-              </button>
-            ))}
+          <div className={CATEGORY_PILLS_STICKY} aria-label="Catégories du menu">
+            <div className="flex gap-2 overflow-x-auto p-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              {cats.map((c) => (
+                <button
+                  key={c.id}
+                  type="button"
+                  onClick={() => setActiveCategoryId(c.id)}
+                  className={`shrink-0 rounded-full px-4 py-2 text-sm font-semibold transition ${
+                    activeCategoryId === c.id
+                      ? "bg-wt-bordeaux-muted text-wt-bordeaux ring-1 ring-wt-bordeaux/30 dark:bg-wt-bordeaux/25 dark:text-white dark:ring-wt-bordeaux/50"
+                      : "bg-stone-100 dark:bg-zinc-800 text-stone-600 dark:text-zinc-400 hover:bg-stone-200 dark:hover:bg-zinc-700"
+                  }`}
+                >
+                  {c.name}
+                  <span className="ml-1.5 text-xs font-medium opacity-80">(0)</span>
+                </button>
+              ))}
+            </div>
           </div>
           <p className="mt-6 wt-dashed-empty text-stone-600 dark:text-zinc-500">
             Aucun produit pour le moment. Cliquez sur <span className="font-semibold">Nouveau produit</span> pour en
@@ -210,24 +216,26 @@ export default function ProductsPage() {
         </>
       ) : (
         <>
-          <div className="mt-4 flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            {cats.map((c) => (
-              <button
-                key={c.id}
-                type="button"
-                onClick={() => setActiveCategoryId(c.id)}
-                className={`shrink-0 rounded-full px-4 py-2 text-sm font-semibold transition ${
-                  activeCategoryId === c.id
-                    ? "bg-wt-bordeaux-muted text-wt-bordeaux ring-1 ring-wt-bordeaux/30 dark:bg-wt-bordeaux/25 dark:text-white dark:ring-wt-bordeaux/50"
-                    : "bg-stone-100 dark:bg-zinc-800 text-stone-600 dark:text-zinc-400 hover:bg-stone-200 dark:hover:bg-zinc-700"
-                }`}
-              >
-                {c.name}
-                <span className="ml-1.5 text-xs font-medium opacity-80">
-                  ({productsByCategory.get(c.id)?.length ?? 0})
-                </span>
-              </button>
-            ))}
+          <div className={CATEGORY_PILLS_STICKY} aria-label="Catégories du menu">
+            <div className="flex gap-2 overflow-x-auto p-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              {cats.map((c) => (
+                <button
+                  key={c.id}
+                  type="button"
+                  onClick={() => setActiveCategoryId(c.id)}
+                  className={`shrink-0 rounded-full px-4 py-2 text-sm font-semibold transition ${
+                    activeCategoryId === c.id
+                      ? "bg-wt-bordeaux-muted text-wt-bordeaux ring-1 ring-wt-bordeaux/30 dark:bg-wt-bordeaux/25 dark:text-white dark:ring-wt-bordeaux/50"
+                      : "bg-stone-100 dark:bg-zinc-800 text-stone-600 dark:text-zinc-400 hover:bg-stone-200 dark:hover:bg-zinc-700"
+                  }`}
+                >
+                  {c.name}
+                  <span className="ml-1.5 text-xs font-medium opacity-80">
+                    ({productsByCategory.get(c.id)?.length ?? 0})
+                  </span>
+                </button>
+              ))}
+            </div>
           </div>
 
           {visibleProducts.length === 0 ? (
@@ -236,7 +244,7 @@ export default function ProductsPage() {
               ajouter un.
             </p>
           ) : (
-            <ul className="mt-6 space-y-3">
+            <ul className="relative z-0 mt-6 space-y-3">
               {visibleProducts.map((p) => (
                 <ProductListRow key={p.id} product={p} categories={cats} onDelete={() => deleteMut.mutate(p.id)} />
               ))}
