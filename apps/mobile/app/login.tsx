@@ -5,6 +5,7 @@ import { useRouter } from 'expo-router';
 import { useSupabase } from '@wokthai/shared';
 import { WtButton } from '../components/WtButton';
 import { WtCard } from '../components/WtCard';
+import { wt } from '../lib/theme';
 
 type Mode = 'signin' | 'signup';
 
@@ -134,6 +135,7 @@ export default function LoginScreen() {
         <Text style={styles.label}>Email</Text>
         <TextInput
           placeholder="vous@exemple.com"
+          placeholderTextColor={wt.placeholder}
           value={email}
           onChangeText={setEmail}
           keyboardType="email-address"
@@ -145,6 +147,7 @@ export default function LoginScreen() {
         <Text style={styles.label}>Mot de passe</Text>
         <TextInput
           placeholder="••••••••"
+          placeholderTextColor={wt.placeholder}
           value={password}
           onChangeText={setPassword}
           secureTextEntry
@@ -181,41 +184,42 @@ export default function LoginScreen() {
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, padding: 24, paddingTop: 48, backgroundColor: '#fafaf9' },
-  brand: { fontSize: 32, fontWeight: '800', color: '#1c1917' },
-  sub: { marginTop: 4, marginBottom: 24, color: '#78716c', fontSize: 15 },
+  screen: { flex: 1, padding: 24, paddingTop: 48, backgroundColor: wt.bg },
+  brand: { fontSize: 32, fontWeight: '800', color: wt.text },
+  sub: { marginTop: 4, marginBottom: 24, color: wt.textMuted, fontSize: 15 },
   card: { gap: 12 },
   modeRow: { flexDirection: 'row', gap: 8, marginBottom: 4 },
   modeBtn: {
     flex: 1,
     paddingVertical: 10,
     borderRadius: 10,
-    backgroundColor: '#f5f5f4',
+    backgroundColor: wt.surfaceMuted,
     alignItems: 'center',
   },
-  modeBtnActive: { backgroundColor: '#fff7ed' },
-  modeText: { fontSize: 14, fontWeight: '600', color: '#78716c' },
-  modeTextActive: { color: '#c2410c' },
+  modeBtnActive: { backgroundColor: wt.accentMuted },
+  modeText: { fontSize: 14, fontWeight: '600', color: wt.textMuted },
+  modeTextActive: { color: wt.accentLight },
   forgot: { marginTop: 4, alignItems: 'center', paddingVertical: 8 },
-  forgotText: { fontSize: 15, fontWeight: '600', color: '#c2410c' },
-  label: { fontSize: 14, fontWeight: '600', color: '#44403c' },
+  forgotText: { fontSize: 15, fontWeight: '600', color: wt.accentLight },
+  label: { fontSize: 14, fontWeight: '600', color: wt.text },
   input: {
     borderWidth: 1,
-    borderColor: '#d6d3d1',
+    borderColor: wt.border,
     borderRadius: 10,
     padding: 14,
     fontSize: 16,
-    backgroundColor: '#fff',
+    backgroundColor: wt.surface,
+    color: wt.text,
   },
   verifyBox: {
     marginTop: 16,
     padding: 16,
     borderRadius: 12,
-    backgroundColor: '#fff',
+    backgroundColor: wt.surface,
     borderWidth: 1,
-    borderColor: '#e7e5e4',
+    borderColor: wt.border,
     gap: 10,
   },
-  verifyTitle: { fontSize: 15, fontWeight: '700', color: '#1c1917' },
-  verifyText: { fontSize: 13, color: '#57534e', lineHeight: 20 },
+  verifyTitle: { fontSize: 15, fontWeight: '700', color: wt.text },
+  verifyText: { fontSize: 13, color: wt.textMuted, lineHeight: 20 },
 });

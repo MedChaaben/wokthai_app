@@ -5,6 +5,7 @@ import * as Linking from 'expo-linking';
 import { useSupabase } from '@wokthai/shared';
 import { parseSupabaseAuthCallback, routeAfterAuthCallback } from '../lib/parseAuthCallbackUrl';
 import { supabaseReady } from '../lib/supabase';
+import { wt } from '../lib/theme';
 
 export default function Index() {
   const supabase = useSupabase();
@@ -57,7 +58,7 @@ export default function Index() {
   if (loading) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator size="large" color="#ea580c" />
+        <ActivityIndicator size="large" color={wt.accent} />
       </View>
     );
   }
@@ -66,5 +67,5 @@ export default function Index() {
 }
 
 const styles = StyleSheet.create({
-  center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#fafaf9' },
+  center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: wt.bg },
 });

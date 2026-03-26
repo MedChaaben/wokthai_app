@@ -3,6 +3,7 @@ import { useRouter } from 'expo-router';
 import { WtButton } from '../components/WtButton';
 import { WtCard } from '../components/WtCard';
 import { useCart } from '../contexts/CartContext';
+import { wt } from '../lib/theme';
 
 export default function CartScreen() {
   const router = useRouter();
@@ -63,26 +64,26 @@ export default function CartScreen() {
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, padding: 16, gap: 12, backgroundColor: '#fafaf9' },
-  empty: { flex: 1, justifyContent: 'center', padding: 24, gap: 16, backgroundColor: '#fafaf9' },
-  emptyTitle: { fontSize: 20, fontWeight: '700', textAlign: 'center', color: '#44403c' },
+  screen: { flex: 1, padding: 16, gap: 12, backgroundColor: wt.bg },
+  empty: { flex: 1, justifyContent: 'center', padding: 24, gap: 16, backgroundColor: wt.bg },
+  emptyTitle: { fontSize: 20, fontWeight: '700', textAlign: 'center', color: wt.textMuted },
   row: { gap: 8 },
   rowTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  name: { fontSize: 16, fontWeight: '700', color: '#1c1917', flex: 1 },
-  opts: { fontSize: 12, color: '#78716c' },
-  remove: { color: '#b91c1c', fontWeight: '600' },
-  meta: { color: '#57534e', fontSize: 14 },
+  name: { fontSize: 16, fontWeight: '700', color: wt.text, flex: 1 },
+  opts: { fontSize: 12, color: wt.textMuted },
+  remove: { color: wt.error, fontWeight: '600' },
+  meta: { color: wt.textMuted, fontSize: 14 },
   qtyRow: { flexDirection: 'row', alignItems: 'center', gap: 16, marginTop: 4 },
   qtyBtn: {
     width: 36,
     height: 36,
     borderRadius: 8,
-    backgroundColor: '#f5f5f4',
+    backgroundColor: wt.surfaceMuted,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  qtyBtnText: { fontSize: 20, fontWeight: '700', color: '#1c1917' },
-  qty: { fontSize: 16, fontWeight: '700', minWidth: 24, textAlign: 'center' },
+  qtyBtnText: { fontSize: 20, fontWeight: '700', color: wt.text },
+  qty: { fontSize: 16, fontWeight: '700', minWidth: 24, textAlign: 'center', color: wt.text },
   footer: { marginTop: 8, gap: 12 },
-  total: { fontSize: 18, fontWeight: '800', color: '#1c1917' },
+  total: { fontSize: 18, fontWeight: '800', color: wt.text },
 });

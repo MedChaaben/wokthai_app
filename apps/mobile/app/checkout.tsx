@@ -25,6 +25,7 @@ import {
 import { WtButton } from '../components/WtButton';
 import { WtCard } from '../components/WtCard';
 import { useCart } from '../contexts/CartContext';
+import { wt } from '../lib/theme';
 
 const CITIES: AllowedCity[] = ['Tunis', 'Ariana'];
 
@@ -154,7 +155,7 @@ export default function CheckoutScreen() {
     <ScrollView contentContainerStyle={styles.screen}>
       <Text style={styles.heading}>Magasin</Text>
       {stores.isLoading ? (
-        <ActivityIndicator color="#ea580c" />
+        <ActivityIndicator color={wt.accent} />
       ) : (stores.data ?? []).length === 0 ? (
         <Text style={styles.body}>Aucun magasin disponible pour le moment.</Text>
       ) : (
@@ -220,7 +221,7 @@ export default function CheckoutScreen() {
       {orderType === 'delivery' ? (
         <>
           <Text style={styles.heading}>Adresse</Text>
-          {addresses.isLoading ? <ActivityIndicator color="#ea580c" /> : null}
+          {addresses.isLoading ? <ActivityIndicator color={wt.accent} /> : null}
           {(addresses.data ?? []).map((a) => (
             <Pressable key={a.id} onPress={() => setSelectedAddressId(a.id)}>
               <WtCard
@@ -245,12 +246,14 @@ export default function CheckoutScreen() {
             <WtCard style={{ gap: 10 }}>
               <TextInput
                 placeholder="Libellé (ex. Maison)"
+                placeholderTextColor={wt.placeholder}
                 value={label}
                 onChangeText={setLabel}
                 style={styles.input}
               />
               <TextInput
                 placeholder="Adresse complète"
+                placeholderTextColor={wt.placeholder}
                 value={addressLine}
                 onChangeText={setAddressLine}
                 style={styles.input}
@@ -283,6 +286,7 @@ export default function CheckoutScreen() {
       <Text style={styles.heading}>Notes</Text>
       <TextInput
         placeholder="Instructions pour le restaurant / livreur"
+        placeholderTextColor={wt.placeholder}
         value={deliveryNotes}
         onChangeText={setDeliveryNotes}
         multiline
@@ -312,32 +316,33 @@ export default function CheckoutScreen() {
 }
 
 const styles = StyleSheet.create({
-  screen: { padding: 16, paddingBottom: 40, gap: 12, backgroundColor: '#fafaf9' },
-  heading: { fontSize: 16, fontWeight: '800', color: '#1c1917', marginTop: 8 },
+  screen: { padding: 16, paddingBottom: 40, gap: 12, backgroundColor: wt.bg },
+  heading: { fontSize: 16, fontWeight: '800', color: wt.text, marginTop: 8 },
   segment: { flexDirection: 'row', gap: 8 },
   segBtn: {
     flex: 1,
     paddingVertical: 12,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: '#d6d3d1',
+    borderColor: wt.border,
     alignItems: 'center',
-    backgroundColor: '#fff',
+    backgroundColor: wt.surface,
   },
-  segActive: { borderColor: '#ea580c', backgroundColor: '#fff7ed' },
-  segText: { fontWeight: '600', color: '#44403c', fontSize: 13, textAlign: 'center' },
-  segTextActive: { color: '#c2410c' },
+  segActive: { borderColor: wt.accent, backgroundColor: wt.accentMuted },
+  segText: { fontWeight: '600', color: wt.textMuted, fontSize: 13, textAlign: 'center' },
+  segTextActive: { color: wt.accentLight },
   addrCard: { marginBottom: 8 },
-  addrSelected: { borderColor: '#ea580c', borderWidth: 2 },
-  addrTitle: { fontWeight: '700', fontSize: 16, color: '#1c1917' },
-  addrMeta: { marginTop: 4, color: '#57534e' },
+  addrSelected: { borderColor: wt.accent, borderWidth: 2 },
+  addrTitle: { fontWeight: '700', fontSize: 16, color: wt.text },
+  addrMeta: { marginTop: 4, color: wt.textMuted },
   input: {
     borderWidth: 1,
-    borderColor: '#d6d3d1',
+    borderColor: wt.border,
     borderRadius: 10,
     padding: 12,
     fontSize: 15,
-    backgroundColor: '#fff',
+    backgroundColor: wt.surface,
+    color: wt.text,
   },
   cityRow: { flexDirection: 'row', gap: 8 },
   cityChipWrap: { flex: 1 },
@@ -346,14 +351,14 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#d6d3d1',
+    borderColor: wt.border,
     fontWeight: '600',
-    color: '#44403c',
+    color: wt.textMuted,
   },
-  cityChipActive: { backgroundColor: '#fff7ed', borderColor: '#ea580c', color: '#c2410c' },
-  coords: { fontSize: 13, color: '#57534e' },
-  body: { fontSize: 14, color: '#57534e', lineHeight: 20 },
-  total: { fontSize: 18, fontWeight: '800', color: '#1c1917' },
-  hint: { marginTop: 6, fontSize: 13, color: '#78716c' },
-  feeLine: { marginTop: 8, fontSize: 15, fontWeight: '600', color: '#44403c' },
+  cityChipActive: { backgroundColor: wt.accentMuted, borderColor: wt.accent, color: wt.accentLight },
+  coords: { fontSize: 13, color: wt.textMuted },
+  body: { fontSize: 14, color: wt.textMuted, lineHeight: 20 },
+  total: { fontSize: 18, fontWeight: '800', color: wt.text },
+  hint: { marginTop: 6, fontSize: 13, color: wt.textSecondary },
+  feeLine: { marginTop: 8, fontSize: 15, fontWeight: '600', color: wt.textMuted },
 });

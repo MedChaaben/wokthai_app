@@ -1,4 +1,5 @@
 import { View, StyleSheet, type ViewProps } from 'react-native';
+import { wt } from '../lib/theme';
 
 export function WtCard({ style, children, ...rest }: ViewProps) {
   return (
@@ -10,15 +11,15 @@ export function WtCard({ style, children, ...rest }: ViewProps) {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#fff',
+    backgroundColor: wt.surface,
     borderRadius: 12,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#e7e5e4',
+    borderColor: wt.border,
     shadowColor: '#000',
-    shadowOpacity: 0.04,
-    shadowRadius: 8,
+    shadowOpacity: 0.35,
+    shadowRadius: 10,
     shadowOffset: { width: 0, height: 2 },
-    elevation: 1,
+    elevation: 3,
   },
 });

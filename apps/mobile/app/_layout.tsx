@@ -2,6 +2,8 @@ import { Stack } from 'expo-router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useMemo, useState } from 'react';
 import { Text, View, StyleSheet } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
+import { wt } from '../lib/theme';
 import { SupabaseProvider } from '@wokthai/shared';
 import { AuthDeepLinkHandler } from '../components/AuthDeepLinkHandler';
 import { CartProvider } from '../contexts/CartContext';
@@ -17,6 +19,7 @@ export default function RootLayout() {
   if (!supabaseClient) {
     return (
       <View style={styles.center}>
+        <StatusBar style="light" />
         <Text style={styles.title}>Configuration Supabase</Text>
         <Text style={styles.body}>
           Définissez EXPO_PUBLIC_SUPABASE_URL et EXPO_PUBLIC_SUPABASE_ANON_KEY dans .env.local à la racine du
@@ -30,12 +33,15 @@ export default function RootLayout() {
     <QueryClientProvider client={queryClient}>
       <SupabaseProvider client={supabaseClient}>
         <CartProvider>
+          <StatusBar style="light" />
           <AuthDeepLinkHandler />
           <Stack
             screenOptions={{
-              headerTintColor: '#ea580c',
-              headerTitleStyle: { fontWeight: '700' },
-              contentStyle: { backgroundColor: '#fafaf9' },
+              headerStyle: { backgroundColor: wt.bgElevated },
+              headerTintColor: wt.accentLight,
+              headerTitleStyle: { fontWeight: '700', color: wt.text },
+              headerShadowVisible: false,
+              contentStyle: { backgroundColor: wt.bg },
             }}
           >
             <Stack.Screen name="index" options={{ headerShown: false }} />
@@ -56,7 +62,7 @@ export default function RootLayout() {
 }
 
 const styles = StyleSheet.create({
-  center: { flex: 1, justifyContent: 'center', padding: 24, backgroundColor: '#fafaf9' },
-  title: { fontSize: 20, fontWeight: '700', marginBottom: 8, color: '#1c1917' },
-  body: { fontSize: 15, color: '#57534e', lineHeight: 22 },
+  center: { flex: 1, justifyContent: 'center', padding: 24, backgroundColor: wt.bg },
+  title: { fontSize: 20, fontWeight: '700', marginBottom: 8, color: wt.text },
+  body: { fontSize: 15, color: wt.textMuted, lineHeight: 22 },
 });

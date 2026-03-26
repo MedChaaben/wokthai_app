@@ -7,6 +7,7 @@ import {
   ViewStyle,
   TextStyle,
 } from 'react-native';
+import { wt } from '../lib/theme';
 
 type Props = PressableProps & {
   title: string;
@@ -30,7 +31,7 @@ export function WtButton({ title, loading, variant = 'primary', disabled, style,
       {...rest}
     >
       {loading ? (
-        <ActivityIndicator color={variant === 'primary' ? '#fff' : '#c2410c'} />
+        <ActivityIndicator color={variant === 'primary' ? wt.white : wt.accentLight} />
       ) : (
         <Text style={[styles.text, variant === 'ghost' ? styles.textGhost : null] as TextStyle[]}>
           {title}
@@ -49,10 +50,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     minHeight: 48,
   },
-  primary: { backgroundColor: '#ea580c' },
-  ghost: { backgroundColor: 'transparent', borderWidth: 1, borderColor: '#d6d3d1' },
+  primary: { backgroundColor: wt.accent },
+  ghost: { backgroundColor: 'transparent', borderWidth: 1, borderColor: wt.borderStrong },
   pressed: { opacity: 0.88 },
   disabled: { opacity: 0.5 },
-  text: { color: '#fff', fontSize: 16, fontWeight: '600' },
-  textGhost: { color: '#1c1917' },
+  text: { color: wt.white, fontSize: 16, fontWeight: '600' },
+  textGhost: { color: wt.text },
 });

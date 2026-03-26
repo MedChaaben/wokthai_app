@@ -4,6 +4,7 @@ import { useRouter } from 'expo-router';
 import { useSupabase } from '@wokthai/shared';
 import { WtButton } from '../components/WtButton';
 import { WtCard } from '../components/WtCard';
+import { wt } from '../lib/theme';
 
 export default function ResetPasswordScreen() {
   const supabase = useSupabase();
@@ -95,6 +96,7 @@ export default function ResetPasswordScreen() {
         <Text style={styles.label}>Nouveau mot de passe</Text>
         <TextInput
           placeholder="••••••••"
+          placeholderTextColor={wt.placeholder}
           value={password}
           onChangeText={setPassword}
           secureTextEntry
@@ -104,6 +106,7 @@ export default function ResetPasswordScreen() {
         <Text style={styles.label}>Confirmer</Text>
         <TextInput
           placeholder="••••••••"
+          placeholderTextColor={wt.placeholder}
           value={confirm}
           onChangeText={setConfirm}
           secureTextEntry
@@ -117,18 +120,19 @@ export default function ResetPasswordScreen() {
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, padding: 24, paddingTop: 24, backgroundColor: '#fafaf9' },
-  title: { fontSize: 24, fontWeight: '800', color: '#1c1917' },
-  sub: { marginTop: 8, marginBottom: 20, color: '#57534e', fontSize: 15, lineHeight: 22 },
+  screen: { flex: 1, padding: 24, paddingTop: 24, backgroundColor: wt.bg },
+  title: { fontSize: 24, fontWeight: '800', color: wt.text },
+  sub: { marginTop: 8, marginBottom: 20, color: wt.textMuted, fontSize: 15, lineHeight: 22 },
   card: { gap: 12 },
-  label: { fontSize: 14, fontWeight: '600', color: '#44403c' },
+  label: { fontSize: 14, fontWeight: '600', color: wt.text },
   input: {
     borderWidth: 1,
-    borderColor: '#d6d3d1',
+    borderColor: wt.border,
     borderRadius: 10,
     padding: 14,
     fontSize: 16,
-    backgroundColor: '#fff',
+    backgroundColor: wt.surface,
+    color: wt.text,
   },
-  muted: { fontSize: 15, color: '#78716c' },
+  muted: { fontSize: 15, color: wt.textMuted },
 });

@@ -22,6 +22,7 @@ import {
 } from '@wokthai/shared';
 import { WtCard } from '../components/WtCard';
 import { useCart } from '../contexts/CartContext';
+import { wt } from '../lib/theme';
 
 function MenuProductRow({
   product: p,
@@ -184,7 +185,7 @@ export default function MenuScreen() {
       </View>
 
       {loading ? (
-        <ActivityIndicator style={{ marginTop: 32 }} color="#ea580c" size="large" />
+        <ActivityIndicator style={{ marginTop: 32 }} color={wt.accent} size="large" />
       ) : err ? (
         <Text style={styles.error}>{err instanceof Error ? err.message : 'Erreur de chargement'}</Text>
       ) : categoriesWithProducts.length === 0 ? (
@@ -227,6 +228,8 @@ export default function MenuScreen() {
                   void products.refetch();
                   void requiredIds.refetch();
                 }}
+                tintColor={wt.accent}
+                colors={[wt.accent]}
               />
             }
             renderItem={({ item: p }) => {
@@ -244,7 +247,7 @@ export default function MenuScreen() {
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: '#fafaf9' },
+  screen: { flex: 1, backgroundColor: wt.bg },
   menuBody: { flex: 1 },
   toolbar: {
     flexDirection: 'row',
@@ -254,21 +257,21 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#e7e5e4',
-    backgroundColor: '#fff',
+    borderBottomColor: wt.border,
+    backgroundColor: wt.bgElevated,
   },
   toolbarMain: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 12 },
   toolbarBtn: { flexShrink: 1 },
   ordersBtn: { paddingVertical: 4 },
-  ordersBtnText: { fontWeight: '700', color: '#ea580c', fontSize: 14 },
-  toolbarText: { fontWeight: '700', color: '#1c1917', fontSize: 15 },
-  toolbarSub: { color: '#78716c', marginTop: 2, fontSize: 13 },
-  signOut: { color: '#ea580c', fontWeight: '600', fontSize: 14 },
+  ordersBtnText: { fontWeight: '700', color: wt.accentLight, fontSize: 14 },
+  toolbarText: { fontWeight: '700', color: wt.text, fontSize: 15 },
+  toolbarSub: { color: wt.textMuted, marginTop: 2, fontSize: 13 },
+  signOut: { color: wt.accentLight, fontWeight: '600', fontSize: 14 },
   tabBar: {
     maxHeight: 52,
     borderBottomWidth: 1,
-    borderBottomColor: '#e7e5e4',
-    backgroundColor: '#fff',
+    borderBottomColor: wt.border,
+    backgroundColor: wt.bgElevated,
   },
   tabBarInner: {
     paddingHorizontal: 12,
@@ -283,45 +286,45 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: 999,
-    backgroundColor: '#f5f5f4',
+    backgroundColor: wt.surfaceMuted,
   },
   tabActive: {
-    backgroundColor: '#fff7ed',
+    backgroundColor: wt.accentMuted,
     borderWidth: 1,
-    borderColor: '#fed7aa',
+    borderColor: wt.accentBorder,
   },
-  tabText: { fontSize: 14, fontWeight: '700', color: '#57534e', maxWidth: 140 },
-  tabTextActive: { color: '#c2410c' },
-  tabCount: { fontSize: 12, fontWeight: '600', color: '#78716c' },
-  tabCountActive: { color: '#ea580c' },
+  tabText: { fontSize: 14, fontWeight: '700', color: wt.textSecondary, maxWidth: 140 },
+  tabTextActive: { color: wt.accentLight },
+  tabCount: { fontSize: 12, fontWeight: '600', color: wt.textMuted },
+  tabCountActive: { color: wt.accentLight },
   productList: { flex: 1 },
   list: { padding: 16, paddingBottom: 40, gap: 8 },
   productCard: { marginBottom: 10, padding: 12, overflow: 'hidden' },
   productRow: { flexDirection: 'row', alignItems: 'stretch', gap: 12 },
   thumbWrap: { alignSelf: 'flex-start' },
-  thumb: { width: 88, height: 88, borderRadius: 12, backgroundColor: '#f5f5f4' },
+  thumb: { width: 88, height: 88, borderRadius: 12, backgroundColor: wt.surfaceMuted },
   thumbPlaceholder: {
     width: 88,
     height: 88,
     borderRadius: 12,
-    backgroundColor: '#e7e5e4',
+    backgroundColor: wt.borderStrong,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  thumbPlaceholderText: { fontSize: 12, color: '#a8a29e', fontWeight: '600' },
+  thumbPlaceholderText: { fontSize: 12, color: wt.textMuted, fontWeight: '600' },
   productInfo: { flex: 1, minWidth: 0, justifyContent: 'center' },
-  productName: { fontSize: 16, fontWeight: '700', color: '#1c1917' },
-  productDesc: { marginTop: 4, color: '#57534e', fontSize: 13 },
-  price: { marginTop: 6, fontSize: 15, fontWeight: '700', color: '#ea580c' },
-  optionsHint: { marginTop: 4, fontSize: 11, color: '#a8a29e', fontStyle: 'italic' },
+  productName: { fontSize: 16, fontWeight: '700', color: wt.text },
+  productDesc: { marginTop: 4, color: wt.textMuted, fontSize: 13 },
+  price: { marginTop: 6, fontSize: 15, fontWeight: '700', color: wt.accentLight },
+  optionsHint: { marginTop: 4, fontSize: 11, color: wt.textSecondary, fontStyle: 'italic' },
   stepper: {
     flexDirection: 'row',
     alignItems: 'center',
     alignSelf: 'center',
     borderWidth: 1,
-    borderColor: '#d6d3d1',
+    borderColor: wt.border,
     borderRadius: 10,
-    backgroundColor: '#fff',
+    backgroundColor: wt.surface,
   },
   stepBtn: {
     minWidth: 40,
@@ -330,14 +333,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   stepBtnDisabled: { opacity: 0.35 },
-  stepBtnText: { fontSize: 20, fontWeight: '700', color: '#ea580c', lineHeight: 24 },
+  stepBtnText: { fontSize: 20, fontWeight: '700', color: wt.accentLight, lineHeight: 24 },
   stepQty: {
     minWidth: 28,
     textAlign: 'center',
     fontSize: 16,
     fontWeight: '800',
-    color: '#1c1917',
+    color: wt.text,
   },
-  error: { padding: 24, color: '#b91c1c' },
-  emptyMsg: { padding: 24, textAlign: 'center', color: '#78716c', fontSize: 15 },
+  error: { padding: 24, color: wt.errorStrong },
+  emptyMsg: { padding: 24, textAlign: 'center', color: wt.textMuted, fontSize: 15 },
 });

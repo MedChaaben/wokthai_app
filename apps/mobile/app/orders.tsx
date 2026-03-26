@@ -11,6 +11,7 @@ import {
 import { useFocusEffect, useRouter } from 'expo-router';
 import { useOrders, useMyOrdersRealtime, isOngoingOrderStatus, type OrderRow } from '@wokthai/shared';
 import { WtCard } from '../components/WtCard';
+import { wt } from '../lib/theme';
 
 const STATUS_LABEL: Record<string, string> = {
   pending: 'En attente',
@@ -93,7 +94,7 @@ export default function MyOrdersScreen() {
       </View>
 
       {orders.isLoading ? (
-        <ActivityIndicator style={{ marginTop: 32 }} color="#ea580c" size="large" />
+        <ActivityIndicator style={{ marginTop: 32 }} color={wt.accent} size="large" />
       ) : orders.error ? (
         <Text style={styles.error}>
           {orders.error instanceof Error ? orders.error.message : 'Erreur de chargement'}
@@ -104,7 +105,12 @@ export default function MyOrdersScreen() {
           keyExtractor={(o) => o.id}
           contentContainerStyle={styles.list}
           refreshControl={
-            <RefreshControl refreshing={orders.isRefetching} onRefresh={() => void orders.refetch()} />
+            <RefreshControl
+              refreshing={orders.isRefetching}
+              onRefresh={() => void orders.refetch()}
+              tintColor={wt.accent}
+              colors={[wt.accent]}
+            />
           }
           ListEmptyComponent={
             <Text style={styles.empty}>
@@ -121,26 +127,26 @@ export default function MyOrdersScreen() {
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: '#fafaf9' },
+  screen: { flex: 1, backgroundColor: wt.bg },
   segment: { flexDirection: 'row', gap: 8, padding: 16, paddingBottom: 8 },
   segBtn: {
     flex: 1,
     paddingVertical: 12,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: '#d6d3d1',
+    borderColor: wt.border,
     alignItems: 'center',
-    backgroundColor: '#fff',
+    backgroundColor: wt.surface,
   },
-  segActive: { borderColor: '#ea580c', backgroundColor: '#fff7ed' },
-  segText: { fontWeight: '600', color: '#44403c', fontSize: 13, textAlign: 'center' },
-  segTextActive: { color: '#c2410c' },
+  segActive: { borderColor: wt.accent, backgroundColor: wt.accentMuted },
+  segText: { fontWeight: '600', color: wt.textMuted, fontSize: 13, textAlign: 'center' },
+  segTextActive: { color: wt.accentLight },
   list: { padding: 16, paddingTop: 8, paddingBottom: 40, gap: 10 },
   card: { marginBottom: 4 },
-  status: { fontSize: 17, fontWeight: '800', color: '#1c1917' },
-  meta: { marginTop: 6, fontSize: 14, color: '#57534e' },
-  total: { marginTop: 8, fontSize: 16, fontWeight: '700', color: '#ea580c' },
-  mono: { marginTop: 6, fontSize: 11, color: '#a8a29e' },
-  error: { padding: 24, color: '#b91c1c' },
-  empty: { textAlign: 'center', color: '#78716c', paddingVertical: 32, paddingHorizontal: 16, fontSize: 15 },
+  status: { fontSize: 17, fontWeight: '800', color: wt.text },
+  meta: { marginTop: 6, fontSize: 14, color: wt.textMuted },
+  total: { marginTop: 8, fontSize: 16, fontWeight: '700', color: wt.accentLight },
+  mono: { marginTop: 6, fontSize: 11, color: wt.textSecondary },
+  error: { padding: 24, color: wt.errorStrong },
+  empty: { textAlign: 'center', color: wt.textMuted, paddingVertical: 32, paddingHorizontal: 16, fontSize: 15 },
 });

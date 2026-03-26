@@ -22,6 +22,7 @@ import {
 import { WtButton } from '../../components/WtButton';
 import { WtCard } from '../../components/WtCard';
 import { useCart } from '../../contexts/CartContext';
+import { wt } from '../../lib/theme';
 
 function buildChoices(
   groups: OptionGroupWithOptions[],
@@ -125,7 +126,7 @@ export default function ProductDetailScreen() {
   if (isLoading) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator color="#ea580c" />
+        <ActivityIndicator color={wt.accent} />
         <Text style={styles.muted}>Chargement…</Text>
       </View>
     );
@@ -133,7 +134,7 @@ export default function ProductDetailScreen() {
   if (error || !data) {
     return (
       <View style={styles.center}>
-        <Text>Produit introuvable</Text>
+        <Text style={styles.errorTitle}>Produit introuvable</Text>
         <WtButton title="Retour au menu" variant="ghost" onPress={() => router.back()} />
       </View>
     );
@@ -167,7 +168,7 @@ export default function ProductDetailScreen() {
         ) : null}
 
         {optLoading ? (
-          <ActivityIndicator style={{ marginTop: 16 }} color="#ea580c" />
+          <ActivityIndicator style={{ marginTop: 16 }} color={wt.accent} />
         ) : groups.length > 0 ? (
           <View style={styles.optionsBlock}>
             {groups.map((g) => (
@@ -227,14 +228,14 @@ export default function ProductDetailScreen() {
 }
 
 const styles = StyleSheet.create({
-  screen: { padding: 16, paddingBottom: 40, backgroundColor: '#fafaf9' },
+  screen: { padding: 16, paddingBottom: 40, backgroundColor: wt.bg },
   heroWrap: {
     width: '100%',
     aspectRatio: 4 / 3,
     borderRadius: 12,
     overflow: 'hidden',
     marginBottom: 16,
-    backgroundColor: '#e7e5e4',
+    backgroundColor: wt.surfaceMuted,
   },
   heroImg: { width: '100%', height: '100%' },
   heroPlaceholder: {
@@ -243,31 +244,32 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     minHeight: 200,
   },
-  heroPlaceholderText: { fontSize: 14, color: '#a8a29e', fontWeight: '600' },
+  heroPlaceholderText: { fontSize: 14, color: wt.textMuted, fontWeight: '600' },
   center: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 24,
     gap: 12,
-    backgroundColor: '#fafaf9',
+    backgroundColor: wt.bg,
   },
-  muted: { color: '#78716c' },
-  name: { fontSize: 22, fontWeight: '800', color: '#1c1917' },
-  desc: { marginTop: 8, fontSize: 15, color: '#57534e', lineHeight: 22 },
-  price: { marginTop: 12, fontSize: 20, fontWeight: '800', color: '#ea580c' },
-  priceHint: { fontSize: 14, fontWeight: '600', color: '#78716c' },
-  breakdown: { marginTop: 4, fontSize: 13, color: '#57534e' },
-  label: { marginTop: 20, fontWeight: '600', color: '#44403c' },
+  errorTitle: { fontSize: 16, fontWeight: '600', color: wt.text },
+  muted: { color: wt.textMuted },
+  name: { fontSize: 22, fontWeight: '800', color: wt.text },
+  desc: { marginTop: 8, fontSize: 15, color: wt.textMuted, lineHeight: 22 },
+  price: { marginTop: 12, fontSize: 20, fontWeight: '800', color: wt.accentLight },
+  priceHint: { fontSize: 14, fontWeight: '600', color: wt.textMuted },
+  breakdown: { marginTop: 4, fontSize: 13, color: wt.textMuted },
+  label: { marginTop: 20, fontWeight: '600', color: wt.text },
   stepper: {
     marginTop: 8,
     flexDirection: 'row',
     alignItems: 'center',
     alignSelf: 'flex-start',
     borderWidth: 1,
-    borderColor: '#d6d3d1',
+    borderColor: wt.border,
     borderRadius: 10,
-    backgroundColor: '#fff',
+    backgroundColor: wt.surface,
   },
   stepBtn: {
     minWidth: 44,
@@ -276,31 +278,31 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   stepBtnDisabled: { opacity: 0.35 },
-  stepBtnText: { fontSize: 20, fontWeight: '700', color: '#ea580c', lineHeight: 24 },
+  stepBtnText: { fontSize: 20, fontWeight: '700', color: wt.accentLight, lineHeight: 24 },
   stepQty: {
     minWidth: 36,
     textAlign: 'center',
     fontSize: 18,
     fontWeight: '800',
-    color: '#1c1917',
+    color: wt.text,
   },
-  subtotalLabel: { marginTop: 12, fontSize: 15, color: '#57534e' },
-  subtotalValue: { fontWeight: '800', color: '#1c1917' },
+  subtotalLabel: { marginTop: 12, fontSize: 15, color: wt.textMuted },
+  subtotalValue: { fontWeight: '800', color: wt.text },
   optionsBlock: { marginTop: 20, gap: 16 },
   group: { gap: 8 },
-  groupTitle: { fontSize: 16, fontWeight: '800', color: '#1c1917' },
-  req: { color: '#b91c1c' },
-  groupSub: { fontSize: 12, color: '#78716c' },
+  groupTitle: { fontSize: 16, fontWeight: '800', color: wt.text },
+  req: { color: wt.errorStrong },
+  groupSub: { fontSize: 12, color: wt.textMuted },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   chip: {
     paddingVertical: 10,
     paddingHorizontal: 14,
     borderRadius: 999,
     borderWidth: 1,
-    borderColor: '#d6d3d1',
-    backgroundColor: '#fff',
+    borderColor: wt.border,
+    backgroundColor: wt.surface,
   },
-  chipOn: { borderColor: '#ea580c', backgroundColor: '#fff7ed' },
-  chipText: { fontSize: 14, fontWeight: '600', color: '#44403c' },
-  chipTextOn: { color: '#c2410c' },
+  chipOn: { borderColor: wt.accent, backgroundColor: wt.accentMuted },
+  chipText: { fontSize: 14, fontWeight: '600', color: wt.textMuted },
+  chipTextOn: { color: wt.accentLight },
 });

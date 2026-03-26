@@ -2,6 +2,7 @@ import { useLocalSearchParams } from 'expo-router';
 import { View, Text, StyleSheet, ActivityIndicator, ScrollView } from 'react-native';
 import { useOrder, useOrderRealtime } from '@wokthai/shared';
 import { WtCard } from '../../components/WtCard';
+import { wt } from '../../lib/theme';
 
 const STATUS_LABEL: Record<string, string> = {
   pending: 'En attente',
@@ -24,14 +25,14 @@ export default function OrderTrackingScreen() {
   if (isLoading) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator size="large" color="#ea580c" />
+        <ActivityIndicator size="large" color={wt.accent} />
       </View>
     );
   }
   if (error || !data) {
     return (
       <View style={styles.center}>
-        <Text>Commande introuvable</Text>
+        <Text style={styles.errorTitle}>Commande introuvable</Text>
       </View>
     );
   }
@@ -151,32 +152,33 @@ export default function OrderTrackingScreen() {
 }
 
 const styles = StyleSheet.create({
-  screen: { padding: 16, paddingBottom: 32, backgroundColor: '#fafaf9', gap: 10 },
-  center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#fafaf9' },
-  title: { fontSize: 20, fontWeight: '800', color: '#1c1917' },
-  mono: { marginTop: 4, fontSize: 12, color: '#78716c' },
+  screen: { padding: 16, paddingBottom: 32, backgroundColor: wt.bg, gap: 10 },
+  center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: wt.bg },
+  errorTitle: { fontSize: 16, fontWeight: '600', color: wt.text },
+  title: { fontSize: 20, fontWeight: '800', color: wt.text },
+  mono: { marginTop: 4, fontSize: 12, color: wt.textMuted },
   row: { marginTop: 10, fontSize: 15 },
-  label: { color: '#57534e', fontWeight: '600' },
-  value: { color: '#1c1917', fontWeight: '700' },
+  label: { color: wt.textMuted, fontWeight: '600' },
+  value: { color: wt.text, fontWeight: '700' },
   sectionTitle: {
     fontSize: 16,
     fontWeight: '800',
-    color: '#1c1917',
+    color: wt.text,
     marginTop: 6,
     marginBottom: 2,
   },
-  placeKind: { fontSize: 13, fontWeight: '700', color: '#ea580c', textTransform: 'uppercase' },
-  placeName: { marginTop: 8, fontSize: 17, fontWeight: '800', color: '#1c1917' },
-  placeAddr: { marginTop: 6, fontSize: 15, color: '#44403c', lineHeight: 22 },
-  instructions: { marginTop: 10, fontSize: 14, color: '#57534e', fontStyle: 'italic' },
-  notes: { fontSize: 15, color: '#44403c', lineHeight: 22 },
-  muted: { fontSize: 14, color: '#78716c' },
+  placeKind: { fontSize: 13, fontWeight: '700', color: wt.accentLight, textTransform: 'uppercase' },
+  placeName: { marginTop: 8, fontSize: 17, fontWeight: '800', color: wt.text },
+  placeAddr: { marginTop: 6, fontSize: 15, color: wt.textMuted, lineHeight: 22 },
+  instructions: { marginTop: 10, fontSize: 14, color: wt.textMuted, fontStyle: 'italic' },
+  notes: { fontSize: 15, color: wt.textMuted, lineHeight: 22 },
+  muted: { fontSize: 14, color: wt.textMuted },
   lineCard: { marginBottom: 8 },
   lineHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 },
-  lineName: { flex: 1, fontSize: 16, fontWeight: '700', color: '#1c1917' },
-  linePrice: { fontSize: 16, fontWeight: '800', color: '#ea580c' },
-  lineQty: { marginTop: 4, fontSize: 13, color: '#78716c' },
+  lineName: { flex: 1, fontSize: 16, fontWeight: '700', color: wt.text },
+  linePrice: { fontSize: 16, fontWeight: '800', color: wt.accentLight },
+  lineQty: { marginTop: 4, fontSize: 13, color: wt.textMuted },
   opts: { marginTop: 8, gap: 4 },
-  optItem: { fontSize: 13, color: '#57534e' },
-  hint: { fontSize: 13, color: '#78716c', paddingHorizontal: 4, marginTop: 8 },
+  optItem: { fontSize: 13, color: wt.textMuted },
+  hint: { fontSize: 13, color: wt.textSecondary, paddingHorizontal: 4, marginTop: 8 },
 });
