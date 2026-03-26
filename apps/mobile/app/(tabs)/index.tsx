@@ -19,6 +19,7 @@ import {
   validateLineOptionsAndPrice,
   type ProductRow,
 } from '@wokthai/shared';
+import { CartFloatingBar } from '../../components/CartFloatingBar';
 import { WtCard } from '../../components/WtCard';
 import { useCart } from '../../contexts/CartContext';
 import { wt } from '../../lib/theme';
@@ -218,6 +219,7 @@ export default function HomeMenuScreen() {
           />
         </View>
       )}
+      <CartFloatingBar />
     </View>
   );
 }
