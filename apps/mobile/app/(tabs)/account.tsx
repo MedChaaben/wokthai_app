@@ -1,31 +1,63 @@
-import { useEffect, useState } from 'react';
-import {
-  Text,
-  StyleSheet,
-  Pressable,
-  ScrollView,
-  TextInput,
-  ActivityIndicator,
-  Alert,
-  KeyboardAvoidingView,
-  Platform,
-  View,
-} from 'react-native';
+import { useEffect, useMemo, useState } from 'react';
+import { Text, StyleSheet, Pressable, ScrollView, ActivityIndicator, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSupabase, useMyUserProfile } from '@wokthai/shared';
-import { WtButton } from '../../components/WtButton';
 import { WtCard } from '../../components/WtCard';
 import { wt } from '../../lib/theme';
+
+function displayName(first: string | null | undefined, last: string | null | undefined, email: string | null) {
+  const n = [first?.trim(), last?.trim()].filter(Boolean).join(' ');
+  if (n) return n;
+  if (email) return email.split('@')[0] ?? email;
+  return 'Mon compte';
+}
+
+function initials(first: string | null | undefined, last: string | null | undefined, email: string | null) {
+  const f = first?.trim()[0];
+  const l = last?.trim()[0];
+  if (f && l) return (f + l).toUpperCase();
+  if (f) return f.toUpperCase();
+  if (email?.trim()[0]) return email.trim()[0].toUpperCase();
+  return '?';
+}
+
+type MenuItemProps = {
+  icon: string;
+  title: string;
+  subtitle?: string;
+  onPress: () => void;
+  isLast?: boolean;
+};
+
+function MenuRow({ icon, title, subtitle, onPress, isLast }: MenuItemProps) {
+  return (
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => [styles.menuRow, !isLast && styles.menuRowBorder, pressed && styles.menuRowPressed]}
+      accessibilityRole="button"
+      accessibilityLabel={title}
+    >
+      <Text style={styles.menuIcon} accessible={false}>
+        {icon}
+      </Text>
+      <View style={styles.menuTextCol}>
+        <Text style={styles.menuTitle}>{title}</Text>
+        {subtitle ? (
+          <Text style={styles.menuSubtitle} numberOfLines={2}>
+            {subtitle}
+          </Text>
+        ) : null}
+      </View>
+      <Text style={styles.menuChevron}>›</Text>
+    </Pressable>
+  );
+}
 
 export default function AccountScreen() {
   const router = useRouter();
   const supabase = useSupabase();
-  const { profile, isLoading, save, isSaving } = useMyUserProfile();
+  const { profile, isLoading } = useMyUserProfile();
   const [email, setEmail] = useState<string | null>(null);
-
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
-  const [phone, setPhone] = useState('');
 
   useEffect(() => {
     void supabase.auth.getSession().then(({ data }) => {
@@ -39,36 +71,14 @@ export default function AccountScreen() {
     return () => subscription.unsubscribe();
   }, [supabase]);
 
-  useEffect(() => {
-    if (!profile) return;
-    setFirstName(profile.first_name ?? '');
-    setLastName(profile.last_name ?? '');
-    setPhone(profile.phone ?? '');
-  }, [profile]);
-
-  function errorMessage(e: unknown): string {
-    if (e && typeof e === 'object') {
-      const o = e as { message?: string; details?: string; hint?: string };
-      const parts = [o.message, o.details, o.hint].filter(Boolean);
-      if (parts.length) return parts.join('\n');
-    }
-    if (e instanceof Error) return e.message;
-    return 'Impossible d’enregistrer le profil.';
-  }
-
-  async function onSave() {
-    try {
-      await save({
-        first_name: firstName.trim() || null,
-        last_name: lastName.trim() || null,
-        phone: phone.trim() || null,
-        email: email?.trim().toLowerCase() ?? null,
-      });
-      Alert.alert('Profil enregistré', 'Vos informations ont été mises à jour.');
-    } catch (e: unknown) {
-      Alert.alert('Erreur', errorMessage(e));
-    }
-  }
+  const name = useMemo(
+    () => displayName(profile?.first_name, profile?.last_name, email),
+    [profile?.first_name, profile?.last_name, email]
+  );
+  const avatar = useMemo(
+    () => initials(profile?.first_name, profile?.last_name, email),
+    [profile?.first_name, profile?.last_name, email]
+  );
 
   async function signOut() {
     await supabase.auth.signOut();
@@ -84,113 +94,127 @@ export default function AccountScreen() {
   }
 
   return (
-    <KeyboardAvoidingView
-      style={styles.flex}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 64 : 0}
-    >
+    <View style={styles.root}>
       <ScrollView
+        style={styles.scroll}
         contentContainerStyle={styles.screen}
         keyboardShouldPersistTaps="handled"
-        keyboardDismissMode="on-drag"
+        bounces
       >
-        <WtCard style={styles.formCard}>
-          <Text style={styles.sectionTitle}>Mes informations</Text>
-          <Text style={styles.sectionHint}>
-            Utilisées pour vos commandes et la livraison. Vous pouvez les modifier à tout moment.
-          </Text>
-
-          <Text style={styles.label}>Prénom</Text>
-          <TextInput
-            value={firstName}
-            onChangeText={setFirstName}
-            placeholder="Votre prénom"
-            placeholderTextColor={wt.placeholder}
-            autoCapitalize="words"
-            style={styles.input}
-          />
-
-          <Text style={styles.label}>Nom</Text>
-          <TextInput
-            value={lastName}
-            onChangeText={setLastName}
-            placeholder="Votre nom"
-            placeholderTextColor={wt.placeholder}
-            autoCapitalize="words"
-            style={styles.input}
-          />
-
-          <Text style={styles.label}>Téléphone</Text>
-          <TextInput
-            value={phone}
-            onChangeText={setPhone}
-            placeholder="+216 … ou 00…"
-            placeholderTextColor={wt.placeholder}
-            keyboardType="phone-pad"
-            style={styles.input}
-          />
-
-          <Text style={styles.label}>Email</Text>
-          <Text style={styles.emailReadonly}>{email ?? '—'}</Text>
-          <Text style={styles.emailNote}>Adresse utilisée pour la connexion.</Text>
+        <WtCard>
+          <View style={styles.identityRow}>
+            <View style={styles.avatar}>
+              <Text style={styles.avatarText}>{avatar}</Text>
+            </View>
+            <View style={styles.identityText}>
+              <Text style={styles.identityName} numberOfLines={2}>
+                {name}
+              </Text>
+              <Text style={styles.identityEmail} numberOfLines={1}>
+                {email ?? '—'}
+              </Text>
+            </View>
+          </View>
         </WtCard>
 
-        <WtButton title="Enregistrer le profil" loading={isSaving} onPress={() => void onSave()} />
+        <Text style={styles.sectionHeading}>Accès rapide</Text>
+        <WtCard style={styles.menuCard}>
+          <MenuRow
+            icon="📋"
+            title="Mes commandes"
+            subtitle="Historique et suivi"
+            onPress={() => router.push('/orders')}
+          />
+          <MenuRow
+            icon="📍"
+            title="Mes adresses"
+            subtitle="Livraison et points sur la carte"
+            onPress={() => router.push('/addresses')}
+          />
+          <MenuRow
+            icon="👤"
+            title="Mon profil"
+            subtitle="Nom, téléphone, email"
+            onPress={() => router.push('/profile')}
+            isLast
+          />
+        </WtCard>
 
-        <Pressable onPress={() => router.push('/orders')} style={styles.press}>
-          <WtCard style={styles.linkRow}>
-            <Text style={styles.linkText}>Mes commandes</Text>
-            <Text style={styles.chevron}>›</Text>
-          </WtCard>
-        </Pressable>
+        <View style={styles.spacer} />
 
-        <Pressable onPress={() => router.push('/addresses')} style={styles.press}>
-          <WtCard style={styles.linkRow}>
-            <Text style={styles.linkText}>Mes adresses</Text>
-            <Text style={styles.chevron}>›</Text>
-          </WtCard>
-        </Pressable>
-
-        <Pressable onPress={() => void signOut()} style={styles.signOutWrap} accessibilityRole="button">
+        <Pressable
+          onPress={() => void signOut()}
+          style={({ pressed }) => [styles.signOutBtn, pressed && styles.signOutPressed]}
+          accessibilityRole="button"
+        >
           <Text style={styles.signOutText}>Déconnexion</Text>
         </Pressable>
       </ScrollView>
-    </KeyboardAvoidingView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  flex: { flex: 1, backgroundColor: wt.bg },
+  root: { flex: 1, backgroundColor: wt.bg },
+  scroll: { flex: 1 },
+  screen: {
+    flexGrow: 1,
+    padding: 16,
+    paddingBottom: 32,
+    gap: 8,
+    backgroundColor: wt.bg,
+  },
+  spacer: { flexGrow: 1, minHeight: 24 },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: wt.bg },
-  screen: { padding: 16, paddingBottom: 40, gap: 12 },
-  formCard: { gap: 10 },
-  sectionTitle: { fontSize: 18, fontWeight: '800', color: wt.text },
-  sectionHint: { fontSize: 13, color: wt.textMuted, lineHeight: 18, marginBottom: 4 },
-  label: { fontSize: 14, fontWeight: '600', color: wt.text, marginTop: 4 },
-  input: {
-    borderWidth: 1,
-    borderColor: wt.border,
-    borderRadius: 10,
-    padding: 14,
-    fontSize: 16,
-    backgroundColor: wt.surface,
-    color: wt.text,
+  identityRow: { flexDirection: 'row', alignItems: 'center', gap: 16 },
+  avatar: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: wt.accentMuted,
+    borderWidth: 2,
+    borderColor: wt.accentBorder,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  emailReadonly: {
-    fontSize: 16,
-    color: wt.textMuted,
-    paddingVertical: 10,
-    paddingHorizontal: 2,
+  avatarText: { fontSize: 20, fontWeight: '800', color: wt.accentLight },
+  identityText: { flex: 1, minWidth: 0 },
+  identityName: { fontSize: 20, fontWeight: '800', color: wt.text, marginBottom: 4 },
+  identityEmail: { fontSize: 14, color: wt.textMuted },
+  sectionHeading: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: wt.textSecondary,
+    textTransform: 'uppercase',
+    letterSpacing: 0.6,
+    marginTop: 8,
+    marginBottom: 4,
+    marginLeft: 4,
   },
-  emailNote: { fontSize: 12, color: wt.textSecondary, marginTop: -4, marginBottom: 4 },
-  press: { marginBottom: 0 },
-  linkRow: {
+  menuCard: { padding: 0, overflow: 'hidden' },
+  menuRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    paddingVertical: 14,
+    paddingHorizontal: 14,
+    gap: 12,
   },
-  linkText: { fontSize: 16, fontWeight: '600', color: wt.text },
-  chevron: { fontSize: 22, color: wt.accentLight, fontWeight: '300' },
-  signOutWrap: { marginTop: 16, paddingVertical: 14, alignItems: 'center' },
-  signOutText: { fontSize: 16, fontWeight: '600', color: wt.accentLight },
+  menuRowBorder: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: wt.border },
+  menuRowPressed: { backgroundColor: wt.surfaceMuted },
+  menuIcon: { fontSize: 22, width: 32, textAlign: 'center' },
+  menuTextCol: { flex: 1, minWidth: 0 },
+  menuTitle: { fontSize: 16, fontWeight: '700', color: wt.text },
+  menuSubtitle: { fontSize: 13, color: wt.textMuted, marginTop: 2, lineHeight: 18 },
+  menuChevron: { fontSize: 22, color: wt.accentLight, fontWeight: '300', marginLeft: 4 },
+  signOutBtn: {
+    marginTop: 8,
+    paddingVertical: 16,
+    alignItems: 'center',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: wt.borderStrong,
+    backgroundColor: wt.surface,
+  },
+  signOutPressed: { opacity: 0.88, backgroundColor: wt.surfaceMuted },
+  signOutText: { fontSize: 16, fontWeight: '700', color: wt.accentLight },
 });

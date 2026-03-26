@@ -59,6 +59,7 @@ export default function RootLayout() {
                   <Stack.Screen name="reset-password" options={{ title: 'Nouveau mot de passe' }} />
                   <Stack.Screen name="orders" options={{ title: 'Mes commandes' }} />
                   <Stack.Screen name="addresses" options={{ title: 'Mes adresses' }} />
+                  <Stack.Screen name="profile" options={{ title: 'Mon profil' }} />
                   <Stack.Screen name="product/[id]" options={{ title: 'Produit' }} />
                   <Stack.Screen name="checkout" options={{ title: 'Commande' }} />
                   <Stack.Screen name="order/[id]" options={{ title: 'Suivi' }} />
