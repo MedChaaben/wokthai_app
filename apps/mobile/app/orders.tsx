@@ -18,6 +18,7 @@ const STATUS_LABEL: Record<string, string> = {
   confirmed: 'Confirmée',
   preparing: 'En préparation',
   ready: 'Prête',
+  delivering: 'En cours de livraison',
   delivered: 'Livrée',
   cancelled: 'Annulée',
 };

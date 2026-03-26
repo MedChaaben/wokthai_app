@@ -6,6 +6,7 @@ export const ONGOING_ORDER_STATUSES: OrderStatus[] = [
   'confirmed',
   'preparing',
   'ready',
+  'delivering',
 ];
 
 export function isOngoingOrderStatus(status: OrderStatus): boolean {

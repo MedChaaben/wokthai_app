@@ -6,6 +6,7 @@ export type OrderStatusEnum =
   | 'confirmed'
   | 'preparing'
   | 'ready'
+  | 'delivering'
   | 'delivered'
   | 'cancelled';
 export type PaymentStatusEnum = 'unpaid' | 'paid_on_delivery';

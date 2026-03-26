@@ -10,6 +10,7 @@ const STATUSES: OrderRow["status"][] = [
   "confirmed",
   "preparing",
   "ready",
+  "delivering",
   "delivered",
   "cancelled",
 ];
@@ -19,6 +20,7 @@ const LABELS: Record<OrderRow["status"], string> = {
   confirmed: "Confirmée",
   preparing: "En préparation",
   ready: "Prête",
+  delivering: "En cours de livraison",
   delivered: "Livrée",
   cancelled: "Annulée",
 };

@@ -15,6 +15,7 @@ const STATUS_LABEL: Record<OrderRow["status"], string> = {
   confirmed: "Confirmée",
   preparing: "En préparation",
   ready: "Prête",
+  delivering: "En cours de livraison",
   delivered: "Livrée",
   cancelled: "Annulée",
 };
@@ -24,6 +25,7 @@ const STATUS_STYLE: Record<OrderRow["status"], string> = {
   confirmed: "bg-sky-100 text-sky-900 ring-sky-200",
   preparing: "bg-orange-100 text-orange-900 ring-orange-200",
   ready: "bg-emerald-100 text-emerald-900 ring-emerald-200",
+  delivering: "bg-indigo-100 text-indigo-900 ring-indigo-200",
   delivered: "bg-stone-100 text-stone-600 ring-stone-200",
   cancelled: "bg-red-50 text-red-800 line-through ring-red-100",
 };
@@ -33,6 +35,7 @@ const STATUS_ORDER: Record<OrderRow["status"], number> = {
   confirmed: 1,
   preparing: 2,
   ready: 3,
+  delivering: 4,
   delivered: 10,
   cancelled: 11,
 };
@@ -84,6 +87,7 @@ export default function OrdersPage() {
       confirmed: 0,
       preparing: 0,
       ready: 0,
+      delivering: 0,
       active: 0,
       history: 0,
     };
@@ -92,6 +96,7 @@ export default function OrdersPage() {
       if (o.status === "confirmed") c.confirmed++;
       if (o.status === "preparing") c.preparing++;
       if (o.status === "ready") c.ready++;
+      if (o.status === "delivering") c.delivering++;
       if (!TERMINAL.includes(o.status)) c.active++;
       else c.history++;
     }
@@ -140,7 +145,7 @@ export default function OrdersPage() {
         <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-stone-500">
           Aperçu (cliquer pour filtrer un statut)
         </p>
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7">
           <button
             type="button"
             onClick={() => {
@@ -200,6 +205,21 @@ export default function OrdersPage() {
           >
             <p className="text-2xl font-bold text-emerald-800">{counts.ready}</p>
             <p className="text-xs font-medium text-stone-600">Prêtes</p>
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setView("active");
+              setStatusFilter(statusFilter === "delivering" ? "all" : "delivering");
+            }}
+            className={`rounded-xl border px-3 py-3 text-left transition ${
+              statusFilter === "delivering"
+                ? "border-indigo-400 bg-indigo-50 ring-2 ring-indigo-200"
+                : "border-stone-200 bg-white hover:border-indigo-200"
+            }`}
+          >
+            <p className="text-2xl font-bold text-indigo-800">{counts.delivering}</p>
+            <p className="text-xs font-medium text-stone-600">En livraison</p>
           </button>
           <div className="rounded-xl border border-stone-200 bg-stone-50 px-3 py-3 text-left">
             <p className="text-2xl font-bold text-stone-800">{counts.active}</p>
