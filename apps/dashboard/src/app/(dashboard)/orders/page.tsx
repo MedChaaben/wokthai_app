@@ -346,6 +346,28 @@ export default function OrdersPage() {
                   <p className="truncate text-base font-bold text-stone-900">
                     {formatCustomerDisplayName(o.users)}
                   </p>
+                  <div className="space-y-0.5 text-sm text-stone-600">
+                    <p>
+                      <span className="font-medium text-stone-500">Tél. </span>
+                      {o.users?.phone?.trim() ? (
+                        <a href={`tel:${o.users.phone.replace(/\s/g, "")}`} className="text-orange-700 underline-offset-2 hover:underline">
+                          {o.users.phone.trim()}
+                        </a>
+                      ) : (
+                        <span className="text-stone-400">—</span>
+                      )}
+                    </p>
+                    <p className="truncate">
+                      <span className="font-medium text-stone-500">E-mail </span>
+                      {o.users?.email?.trim() ? (
+                        <a href={`mailto:${o.users.email.trim()}`} className="text-orange-700 underline-offset-2 hover:underline">
+                          {o.users.email.trim()}
+                        </a>
+                      ) : (
+                        <span className="text-stone-400">—</span>
+                      )}
+                    </p>
+                  </div>
                   <p className="text-sm leading-snug text-stone-700">{placeSummary(o)}</p>
                   <p className="font-mono text-xs text-stone-400">{o.id}</p>
                   <p className="text-xs text-stone-500">

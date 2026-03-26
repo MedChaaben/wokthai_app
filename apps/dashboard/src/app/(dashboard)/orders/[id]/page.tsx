@@ -81,11 +81,38 @@ export default function OrderDetailPage() {
           <div>
             <p className="text-sm font-semibold text-stone-700">Contact</p>
             <p className="mt-1 text-lg font-bold text-stone-900">{formatCustomerDisplayName(o.users)}</p>
-            {o.users && (o.users.phone?.trim() || o.users.email?.trim()) ? (
-              <p className="mt-1 text-sm text-stone-600">
-                {[o.users.phone?.trim(), o.users.email?.trim()].filter(Boolean).join(" · ")}
-              </p>
-            ) : null}
+            <dl className="mt-3 space-y-3 text-sm text-stone-700">
+              <div>
+                <dt className="font-medium text-stone-500">Téléphone</dt>
+                <dd className="mt-0.5">
+                  {o.users?.phone?.trim() ? (
+                    <a
+                      href={`tel:${o.users.phone.replace(/\s/g, "")}`}
+                      className="font-semibold text-orange-700 underline-offset-2 hover:underline"
+                    >
+                      {o.users.phone.trim()}
+                    </a>
+                  ) : (
+                    <span className="text-stone-400">—</span>
+                  )}
+                </dd>
+              </div>
+              <div>
+                <dt className="font-medium text-stone-500">E-mail</dt>
+                <dd className="mt-0.5 break-all">
+                  {o.users?.email?.trim() ? (
+                    <a
+                      href={`mailto:${o.users.email.trim()}`}
+                      className="font-semibold text-orange-700 underline-offset-2 hover:underline"
+                    >
+                      {o.users.email.trim()}
+                    </a>
+                  ) : (
+                    <span className="text-stone-400">—</span>
+                  )}
+                </dd>
+              </div>
+            </dl>
           </div>
           <div>
             <p className="text-sm font-semibold text-stone-700">Statut</p>
