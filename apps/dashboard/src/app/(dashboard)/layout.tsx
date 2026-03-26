@@ -93,7 +93,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   if (staff.isLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center text-stone-600 dark:text-zinc-400">
+      <div className="flex h-dvh min-h-0 items-center justify-center text-stone-600 dark:text-zinc-400">
         Chargement du profil…
       </div>
     );
@@ -202,7 +202,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   );
 
   return (
-    <div className="flex min-h-screen flex-col md:flex-row">
+    <div className="flex h-dvh min-h-0 flex-col overflow-hidden md:flex-row">
       {mobileNavOpen ? (
         <button
           type="button"
@@ -216,14 +216,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         id="dashboard-sidebar"
         inert={mobileDrawerClosed ? true : undefined}
         aria-hidden={mobileDrawerClosed ? true : undefined}
-        className={`fixed inset-y-0 left-0 z-50 flex w-[min(100vw-2rem,18rem)] max-w-[calc(100vw-2rem)] flex-col wt-sidebar p-4 shadow-lg transition-transform duration-200 ease-out md:static md:z-0 md:w-56 md:max-w-none md:min-h-screen md:translate-x-0 md:shadow-none ${
+        className={`fixed inset-y-0 left-0 z-50 flex w-[min(100vw-2rem,18rem)] max-w-[calc(100vw-2rem)] flex-col wt-sidebar p-4 shadow-lg transition-transform duration-200 ease-out md:static md:z-0 md:h-full md:w-56 md:max-w-none md:shrink-0 md:translate-x-0 md:shadow-none ${
           mobileNavOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
         }`}
       >
-        <div className="flex min-h-0 flex-1 flex-col gap-1 md:min-h-0">{sidebarInner}</div>
+        <div className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto md:min-h-0">{sidebarInner}</div>
       </aside>
 
-      <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
         <header className="relative sticky top-0 z-30 flex min-h-12 items-center justify-center wt-header-mobile px-3 py-2.5 md:hidden">
           <button
             type="button"
@@ -283,7 +283,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </div>
           </div>
         ) : null}
-        <main className="flex-1 overflow-auto bg-background p-4 md:p-8">{children}</main>
+        <main className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden bg-background p-4 md:p-8">
+          {children}
+        </main>
       </div>
     </div>
   );
