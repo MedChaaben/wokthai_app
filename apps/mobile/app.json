@@ -1,6 +1,7 @@
 {
   "expo": {
     "name": "WokThai",
+    "owner": "mchaaben",
     "slug": "wokthai",
     "scheme": "wokthai",
     "version": "1.0.0",
@@ -41,6 +42,12 @@
           "locationWhenInUsePermission": "WokThai utilise votre position pour enregistrer les coordonnées de livraison."
         }
       ]
-    ]
+    ],
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "eeabf0c9-9147-41e5-a43d-d82443a4314e"
+      }
+    }
   }
 }
