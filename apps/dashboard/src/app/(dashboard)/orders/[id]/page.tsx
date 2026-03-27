@@ -7,6 +7,8 @@ import {
   useOrderRealtime,
   useUpdateOrderStatus,
   formatCustomerDisplayName,
+  phoneStorageToDisplay,
+  phoneToTelHref,
 } from "@wokthai/shared";
 import type { OrderRow } from "@wokthai/shared";
 
@@ -85,16 +87,26 @@ export default function OrderDetailPage() {
               <div>
                 <dt className="font-medium text-stone-600 dark:text-zinc-500">Téléphone</dt>
                 <dd className="mt-0.5">
-                  {o.users?.phone?.trim() ? (
-                    <a
-                      href={`tel:${o.users.phone.replace(/\s/g, "")}`}
-                      className="font-semibold text-wt-bordeaux underline-offset-2 hover:underline dark:text-wt-accent"
-                    >
-                      {o.users.phone.trim()}
-                    </a>
-                  ) : (
-                    <span className="text-stone-600 dark:text-zinc-400">—</span>
-                  )}
+                  {(() => {
+                    const u = o.users;
+                    const p = u?.phone?.trim();
+                    if (!u || !p) {
+                      return <span className="text-stone-600 dark:text-zinc-400">—</span>;
+                    }
+                    const tel = phoneToTelHref(u.phone);
+                    const label = phoneStorageToDisplay(u.phone);
+                    if (tel) {
+                      return (
+                        <a
+                          href={`tel:${tel}`}
+                          className="font-semibold text-wt-bordeaux underline-offset-2 hover:underline dark:text-wt-accent"
+                        >
+                          {label}
+                        </a>
+                      );
+                    }
+                    return <span className="font-semibold">{label}</span>;
+                  })()}
                 </dd>
               </div>
               <div>

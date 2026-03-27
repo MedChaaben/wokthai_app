@@ -2,7 +2,15 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { useOrders, useStaffProfile, formatCustomerDisplayName, type OrderListRow } from "@wokthai/shared";
+import {
+  useOrders,
+  useStaffProfile,
+  formatCustomerDisplayName,
+  normalizeCustomerPhone,
+  phoneStorageToDisplay,
+  phoneToTelHref,
+  type OrderListRow,
+} from "@wokthai/shared";
 import type { OrderRow } from "@wokthai/shared";
 
 const STATUS_LABEL: Record<OrderRow["status"], string> = {
@@ -71,18 +79,21 @@ function orderMatchesClientQuery(o: OrderListRow, queryRaw: string): boolean {
   const q = queryRaw.trim().toLowerCase();
   if (!q) return true;
   const u = o.users;
+  const phoneShown = u?.phone != null ? phoneStorageToDisplay(u.phone) : "";
   const chunks = [
     formatCustomerDisplayName(u),
     u?.first_name ?? "",
     u?.last_name ?? "",
     u?.email ?? "",
     u?.phone ?? "",
+    phoneShown,
   ];
   const haystack = chunks.join(" \n ").toLowerCase();
   if (haystack.includes(q)) return true;
   const qDigits = normalizeDigits(q);
   if (qDigits.length >= 2 && u?.phone) {
-    const phoneDigits = normalizeDigits(u.phone);
+    const normalizedKey = normalizeCustomerPhone(u.phone) ?? "";
+    const phoneDigits = normalizedKey || normalizeDigits(u.phone);
     if (phoneDigits.includes(qDigits)) return true;
   }
   return false;
@@ -436,16 +447,26 @@ export default function OrdersPage() {
                   <div className="space-y-0.5 text-sm text-stone-600 dark:text-zinc-400">
                     <p>
                       <span className="font-medium text-stone-600 dark:text-zinc-500">Tél. </span>
-                      {o.users?.phone?.trim() ? (
-                        <a
-                          href={`tel:${o.users.phone.replace(/\s/g, "")}`}
-                          className="pointer-events-auto text-wt-bordeaux underline-offset-2 hover:underline dark:text-wt-accent"
-                        >
-                          {o.users.phone.trim()}
-                        </a>
-                      ) : (
-                        <span className="text-stone-600 dark:text-zinc-400">—</span>
-                      )}
+                      {(() => {
+                        const u = o.users;
+                        const p = u?.phone?.trim();
+                        if (!u || !p) {
+                          return <span className="text-stone-600 dark:text-zinc-400">—</span>;
+                        }
+                        const tel = phoneToTelHref(u.phone);
+                        const label = phoneStorageToDisplay(u.phone);
+                        if (tel) {
+                          return (
+                            <a
+                              href={`tel:${tel}`}
+                              className="pointer-events-auto text-wt-bordeaux underline-offset-2 hover:underline dark:text-wt-accent"
+                            >
+                              {label}
+                            </a>
+                          );
+                        }
+                        return <span>{label}</span>;
+                      })()}
                     </p>
                     <p className="truncate">
                       <span className="font-medium text-stone-600 dark:text-zinc-500">E-mail </span>

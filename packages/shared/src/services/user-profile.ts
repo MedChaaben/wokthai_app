@@ -1,5 +1,17 @@
+import { phoneDisplayToStorage } from '../domain/normalizeCustomerPhone';
 import type { WokthaiSupabaseClient } from '../supabase/client';
 import type { UserRow } from '../types';
+
+const PHONE_ALREADY_USED_MESSAGE =
+  'Ce numéro de téléphone est déjà associé à un autre compte. Connectez-vous avec ce compte ou utilisez un autre numéro.';
+
+function isPostgresUniqueViolation(e: unknown): boolean {
+  if (!e || typeof e !== 'object') return false;
+  const o = e as { code?: string; message?: string };
+  if (o.code === '23505') return true;
+  const m = typeof o.message === 'string' ? o.message.toLowerCase() : '';
+  return m.includes('duplicate key') || m.includes('unique constraint');
+}
 
 /** Prénom, nom et téléphone renseignés (téléphone : au moins 8 caractères utiles). */
 export function isCustomerProfileComplete(profile: UserRow | null | undefined): boolean {
@@ -29,12 +41,17 @@ export async function fetchMyUserProfile(client: WokthaiSupabaseClient): Promise
   return data;
 }
 
-const profilePayload = (input: SaveMyUserProfileInput) => ({
-  email: input.email,
-  first_name: input.first_name,
-  last_name: input.last_name,
-  phone: input.phone,
-});
+const profilePayload = (input: SaveMyUserProfileInput) => {
+  const raw = input.phone?.trim() ?? '';
+  const phone =
+    raw === '' ? null : (phoneDisplayToStorage(raw) ?? raw);
+  return {
+    email: input.email,
+    first_name: input.first_name,
+    last_name: input.last_name,
+    phone,
+  };
+};
 
 /**
  * Mise à jour du profil : `upsert` pose souvent problème avec RLS (INSERT + UPDATE).
@@ -57,7 +74,10 @@ export async function saveMyUserProfile(
     .eq('id', uid)
     .select('id');
 
-  if (updateErr) throw updateErr;
+  if (updateErr) {
+    if (isPostgresUniqueViolation(updateErr)) throw new Error(PHONE_ALREADY_USED_MESSAGE);
+    throw updateErr;
+  }
 
   if (updatedRows && updatedRows.length > 0) return;
 
@@ -65,5 +85,8 @@ export async function saveMyUserProfile(
     id: uid,
     ...payload,
   });
-  if (insertErr) throw insertErr;
+  if (insertErr) {
+    if (isPostgresUniqueViolation(insertErr)) throw new Error(PHONE_ALREADY_USED_MESSAGE);
+    throw insertErr;
+  }
 }

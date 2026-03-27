@@ -1,3 +1,4 @@
+import { phoneStorageToDisplay } from './normalizeCustomerPhone';
 import type { OrderCustomerSummary } from '../types';
 
 function hasText(s: string | null | undefined): boolean {
@@ -22,7 +23,7 @@ export function formatCustomerDisplayName(u: OrderCustomerSummary | null | undef
   const name = [fn, ln].filter(Boolean).join(' ');
   if (name) return name;
   const email = u?.email?.trim();
-  const phone = u?.phone?.trim();
+  const phone = u?.phone != null && String(u.phone).trim() !== '' ? phoneStorageToDisplay(u.phone) : '';
   if (email) return email;
   if (phone) return phone;
   return 'Non renseigné';

@@ -10,7 +10,12 @@ import {
   Platform,
   View,
 } from 'react-native';
-import { useSupabase, useMyUserProfile } from '@wokthai/shared';
+import {
+  useSupabase,
+  useMyUserProfile,
+  phoneStorageToDisplay,
+  canonicalizePhoneDisplayInput,
+} from '@wokthai/shared';
 import { WtButton } from '../components/WtButton';
 import { WtCard } from '../components/WtCard';
 import { useRequireSession } from '../hooks/useRequireSession';
@@ -44,7 +49,7 @@ export default function ProfileScreen() {
     if (!editing) {
       setFirstName(profile.first_name ?? '');
       setLastName(profile.last_name ?? '');
-      setPhone(profile.phone ?? '');
+      setPhone(phoneStorageToDisplay(profile.phone));
     }
   }, [profile, editing]);
 
@@ -77,7 +82,7 @@ export default function ProfileScreen() {
     if (profile) {
       setFirstName(profile.first_name ?? '');
       setLastName(profile.last_name ?? '');
-      setPhone(profile.phone ?? '');
+      setPhone(phoneStorageToDisplay(profile.phone));
     }
     setEditing(false);
   }
@@ -133,12 +138,18 @@ export default function ProfileScreen() {
           <TextInput
             value={phone}
             onChangeText={setPhone}
-            placeholder="+216 … ou 00…"
+            onBlur={() => {
+              if (editing) setPhone((p) => canonicalizePhoneDisplayInput(p));
+            }}
+            placeholder="12 34 56 78"
             placeholderTextColor={wt.placeholder}
-            keyboardType="phone-pad"
+            keyboardType={editing ? 'default' : 'phone-pad'}
             editable={editing}
             style={[styles.input, !editing && styles.inputReadonly]}
           />
+          {editing ? (
+            <Text style={styles.phoneHint}>Hors Tunisie, commencez par + et l’indicatif du pays.</Text>
+          ) : null}
 
           <Text style={styles.label}>Email</Text>
           <Text style={styles.emailReadonly}>{email ?? '—'}</Text>
@@ -186,4 +197,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 2,
   },
   emailNote: { fontSize: 12, color: wt.textSecondary, marginTop: -4, marginBottom: 4 },
+  phoneHint: {
+    fontSize: 12,
+    color: wt.textMuted,
+    lineHeight: 17,
+    marginTop: 6,
+    opacity: 0.85,
+  },
 });
