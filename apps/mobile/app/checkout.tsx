@@ -47,6 +47,15 @@ export default function CheckoutScreen() {
     if (!list?.length || selectedStoreId) return;
     setSelectedStoreId(list[0].id);
   }, [stores.data, selectedStoreId]);
+
+  const selectedStore = stores.data?.find((s) => s.id === selectedStoreId);
+  const deliveryEnabled = selectedStore?.delivery_enabled !== false;
+
+  useEffect(() => {
+    if (!deliveryEnabled && orderType === 'delivery') {
+      setOrderType('pickup');
+    }
+  }, [deliveryEnabled, orderType]);
   const [paymentStatus, setPaymentStatus] = useState<PaymentStatus>('paid_on_delivery');
   const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
   const [deliveryNotes, setDeliveryNotes] = useState('');
@@ -168,12 +177,28 @@ export default function CheckoutScreen() {
       )}
 
       <Text style={styles.heading}>Type</Text>
+      {!deliveryEnabled ? (
+        <Text style={styles.deliveryOffHint}>
+          Livraison momentanément indisponible pour ce magasin — retrait sur place uniquement.
+        </Text>
+      ) : null}
       <View style={styles.segment}>
         <Pressable
-          onPress={() => setOrderType('delivery')}
-          style={[styles.segBtn, orderType === 'delivery' && styles.segActive]}
+          onPress={() => deliveryEnabled && setOrderType('delivery')}
+          disabled={!deliveryEnabled}
+          style={[
+            styles.segBtn,
+            orderType === 'delivery' && styles.segActive,
+            !deliveryEnabled && styles.segDisabled,
+          ]}
         >
-          <Text style={[styles.segText, orderType === 'delivery' && styles.segTextActive]}>
+          <Text
+            style={[
+              styles.segText,
+              orderType === 'delivery' && styles.segTextActive,
+              !deliveryEnabled && styles.segTextDisabled,
+            ]}
+          >
             Livraison
           </Text>
         </Pressable>
@@ -345,6 +370,14 @@ const styles = StyleSheet.create({
   segActive: { borderColor: wt.accent, backgroundColor: wt.accentMuted },
   segText: { fontWeight: '600', color: wt.textMuted, fontSize: 13, textAlign: 'center' },
   segTextActive: { color: wt.accentLight },
+  segDisabled: { opacity: 0.45 },
+  segTextDisabled: { color: wt.textMuted },
+  deliveryOffHint: {
+    fontSize: 13,
+    color: wt.textSecondary,
+    lineHeight: 18,
+    marginBottom: 4,
+  },
   addrCard: { marginBottom: 8 },
   addrSelected: { borderColor: wt.accent, borderWidth: 2 },
   addrTitle: { fontWeight: '700', fontSize: 16, color: wt.text },

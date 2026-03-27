@@ -87,6 +87,7 @@ export type Database = {
           lng: number;
           is_active: boolean;
           prep_time_minutes: number;
+          delivery_enabled: boolean;
         };
         Insert: {
           id?: string;
@@ -97,6 +98,7 @@ export type Database = {
           lng: number;
           is_active?: boolean;
           prep_time_minutes?: number;
+          delivery_enabled?: boolean;
         };
         Update: {
           id?: string;
@@ -107,6 +109,7 @@ export type Database = {
           lng?: number;
           is_active?: boolean;
           prep_time_minutes?: number;
+          delivery_enabled?: boolean;
         };
         Relationships: [];
       };

@@ -10,6 +10,7 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 const nav = [
   { href: "/orders", label: "Commandes" },
   { href: "/products", label: "Produits" },
+  { href: "/settings", label: "Magasin" },
 ];
 
 function useIsMdUp() {

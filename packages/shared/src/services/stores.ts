@@ -16,3 +16,18 @@ export async function fetchAllStores(client: WokthaiSupabaseClient): Promise<Sto
   if (error) throw error;
   return data ?? [];
 }
+
+export async function updateStoreDeliveryEnabled(
+  client: WokthaiSupabaseClient,
+  storeId: string,
+  deliveryEnabled: boolean
+): Promise<StoreRow> {
+  const { data, error } = await client
+    .from('stores')
+    .update({ delivery_enabled: deliveryEnabled })
+    .eq('id', storeId)
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+}

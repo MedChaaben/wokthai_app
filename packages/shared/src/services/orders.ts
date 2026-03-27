@@ -258,11 +258,15 @@ export async function createOrderWithItems(
     });
   }
 
-  const activeIds = new Set(stores.map((s) => s.id));
-  if (!activeIds.has(input.storeId)) {
+  const storeRow = stores.find((s) => s.id === input.storeId);
+  if (!storeRow) {
     throw new Error('Magasin invalide ou inactif');
   }
   const storeId = input.storeId;
+
+  if (input.type === 'delivery' && storeRow.delivery_enabled === false) {
+    throw new Error('La livraison est momentanément indisponible pour ce magasin');
+  }
 
   let deliveryFee = 0;
   if (input.type === 'delivery') {
