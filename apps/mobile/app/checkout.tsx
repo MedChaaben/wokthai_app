@@ -19,7 +19,6 @@ import {
   useSupabase,
   getDeliveryFeeForStoreAndCity,
   type AllowedCity,
-  type PaymentStatus,
 } from '@wokthai/shared';
 import { AddressMapPreview } from '../components/AddressMapPreview';
 import { MapAddressPickerModal } from '../components/MapAddressPickerModal';
@@ -56,7 +55,6 @@ export default function CheckoutScreen() {
       setOrderType('pickup');
     }
   }, [deliveryEnabled, orderType]);
-  const [paymentStatus, setPaymentStatus] = useState<PaymentStatus>('paid_on_delivery');
   const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
   const [deliveryNotes, setDeliveryNotes] = useState('');
 
@@ -122,7 +120,7 @@ export default function CheckoutScreen() {
           quantity: l.quantity,
           selectedOptions: l.selectedOptions,
         })),
-        paymentStatus,
+        paymentStatus: 'paid_on_delivery',
         addressId: orderType === 'delivery' ? selectedAddressId : null,
         deliveryNotes: deliveryNotes.trim() || null,
         addressCity:
@@ -212,27 +210,10 @@ export default function CheckoutScreen() {
         </Pressable>
       </View>
 
-      <Text style={styles.heading}>Paiement (espèces)</Text>
-      <View style={styles.segment}>
-        <Pressable
-          onPress={() => setPaymentStatus('paid_on_delivery')}
-          style={[styles.segBtn, paymentStatus === 'paid_on_delivery' && styles.segActive]}
-        >
-          <Text
-            style={[styles.segText, paymentStatus === 'paid_on_delivery' && styles.segTextActive]}
-          >
-            Paiement à la livraison
-          </Text>
-        </Pressable>
-        <Pressable
-          onPress={() => setPaymentStatus('unpaid')}
-          style={[styles.segBtn, paymentStatus === 'unpaid' && styles.segActive]}
-        >
-          <Text style={[styles.segText, paymentStatus === 'unpaid' && styles.segTextActive]}>
-            Non payé
-          </Text>
-        </Pressable>
-      </View>
+      <Text style={styles.heading}>Paiement</Text>
+      <Text style={styles.body}>
+        Paiement en espèces à la livraison ou au magasin (à l’enlèvement).
+      </Text>
 
       {orderType === 'delivery' ? (
         <>
