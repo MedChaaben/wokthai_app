@@ -12,6 +12,29 @@ import { wt } from '../lib/theme';
 
 type Mode = 'signin' | 'signup';
 
+/** Supabase peut renvoyer un succès « brouillé » : `identities: []` = email déjà enregistré (email confirmations activées). */
+function signupResponseIndicatesExistingEmail(user: { identities?: unknown[] | null } | null): boolean {
+  if (!user) return false;
+  return user.identities?.length === 0;
+}
+
+function authErrorIndicatesExistingEmail(e: unknown): boolean {
+  if (!e || typeof e !== 'object') return false;
+  const code = 'code' in e && typeof (e as { code: unknown }).code === 'string' ? (e as { code: string }).code : '';
+  if (code === 'user_already_exists') return true;
+  const msg =
+    'message' in e && typeof (e as { message: unknown }).message === 'string'
+      ? (e as { message: string }).message.toLowerCase()
+      : '';
+  return (
+    msg.includes('already registered') ||
+    msg.includes('already been registered') ||
+    msg.includes('user already exists') ||
+    msg.includes('email address is already registered') ||
+    msg.includes('email already registered')
+  );
+}
+
 export default function LoginScreen() {
   const supabase = useSupabase();
   const router = useRouter();
@@ -30,6 +53,22 @@ export default function LoginScreen() {
   const [resendLoading, setResendLoading] = useState(false);
 
   const emailRedirectTo = Linking.createURL('login');
+
+  function alertCompteEmailDejaUtilise(trimmedEmail: string) {
+    Alert.alert(
+      'Compte existant',
+      'Un compte existe déjà avec cette adresse email. Connectez-vous avec votre mot de passe, ou réinitialisez-le si besoin.',
+      [
+        { text: 'Annuler', style: 'cancel' },
+        {
+          text: 'Réinitialiser le mot de passe',
+          onPress: () =>
+            router.push({ pathname: '/forgot-password', params: { email: trimmedEmail } } as never),
+        },
+        { text: 'Se connecter', onPress: () => setMode('signin') },
+      ],
+    );
+  }
 
   useEffect(() => {
     const m = Array.isArray(params.mode) ? params.mode[0] : params.mode;
@@ -100,8 +139,18 @@ export default function LoginScreen() {
         password,
         options: { emailRedirectTo },
       });
-      if (error) throw error;
+      if (error) {
+        if (authErrorIndicatesExistingEmail(error)) {
+          alertCompteEmailDejaUtilise(trimmed);
+          return;
+        }
+        throw error;
+      }
       const user = data.user;
+      if (signupResponseIndicatesExistingEmail(user)) {
+        alertCompteEmailDejaUtilise(trimmed);
+        return;
+      }
       if (user) await syncUserRow(user.id, user.email ?? trimmed);
       if (data.session) {
         setPendingVerificationEmail(null);

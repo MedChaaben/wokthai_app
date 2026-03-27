@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { View, Text, TextInput, StyleSheet, Alert, Pressable } from 'react-native';
 import * as Linking from 'expo-linking';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSupabase } from '@wokthai/shared';
 import { WtButton } from '../components/WtButton';
 import { WtCard } from '../components/WtCard';
@@ -10,7 +10,12 @@ import { wt } from '../lib/theme';
 export default function ForgotPasswordScreen() {
   const supabase = useSupabase();
   const router = useRouter();
-  const [email, setEmail] = useState('');
+  const params = useLocalSearchParams<{ email?: string | string[] }>();
+  const emailFromParams = useMemo(() => {
+    const raw = Array.isArray(params.email) ? params.email[0] : params.email;
+    return raw?.trim() ?? '';
+  }, [params.email]);
+  const [email, setEmail] = useState(emailFromParams);
   const [loading, setLoading] = useState(false);
 
   async function onSend() {
