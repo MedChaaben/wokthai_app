@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { View, Text, TextInput, StyleSheet, Alert, Pressable } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import * as Linking from 'expo-linking';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSupabase } from '@wokthai/shared';
@@ -20,6 +21,9 @@ export default function LoginScreen() {
   const [mode, setMode] = useState<Mode>('signin');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [passwordConfirm, setPasswordConfirm] = useState('');
+  const [passwordVisible, setPasswordVisible] = useState(false);
+  const [passwordConfirmVisible, setPasswordConfirmVisible] = useState(false);
   const [loading, setLoading] = useState(false);
   /** Inscription avec « confirmation email » activée côté Supabase : pas de session tant que le mail n’est pas validé. */
   const [pendingVerificationEmail, setPendingVerificationEmail] = useState<string | null>(null);
@@ -31,6 +35,13 @@ export default function LoginScreen() {
     const m = Array.isArray(params.mode) ? params.mode[0] : params.mode;
     if (m === 'signup') setMode('signup');
   }, [params.mode]);
+
+  useEffect(() => {
+    if (mode === 'signin') {
+      setPasswordConfirm('');
+      setPasswordConfirmVisible(false);
+    }
+  }, [mode]);
 
   async function syncUserRow(userId: string, userEmail: string | undefined) {
     await supabase.from('users').upsert({
@@ -76,6 +87,10 @@ export default function LoginScreen() {
     }
     if (password.length < 6) {
       Alert.alert('Mot de passe trop court', 'Au moins 6 caractères (règle Supabase par défaut).');
+      return;
+    }
+    if (password !== passwordConfirm) {
+      Alert.alert('Confirmation', 'Les deux mots de passe ne correspondent pas.');
       return;
     }
     setLoading(true);
@@ -155,15 +170,59 @@ export default function LoginScreen() {
           style={styles.input}
         />
         <Text style={styles.label}>Mot de passe</Text>
-        <TextInput
-          placeholder="••••••••"
-          placeholderTextColor={wt.placeholder}
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry
-          autoComplete={mode === 'signin' ? 'password' : 'new-password'}
-          style={styles.input}
-        />
+        <View style={styles.passwordRow}>
+          <TextInput
+            placeholder="••••••••"
+            placeholderTextColor={wt.placeholder}
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry={!passwordVisible}
+            autoComplete={mode === 'signin' ? 'password' : 'new-password'}
+            style={styles.passwordInput}
+          />
+          <Pressable
+            onPress={() => setPasswordVisible((v) => !v)}
+            style={({ pressed }) => [styles.passwordToggle, pressed && styles.passwordTogglePressed]}
+            accessibilityRole="button"
+            accessibilityLabel={passwordVisible ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
+          >
+            <Ionicons
+              name={passwordVisible ? 'eye-outline' : 'eye-off-outline'}
+              size={22}
+              color={wt.textMuted}
+            />
+          </Pressable>
+        </View>
+        {mode === 'signup' ? (
+          <>
+            <Text style={styles.label}>Confirmer le mot de passe</Text>
+            <View style={styles.passwordRow}>
+              <TextInput
+                placeholder="••••••••"
+                placeholderTextColor={wt.placeholder}
+                value={passwordConfirm}
+                onChangeText={setPasswordConfirm}
+                secureTextEntry={!passwordConfirmVisible}
+                autoComplete="new-password"
+                style={styles.passwordInput}
+              />
+              <Pressable
+                onPress={() => setPasswordConfirmVisible((v) => !v)}
+                style={({ pressed }) => [styles.passwordToggle, pressed && styles.passwordTogglePressed]}
+                accessibilityRole="button"
+                accessibilityLabel={
+                  passwordConfirmVisible ? 'Masquer la confirmation du mot de passe' : 'Afficher la confirmation du mot de passe'
+                }
+              >
+                <Ionicons
+                  name={passwordConfirmVisible ? 'eye-outline' : 'eye-off-outline'}
+                  size={22}
+                  color={wt.textMuted}
+                />
+              </Pressable>
+            </View>
+          </>
+        ) : null}
         <WtButton
           title={mode === 'signin' ? 'Se connecter' : "S'inscrire"}
           loading={loading}
@@ -221,6 +280,29 @@ const styles = StyleSheet.create({
     backgroundColor: wt.surface,
     color: wt.text,
   },
+  passwordRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: wt.border,
+    borderRadius: 10,
+    backgroundColor: wt.surface,
+    paddingRight: 4,
+  },
+  passwordInput: {
+    flex: 1,
+    paddingVertical: 14,
+    paddingLeft: 14,
+    paddingRight: 8,
+    fontSize: 16,
+    color: wt.text,
+  },
+  passwordToggle: {
+    padding: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  passwordTogglePressed: { opacity: 0.65 },
   verifyBox: {
     marginTop: 16,
     padding: 16,
