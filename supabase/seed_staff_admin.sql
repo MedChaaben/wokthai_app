@@ -1,5 +1,5 @@
 -- 1) Dans Supabase : Authentication → Users → Add user
---    Email : admin@wokthai.com
+--    Email : admin@wokthai.tn
 --    Mot de passe : WelcomeAdmin! (ou autre)
 --    Cocher « Auto Confirm User »
 --
@@ -8,7 +8,7 @@
 INSERT INTO public.staff (user_id, email, store_id)
 SELECT u.id, u.email, 'a0000000-0000-4000-8000-000000000001'::uuid
 FROM auth.users u
-WHERE u.email = 'admin@wokthai.com'
+WHERE u.email = 'admin@wokthai.tn'
 ON CONFLICT (user_id) DO UPDATE
 SET
   email = EXCLUDED.email,
