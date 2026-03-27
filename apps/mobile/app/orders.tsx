@@ -11,6 +11,7 @@ import {
 import { useFocusEffect, useRouter } from 'expo-router';
 import { useOrders, isOngoingOrderStatus, type OrderRow } from '@wokthai/shared';
 import { WtCard } from '../components/WtCard';
+import { useRequireSession } from '../hooks/useRequireSession';
 import { wt } from '../lib/theme';
 
 const STATUS_LABEL: Record<string, string> = {
@@ -26,8 +27,9 @@ const STATUS_LABEL: Record<string, string> = {
 type Tab = 'ongoing' | 'history';
 
 export default function MyOrdersScreen() {
+  const sessionOk = useRequireSession('/orders');
   const router = useRouter();
-  const orders = useOrders({ mode: 'customer' });
+  const orders = useOrders({ mode: 'customer', enabled: sessionOk });
   const [tab, setTab] = useState<Tab>('ongoing');
 
   const refetchOrders = orders.refetch;
@@ -53,6 +55,14 @@ export default function MyOrdersScreen() {
   }, [orders.data]);
 
   const list = tab === 'ongoing' ? ongoing : history;
+
+  if (!sessionOk) {
+    return (
+      <View style={styles.authWait}>
+        <ActivityIndicator color={wt.accent} size="large" />
+      </View>
+    );
+  }
 
   function renderItem({ item }: { item: OrderRow }) {
     return (
@@ -124,6 +134,7 @@ export default function MyOrdersScreen() {
 }
 
 const styles = StyleSheet.create({
+  authWait: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: wt.bg },
   screen: { flex: 1, backgroundColor: wt.bg },
   segment: { flexDirection: 'row', gap: 8, padding: 16, paddingBottom: 8 },
   segBtn: {

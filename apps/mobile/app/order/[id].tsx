@@ -2,6 +2,7 @@ import { useLocalSearchParams } from 'expo-router';
 import { View, Text, StyleSheet, ActivityIndicator, ScrollView } from 'react-native';
 import { useOrder, useOrderRealtime } from '@wokthai/shared';
 import { WtCard } from '../../components/WtCard';
+import { useRequireSession } from '../../hooks/useRequireSession';
 import { wt } from '../../lib/theme';
 
 const STATUS_LABEL: Record<string, string> = {
@@ -45,8 +46,18 @@ function fmtTimelineTime(iso: string): string {
 
 export default function OrderTrackingScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { data, isLoading, error } = useOrder(id);
-  useOrderRealtime(id);
+  const orderId = Array.isArray(id) ? id[0] : id;
+  const sessionOk = useRequireSession(orderId ? `/order/${orderId}` : '/orders');
+  const { data, isLoading, error } = useOrder(orderId);
+  useOrderRealtime(orderId);
+
+  if (!sessionOk) {
+    return (
+      <View style={styles.center}>
+        <ActivityIndicator size="large" color={wt.accent} />
+      </View>
+    );
+  }
 
   if (isLoading) {
     return (

@@ -7,11 +7,12 @@ import { parseSupabaseAuthCallback, routeAfterAuthCallback } from '../lib/parseA
 import { supabaseReady } from '../lib/supabase';
 import { wt } from '../lib/theme';
 
+type BootState = 'loading' | 'navigated' | 'redirect_tabs';
+
 export default function Index() {
   const supabase = useSupabase();
   const router = useRouter();
-  const [loading, setLoading] = useState(true);
-  const [hasSession, setHasSession] = useState(false);
+  const [boot, setBoot] = useState<BootState>('loading');
 
   useEffect(() => {
     if (!supabaseReady) return;
@@ -29,40 +30,31 @@ export default function Index() {
           if (!mounted) return;
           if (!error) {
             router.replace(routeAfterAuthCallback(tokens.type));
-            setLoading(false);
+            setBoot('navigated');
             return;
           }
         }
       }
-
-      const { data } = await supabase.auth.getSession();
       if (!mounted) return;
-      setHasSession(Boolean(data.session));
-      setLoading(false);
+      setBoot('redirect_tabs');
     }
 
     void init();
 
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setHasSession(Boolean(session));
-    });
     return () => {
       mounted = false;
-      subscription.unsubscribe();
     };
   }, [supabase, router]);
 
   if (!supabaseReady) return null;
-  if (loading) {
+  if (boot === 'loading') {
     return (
       <View style={styles.center}>
         <ActivityIndicator size="large" color={wt.accent} />
       </View>
     );
   }
-  if (!hasSession) return <Redirect href="/login" />;
+  if (boot === 'navigated') return null;
   return <Redirect href="/(tabs)" />;
 }
 

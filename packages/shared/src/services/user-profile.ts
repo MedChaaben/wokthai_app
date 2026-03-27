@@ -1,6 +1,15 @@
 import type { WokthaiSupabaseClient } from '../supabase/client';
 import type { UserRow } from '../types';
 
+/** Prénom, nom et téléphone renseignés (téléphone : au moins 8 caractères utiles). */
+export function isCustomerProfileComplete(profile: UserRow | null | undefined): boolean {
+  if (!profile) return false;
+  const fn = profile.first_name?.trim() ?? '';
+  const ln = profile.last_name?.trim() ?? '';
+  const tel = profile.phone?.replace(/\s/g, '') ?? '';
+  return fn.length > 0 && ln.length > 0 && tel.length >= 8;
+}
+
 export type SaveMyUserProfileInput = {
   first_name: string | null;
   last_name: string | null;

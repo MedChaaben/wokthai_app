@@ -23,11 +23,13 @@ import { AddressMapPreview } from '../components/AddressMapPreview';
 import { MapAddressPickerModal } from '../components/MapAddressPickerModal';
 import { WtButton } from '../components/WtButton';
 import { WtCard } from '../components/WtCard';
+import { useRequireSession } from '../hooks/useRequireSession';
 import { wt } from '../lib/theme';
 
 const CITIES: AllowedCity[] = ['Tunis', 'Ariana'];
 
 export default function AddressesScreen() {
+  const sessionOk = useRequireSession('/addresses');
   const supabase = useSupabase();
   const addresses = useMyAddresses();
 
@@ -142,6 +144,14 @@ export default function AddressesScreen() {
     } finally {
       setDeletingId(null);
     }
+  }
+
+  if (!sessionOk) {
+    return (
+      <View style={styles.authWait}>
+        <ActivityIndicator color={wt.accent} size="large" />
+      </View>
+    );
   }
 
   return (
@@ -259,6 +269,7 @@ export default function AddressesScreen() {
 }
 
 const styles = StyleSheet.create({
+  authWait: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: wt.bg },
   screen: { padding: 16, paddingBottom: 40, gap: 12, backgroundColor: wt.bg },
   intro: { fontSize: 14, color: wt.textMuted, lineHeight: 20, marginBottom: 4 },
   formTitle: { fontSize: 17, fontWeight: '700', color: wt.text, marginBottom: 2 },

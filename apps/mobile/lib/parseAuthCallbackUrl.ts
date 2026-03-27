@@ -38,7 +38,7 @@ export function parseSupabaseAuthCallback(url: string): ParsedAuthCallback | nul
   return null;
 }
 
-/** Après setSession depuis l’URL : où router selon le flux Auth. */
+/** Après setSession depuis l’URL : on évite `/` pour ne pas reboucler sur l’écran d’index. */
 export function routeAfterAuthCallback(type: string | null): '/reset-password' | '/(tabs)' {
   return type === 'recovery' ? '/reset-password' : '/(tabs)';
 }

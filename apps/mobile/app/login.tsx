@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { View, Text, TextInput, StyleSheet, Alert, Pressable } from 'react-native';
 import * as Linking from 'expo-linking';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSupabase } from '@wokthai/shared';
+import { safeAuthRedirectPath } from '../lib/authRedirect';
 import { BrandLogo } from '../components/BrandLogo';
 import { WtButton } from '../components/WtButton';
 import { WtCard } from '../components/WtCard';
@@ -13,6 +14,9 @@ type Mode = 'signin' | 'signup';
 export default function LoginScreen() {
   const supabase = useSupabase();
   const router = useRouter();
+  const params = useLocalSearchParams<{ redirect?: string | string[]; mode?: string | string[] }>();
+  const redirectRaw = Array.isArray(params.redirect) ? params.redirect[0] : params.redirect;
+  const afterAuthPath = useMemo(() => safeAuthRedirectPath(redirectRaw), [redirectRaw]);
   const [mode, setMode] = useState<Mode>('signin');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -22,6 +26,11 @@ export default function LoginScreen() {
   const [resendLoading, setResendLoading] = useState(false);
 
   const emailRedirectTo = Linking.createURL('login');
+
+  useEffect(() => {
+    const m = Array.isArray(params.mode) ? params.mode[0] : params.mode;
+    if (m === 'signup') setMode('signup');
+  }, [params.mode]);
 
   async function syncUserRow(userId: string, userEmail: string | undefined) {
     await supabase.from('users').upsert({
@@ -50,7 +59,7 @@ export default function LoginScreen() {
       const user = data.user;
       if (user) await syncUserRow(user.id, user.email ?? trimmed);
       setPendingVerificationEmail(null);
-      router.replace('/(tabs)');
+      router.replace(afterAuthPath as never);
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : 'Réessayez plus tard.';
       Alert.alert('Connexion impossible', msg);
@@ -81,7 +90,7 @@ export default function LoginScreen() {
       if (user) await syncUserRow(user.id, user.email ?? trimmed);
       if (data.session) {
         setPendingVerificationEmail(null);
-        router.replace('/(tabs)');
+        router.replace(afterAuthPath as never);
       } else {
         setPendingVerificationEmail(trimmed);
         Alert.alert(
@@ -123,7 +132,7 @@ export default function LoginScreen() {
   return (
     <View style={styles.screen}>
       <BrandLogo variant="hero" style={styles.logoWrap} />
-      <Text style={styles.sub}>Tunis & Ariana — commande rapide</Text>
+      <Text style={styles.sub}>Restaurant asiatique - Marsa & Ennasr</Text>
       <WtCard style={styles.card}>
         <View style={styles.modeRow}>
           <Pressable onPress={() => setMode('signin')} style={[styles.modeBtn, mode === 'signin' && styles.modeBtnActive]}>

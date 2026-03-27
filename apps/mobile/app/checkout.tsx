@@ -25,11 +25,13 @@ import { MapAddressPickerModal } from '../components/MapAddressPickerModal';
 import { WtButton } from '../components/WtButton';
 import { WtCard } from '../components/WtCard';
 import { useCart } from '../contexts/CartContext';
+import { useRequireSession } from '../hooks/useRequireSession';
 import { wt } from '../lib/theme';
 
 const CITIES: AllowedCity[] = ['Tunis', 'Ariana'];
 
 export default function CheckoutScreen() {
+  const sessionOk = useRequireSession('/checkout');
   const router = useRouter();
   const supabase = useSupabase();
   const { lines, subtotal, clear } = useCart();
@@ -148,6 +150,14 @@ export default function CheckoutScreen() {
         )
       : 0;
   const grandTotal = subtotal + (orderType === 'delivery' ? deliveryFee : 0);
+
+  if (!sessionOk) {
+    return (
+      <View style={styles.authWait}>
+        <ActivityIndicator color={wt.accent} size="large" />
+      </View>
+    );
+  }
 
   return (
     <ScrollView contentContainerStyle={styles.screen}>
@@ -336,6 +346,7 @@ export default function CheckoutScreen() {
 }
 
 const styles = StyleSheet.create({
+  authWait: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: wt.bg },
   screen: { padding: 16, paddingBottom: 40, gap: 12, backgroundColor: wt.bg },
   heading: { fontSize: 16, fontWeight: '800', color: wt.text, marginTop: 8 },
   segment: { flexDirection: 'row', gap: 8 },

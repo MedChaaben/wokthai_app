@@ -1,9 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Text, StyleSheet, Pressable, ScrollView, ActivityIndicator, View } from 'react-native';
 import { useRouter } from 'expo-router';
+import type { Session } from '@supabase/supabase-js';
 import { useSupabase, useMyUserProfile } from '@wokthai/shared';
+import { WtButton } from '../../components/WtButton';
 import { WtCard } from '../../components/WtCard';
 import { wt } from '../../lib/theme';
+
+const ACCOUNT_REDIRECT = '/(tabs)/account';
 
 function displayName(first: string | null | undefined, last: string | null | undefined, email: string | null) {
   const n = [first?.trim(), last?.trim()].filter(Boolean).join(' ');
@@ -58,15 +62,18 @@ export default function AccountScreen() {
   const supabase = useSupabase();
   const { profile, isLoading } = useMyUserProfile();
   const [email, setEmail] = useState<string | null>(null);
+  const [session, setSession] = useState<Session | null | undefined>(undefined);
 
   useEffect(() => {
     void supabase.auth.getSession().then(({ data }) => {
+      setSession(data.session);
       setEmail(data.session?.user?.email ?? null);
     });
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setEmail(session?.user?.email ?? null);
+    } = supabase.auth.onAuthStateChange((_event, next) => {
+      setSession(next);
+      setEmail(next?.user?.email ?? null);
     });
     return () => subscription.unsubscribe();
   }, [supabase]);
@@ -82,7 +89,40 @@ export default function AccountScreen() {
 
   async function signOut() {
     await supabase.auth.signOut();
-    router.replace('/login');
+    router.replace('/(tabs)');
+  }
+
+  if (session === undefined) {
+    return (
+      <View style={styles.center}>
+        <ActivityIndicator color={wt.accent} size="large" />
+      </View>
+    );
+  }
+
+  if (!session) {
+    const q = encodeURIComponent(ACCOUNT_REDIRECT);
+    return (
+      <View style={styles.root}>
+        <ScrollView contentContainerStyle={styles.screen} keyboardShouldPersistTaps="handled" bounces>
+          <WtCard style={styles.guestCard}>
+            <Text style={styles.guestTitle}>Mode invité</Text>
+            <Text style={styles.guestBody}>
+              Parcourez le menu et remplissez votre panier. Pour commander, connectez-vous ou créez un compte.
+            </Text>
+            <WtButton
+              title="Se connecter"
+              onPress={() => router.push(`/login?redirect=${q}` as never)}
+            />
+            <WtButton
+              title="Créer un compte"
+              variant="ghost"
+              onPress={() => router.push(`/login?mode=signup&redirect=${q}` as never)}
+            />
+          </WtCard>
+        </ScrollView>
+      </View>
+    );
   }
 
   if (isLoading) {
@@ -156,6 +196,9 @@ export default function AccountScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: wt.bg },
+  guestCard: { gap: 14, paddingVertical: 8 },
+  guestTitle: { fontSize: 20, fontWeight: '800', color: wt.text },
+  guestBody: { fontSize: 15, color: wt.textMuted, lineHeight: 22 },
   scroll: { flex: 1 },
   screen: {
     flexGrow: 1,

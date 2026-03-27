@@ -13,9 +13,11 @@ import {
 import { useSupabase, useMyUserProfile } from '@wokthai/shared';
 import { WtButton } from '../components/WtButton';
 import { WtCard } from '../components/WtCard';
+import { useRequireSession } from '../hooks/useRequireSession';
 import { wt } from '../lib/theme';
 
 export default function ProfileScreen() {
+  const sessionOk = useRequireSession('/profile');
   const supabase = useSupabase();
   const { profile, isLoading, save, isSaving } = useMyUserProfile();
   const [email, setEmail] = useState<string | null>(null);
@@ -80,7 +82,7 @@ export default function ProfileScreen() {
     setEditing(false);
   }
 
-  if (isLoading) {
+  if (!sessionOk || isLoading) {
     return (
       <View style={styles.center}>
         <ActivityIndicator color={wt.accent} size="large" />
