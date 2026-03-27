@@ -8,3 +8,5 @@ dist
 .DS_Store
 coverage
 .turbo
+apps/dashboard/pnpm-lock.yaml
+.vercel
