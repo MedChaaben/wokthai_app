@@ -1,3 +1,4 @@
+const fs = require('fs');
 const path = require('path');
 const dotenv = require('dotenv');
 
@@ -17,6 +18,8 @@ if (!process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY && process.env.NEXT_PUBLIC_SUPABA
 
 /** @type {import('expo/config').ExpoConfig} */
 module.exports = () => {
-  const appJson = require('./app.json');
+  // Pas de require(app.json) : cache Node, incompatible avec les écritures EAS dans app.json.
+  const appJsonPath = path.join(__dirname, 'app.json');
+  const appJson = JSON.parse(fs.readFileSync(appJsonPath, 'utf8'));
   return appJson.expo;
 };
