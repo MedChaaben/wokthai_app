@@ -18,6 +18,7 @@ import {
   createAddress,
   useSupabase,
   getDeliveryFeeForStoreAndCity,
+  formatStoreOpeningHoursLines,
   type AllowedCity,
 } from '@wokthai/shared';
 import { AddressMapPreview } from '../components/AddressMapPreview';
@@ -167,21 +168,31 @@ export default function CheckoutScreen() {
       ) : (stores.data ?? []).length === 0 ? (
         <Text style={styles.body}>Aucun point de vente disponible pour le moment.</Text>
       ) : (
-        (stores.data ?? []).map((s) => (
-          <Pressable key={s.id} onPress={() => setSelectedStoreId(s.id)}>
-            <WtCard
-              style={[
-                styles.addrCard,
-                selectedStoreId === s.id ? styles.addrSelected : undefined,
-              ]}
-            >
-              <Text style={styles.addrTitle}>{s.name}</Text>
-              <Text style={styles.addrMeta}>
-                {s.address} — {s.city}
-              </Text>
-            </WtCard>
-          </Pressable>
-        ))
+        (stores.data ?? []).map((s) => {
+          const { lines, isEmpty } = formatStoreOpeningHoursLines(s.store_opening_hours ?? undefined);
+          return (
+            <Pressable key={s.id} onPress={() => setSelectedStoreId(s.id)}>
+              <WtCard
+                style={[
+                  styles.storeCard,
+                  selectedStoreId === s.id ? styles.addrSelected : undefined,
+                ]}
+              >
+                <Text style={styles.storeName}>{s.name}</Text>
+                <View style={styles.storeSecondary}>
+                  <Text style={styles.storeAddressLine} numberOfLines={2}>
+                    {s.address} · {s.city}
+                  </Text>
+                  <Text
+                    style={[styles.storeHoursCaption, isEmpty ? styles.storeHoursEmpty : undefined]}
+                  >
+                    {lines.join('\n')}
+                  </Text>
+                </View>
+              </WtCard>
+            </Pressable>
+          );
+        })
       )}
 
       <Text style={styles.heading}>Type</Text>
@@ -370,10 +381,39 @@ const styles = StyleSheet.create({
     lineHeight: 18,
     marginBottom: 4,
   },
+  storeCard: { marginBottom: 8, paddingVertical: 14, paddingHorizontal: 14 },
   addrCard: { marginBottom: 8 },
   addrSelected: { borderColor: wt.accent, borderWidth: 2 },
   addrTitle: { fontWeight: '700', fontSize: 16, color: wt.text },
   addrMeta: { marginTop: 4, color: wt.textMuted },
+  storeName: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: wt.text,
+    letterSpacing: -0.2,
+  },
+  /** Adresse + horaires : même registre visuel, en retrait du nom */
+  storeSecondary: {
+    marginTop: 8,
+    paddingTop: 10,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: 'rgba(255,255,255,0.07)',
+    gap: 6,
+  },
+  storeAddressLine: {
+    fontSize: 12,
+    lineHeight: 16,
+    fontWeight: '400',
+    color: wt.textSecondary,
+  },
+  storeHoursCaption: {
+    fontSize: 11,
+    lineHeight: 15,
+    fontWeight: '400',
+    color: wt.placeholder,
+    letterSpacing: 0.12,
+  },
+  storeHoursEmpty: { fontStyle: 'italic', opacity: 0.92 },
   input: {
     borderWidth: 1,
     borderColor: wt.border,

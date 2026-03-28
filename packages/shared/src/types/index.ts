@@ -7,6 +7,7 @@ export type AddressRow = Database['public']['Tables']['addresses']['Row'];
 export type AddressInsert = Database['public']['Tables']['addresses']['Insert'];
 export type AddressUpdate = Database['public']['Tables']['addresses']['Update'];
 export type StoreRow = Database['public']['Tables']['stores']['Row'];
+export type StoreOpeningHourRow = Database['public']['Tables']['store_opening_hours']['Row'];
 export type StaffRow = Database['public']['Tables']['staff']['Row'];
 
 /** Profil staff avec magasin joint (select Supabase). */

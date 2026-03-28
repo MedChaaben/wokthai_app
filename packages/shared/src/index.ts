@@ -3,6 +3,7 @@ export * from './types/database';
 export * from './supabase/client';
 export * from './domain/haversine';
 export * from './domain/store-assignment';
+export * from './domain/store-opening-hours';
 export * from './domain/delivery';
 export * from './domain/order-line-options';
 export * from './domain/order-status';

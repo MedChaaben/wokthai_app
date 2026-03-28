@@ -113,6 +113,33 @@ export type Database = {
         };
         Relationships: [];
       };
+      store_opening_hours: {
+        Row: {
+          id: string;
+          store_id: string;
+          day_of_week: number;
+          open_time: string;
+          close_time: string;
+          sort_order: number;
+        };
+        Insert: {
+          id?: string;
+          store_id: string;
+          day_of_week: number;
+          open_time: string;
+          close_time: string;
+          sort_order?: number;
+        };
+        Update: {
+          id?: string;
+          store_id?: string;
+          day_of_week?: number;
+          open_time?: string;
+          close_time?: string;
+          sort_order?: number;
+        };
+        Relationships: [];
+      };
       staff: {
         Row: { id: string; user_id: string; email: string; store_id: string };
         Insert: { id?: string; user_id: string; email: string; store_id: string };
@@ -357,6 +384,10 @@ export type Database = {
     Functions: {
       delete_my_account: {
         Args: Record<string, never>;
+        Returns: undefined;
+      };
+      replace_store_opening_hours_for_my_store: {
+        Args: { p_slots: Json };
         Returns: undefined;
       };
       order_delivery_address: {
