@@ -162,17 +162,25 @@ export default function AccountScreen() {
       >
         <WtCard>
           <View style={styles.identityRow}>
-            <View style={styles.avatar}>
-              <Text style={styles.avatarText}>{avatar}</Text>
-            </View>
-            <View style={styles.identityText}>
-              <Text style={styles.identityName} numberOfLines={2}>
-                {name}
-              </Text>
-              <Text style={styles.identityEmail} numberOfLines={1}>
-                {email ?? '—'}
-              </Text>
-            </View>
+            <Pressable
+              onPress={() => router.push('/profile')}
+              style={({ pressed }) => [styles.identityPressable, pressed && styles.identityPressablePressed]}
+              accessibilityRole="button"
+              accessibilityLabel="Mon profil, modifier mes informations"
+            >
+              <View style={styles.avatar}>
+                <Text style={styles.avatarText}>{avatar}</Text>
+              </View>
+              <View style={styles.identityText}>
+                <Text style={styles.identityName} numberOfLines={2}>
+                  {name}
+                </Text>
+                <Text style={styles.identityEmail} numberOfLines={1}>
+                  {email ?? '—'}
+                </Text>
+                <Text style={styles.identityHint}>Modifier le profil ›</Text>
+              </View>
+            </Pressable>
             <Pressable
               onPress={() => void signOut()}
               style={({ pressed }) => [styles.signOutIconWrap, pressed && styles.signOutIconPressed]}
@@ -185,7 +193,7 @@ export default function AccountScreen() {
           </View>
         </WtCard>
 
-        <Text style={styles.sectionHeading}>Accès rapide</Text>
+        <Text style={styles.sectionHeading}>Commandes et livraison</Text>
         <WtCard style={styles.menuCard}>
           <MenuRow
             icon="📋"
@@ -198,12 +206,6 @@ export default function AccountScreen() {
             title="Mes adresses"
             subtitle="Livraison et points sur la carte"
             onPress={() => router.push('/addresses')}
-          />
-          <MenuRow
-            icon="👤"
-            title="Mon profil"
-            subtitle="Nom, téléphone, email"
-            onPress={() => router.push('/profile')}
             isLast
           />
         </WtCard>
@@ -263,7 +265,21 @@ const styles = StyleSheet.create({
     backgroundColor: wt.bg,
   },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: wt.bg },
-  identityRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  identityRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  identityPressable: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    minWidth: 0,
+    marginVertical: -4,
+    marginLeft: -4,
+    paddingVertical: 4,
+    paddingLeft: 4,
+    paddingRight: 4,
+    borderRadius: 10,
+  },
+  identityPressablePressed: { backgroundColor: wt.surfaceMuted },
   avatar: {
     width: 56,
     height: 56,
@@ -289,6 +305,12 @@ const styles = StyleSheet.create({
   signOutIconPressed: { opacity: 0.82, backgroundColor: wt.surface },
   identityName: { fontSize: 20, fontWeight: '800', color: wt.text, marginBottom: 4 },
   identityEmail: { fontSize: 14, color: wt.textMuted },
+  identityHint: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: wt.accentLight,
+    marginTop: 8,
+  },
   sectionHeading: {
     fontSize: 13,
     fontWeight: '700',
