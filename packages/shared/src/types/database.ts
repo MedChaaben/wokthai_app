@@ -191,7 +191,7 @@ export type Database = {
       orders: {
         Row: {
           id: string;
-          user_id: string;
+          user_id: string | null;
           store_id: string;
           type: OrderTypeEnum;
           status: OrderStatusEnum;
@@ -355,6 +355,10 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      delete_my_account: {
+        Args: Record<string, never>;
+        Returns: undefined;
+      };
       order_delivery_address: {
         Args: { p_order_id: string };
         Returns: {

@@ -17,6 +17,7 @@ export * from './services/products-pricing';
 export * from './services/delivery-zones';
 export * from './services/addresses';
 export * from './services/user-profile';
+export * from './services/account-deletion';
 export * from './services/staff';
 export { SupabaseProvider, useSupabase } from './context/SupabaseProvider';
 export { useProducts } from './hooks/useProducts';

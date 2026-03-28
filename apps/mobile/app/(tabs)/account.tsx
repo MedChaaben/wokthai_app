@@ -189,6 +189,12 @@ export default function AccountScreen() {
             title="Conditions générales"
             subtitle="Utilisation de l’application"
             onPress={() => router.push('/cgu')}
+          />
+          <MenuRow
+            icon="🗑️"
+            title="Supprimer mon compte"
+            subtitle="Données et accès supprimés"
+            onPress={() => router.push('/delete-account')}
             isLast
           />
         </WtCard>

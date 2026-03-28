@@ -26,6 +26,7 @@ export const CGU_SECTIONS: CguSection[] = [
     title: '3. Compte utilisateur',
     paragraphs: [
       'Vous vous engagez à fournir des informations exactes et à les maintenir à jour. Vous êtes responsable de la confidentialité de vos identifiants et de toute activité réalisée depuis votre compte.',
+      'Vous pouvez demander la suppression de votre compte et des données associées depuis l’application (menu Compte, « Supprimer mon compte »), sous réserve des obligations légales de conservation éventuelles.',
       'Le restaurant peut suspendre ou supprimer un compte en cas de violation des présentes CGU, d’usage frauduleux ou d’atteinte aux droits de tiers.',
     ],
   },
