@@ -46,6 +46,7 @@ export default function TabsLayout() {
         name="account"
         options={{
           headerTitle: () => <BrandLogo variant="header" />,
+          tabBarLabel: 'Compte',
           tabBarIcon: ({ color, size }) => <TabIcon glyph="👤" color={color} size={size} />,
         }}
       />
