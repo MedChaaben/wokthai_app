@@ -279,6 +279,13 @@ export default function LoginScreen() {
           loading={loading}
           onPress={mode === 'signin' ? onSignIn : onSignUp}
         />
+        <Text style={styles.legalHint}>
+          <Text style={styles.legalHintMuted}>En continuant, vous acceptez les </Text>
+          <Text style={styles.legalHintLink} onPress={() => router.push('/cgu')}>
+            conditions générales d’utilisation
+          </Text>
+          <Text style={styles.legalHintMuted}>.</Text>
+        </Text>
         {mode === 'signin' ? (
           <Pressable onPress={() => router.push('/forgot-password')} style={styles.forgot}>
             <Text style={styles.forgotText}>Mot de passe oublié ?</Text>
@@ -322,6 +329,15 @@ const styles = StyleSheet.create({
   modeBtnActive: { backgroundColor: wt.accentMuted },
   modeText: { fontSize: 14, fontWeight: '600', color: wt.textMuted },
   modeTextActive: { color: wt.accentLight },
+  legalHint: {
+    fontSize: 12,
+    lineHeight: 17,
+    textAlign: 'center',
+    marginTop: 4,
+    paddingHorizontal: 4,
+  },
+  legalHintMuted: { color: wt.textSecondary },
+  legalHintLink: { color: wt.accentLight, fontWeight: '600' },
   forgot: { marginTop: 4, alignItems: 'center', paddingVertical: 8 },
   forgotText: { fontSize: 15, fontWeight: '600', color: wt.accentLight },
   label: { fontSize: 14, fontWeight: '600', color: wt.text },

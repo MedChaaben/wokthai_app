@@ -119,6 +119,13 @@ export default function AccountScreen() {
               variant="ghost"
               onPress={() => router.push(`/login?mode=signup&redirect=${q}` as never)}
             />
+            <Text style={styles.guestLegal}>
+              <Text style={styles.guestLegalMuted}>En utilisant l’app, vous acceptez les </Text>
+              <Text style={styles.guestLegalLink} onPress={() => router.push('/cgu')}>
+                conditions générales d’utilisation
+              </Text>
+              <Text style={styles.guestLegalMuted}>.</Text>
+            </Text>
           </WtCard>
         </ScrollView>
       </View>
@@ -176,6 +183,12 @@ export default function AccountScreen() {
             title="Mon profil"
             subtitle="Nom, téléphone, email"
             onPress={() => router.push('/profile')}
+          />
+          <MenuRow
+            icon="📜"
+            title="Conditions générales"
+            subtitle="Utilisation de l’application"
+            onPress={() => router.push('/cgu')}
             isLast
           />
         </WtCard>
@@ -199,6 +212,9 @@ const styles = StyleSheet.create({
   guestCard: { gap: 14, paddingVertical: 8 },
   guestTitle: { fontSize: 20, fontWeight: '800', color: wt.text },
   guestBody: { fontSize: 15, color: wt.textMuted, lineHeight: 22 },
+  guestLegal: { fontSize: 12, lineHeight: 18, marginTop: 8, textAlign: 'center' },
+  guestLegalMuted: { color: wt.textSecondary },
+  guestLegalLink: { color: wt.accentLight, fontWeight: '600' },
   scroll: { flex: 1 },
   screen: {
     flexGrow: 1,
