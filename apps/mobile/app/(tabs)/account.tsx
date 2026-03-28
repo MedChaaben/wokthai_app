@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Text, StyleSheet, Pressable, ScrollView, ActivityIndicator, View } from 'react-native';
+import { Text, StyleSheet, Pressable, ScrollView, ActivityIndicator, View, Linking } from 'react-native';
 import { useRouter } from 'expo-router';
 import type { Session } from '@supabase/supabase-js';
 import { useSupabase, useMyUserProfile } from '@wokthai/shared';
@@ -8,6 +8,25 @@ import { WtCard } from '../../components/WtCard';
 import { wt } from '../../lib/theme';
 
 const ACCOUNT_REDIRECT = '/(tabs)/account';
+const BUILDMYBRAND_URL = 'https://buildmybrand.art';
+
+function BrandCredit() {
+  return (
+    <View style={styles.creditWrap}>
+      <Text style={styles.creditRow}>
+        <Text style={styles.creditMuted}>Développé par </Text>
+        <Text
+          onPress={() => void Linking.openURL(BUILDMYBRAND_URL)}
+          style={styles.creditLink}
+          accessibilityRole="link"
+          accessibilityLabel="buildmybrand.art, site externe"
+        >
+          buildmybrand.art
+        </Text>
+      </Text>
+    </View>
+  );
+}
 
 function displayName(first: string | null | undefined, last: string | null | undefined, email: string | null) {
   const n = [first?.trim(), last?.trim()].filter(Boolean).join(' ');
@@ -120,6 +139,7 @@ export default function AccountScreen() {
               onPress={() => router.push(`/login?mode=signup&redirect=${q}` as never)}
             />
           </WtCard>
+          <BrandCredit />
         </ScrollView>
       </View>
     );
@@ -189,6 +209,7 @@ export default function AccountScreen() {
         >
           <Text style={styles.signOutText}>Déconnexion</Text>
         </Pressable>
+        <BrandCredit />
       </ScrollView>
     </View>
   );
@@ -260,4 +281,26 @@ const styles = StyleSheet.create({
   },
   signOutPressed: { opacity: 0.88, backgroundColor: wt.surfaceMuted },
   signOutText: { fontSize: 16, fontWeight: '700', color: wt.accentLight },
+  creditWrap: {
+    alignItems: 'center',
+    paddingTop: 20,
+    paddingBottom: 4,
+    marginTop: 4,
+  },
+  creditRow: {
+    fontSize: 11,
+    lineHeight: 15,
+    letterSpacing: 0.35,
+    textAlign: 'center',
+  },
+  creditMuted: {
+    color: wt.textSecondary,
+    opacity: 0.72,
+    fontWeight: '400',
+  },
+  creditLink: {
+    color: wt.textMuted,
+    fontWeight: '500',
+    opacity: 0.9,
+  },
 });
