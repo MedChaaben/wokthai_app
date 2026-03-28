@@ -284,6 +284,10 @@ export default function LoginScreen() {
           <Text style={styles.legalHintLink} onPress={() => router.push('/cgu')}>
             conditions générales d’utilisation
           </Text>
+          <Text style={styles.legalHintMuted}> et la </Text>
+          <Text style={styles.legalHintLink} onPress={() => router.push('/privacy')}>
+            politique de confidentialité
+          </Text>
           <Text style={styles.legalHintMuted}>.</Text>
         </Text>
         {mode === 'signin' ? (

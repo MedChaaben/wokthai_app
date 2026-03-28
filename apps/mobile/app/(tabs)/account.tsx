@@ -124,6 +124,10 @@ export default function AccountScreen() {
               <Text style={styles.guestLegalLink} onPress={() => router.push('/cgu')}>
                 conditions générales d’utilisation
               </Text>
+              <Text style={styles.guestLegalMuted}> et notre </Text>
+              <Text style={styles.guestLegalLink} onPress={() => router.push('/privacy')}>
+                politique de confidentialité
+              </Text>
               <Text style={styles.guestLegalMuted}>.</Text>
             </Text>
           </WtCard>
@@ -189,6 +193,12 @@ export default function AccountScreen() {
             title="Conditions générales"
             subtitle="Utilisation de l’application"
             onPress={() => router.push('/cgu')}
+          />
+          <MenuRow
+            icon="🔐"
+            title="Politique de confidentialité"
+            subtitle="Données personnelles et droits"
+            onPress={() => router.push('/privacy')}
           />
           <MenuRow
             icon="🗑️"

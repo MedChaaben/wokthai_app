@@ -48,7 +48,7 @@ export const CGU_SECTIONS: CguSection[] = [
     title: '6. Données personnelles',
     paragraphs: [
       'Les données collectées via l’Application sont traitées pour la gestion des comptes, des commandes, de la livraison et, le cas échéant, de la relation client. Le traitement est fondé sur l’exécution du contrat et l’intérêt légitime du restaurant, dans le respect de la réglementation applicable.',
-      'Pour plus de détails sur les finalités, la durée de conservation et vos droits (accès, rectification, opposition, etc.), reportez-vous à la politique de confidentialité du restaurant si elle est mise à disposition, ou contactez directement l’établissement.',
+      'Pour plus de détails sur les finalités, la durée de conservation et vos droits (accès, rectification, opposition, etc.), consultez la politique de confidentialité disponible dans l’application (menu Compte), ou contactez directement l’établissement.',
     ],
   },
   {
