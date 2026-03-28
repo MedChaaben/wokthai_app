@@ -6,6 +6,7 @@ import type { Session } from '@supabase/supabase-js';
 import { useSupabase, useMyUserProfile } from '@wokthai/shared';
 import { WtButton } from '../../components/WtButton';
 import { WtCard } from '../../components/WtCard';
+import { useCart } from '../../contexts/CartContext';
 import { wt } from '../../lib/theme';
 
 const ACCOUNT_REDIRECT = '/(tabs)/account';
@@ -60,6 +61,15 @@ function MenuRow({ icon, title, subtitle, onPress, isLast }: MenuItemProps) {
 
 export default function AccountScreen() {
   const router = useRouter();
+  const { lines } = useCart();
+  const cartCount = useMemo(() => lines.reduce((sum, l) => sum + l.quantity, 0), [lines]);
+  const cartSubtitle = useMemo(
+    () =>
+      cartCount === 0
+        ? 'Récapitulatif avant commande'
+        : `${cartCount} article${cartCount > 1 ? 's' : ''}`,
+    [cartCount]
+  );
   const supabase = useSupabase();
   const { profile, isLoading } = useMyUserProfile();
   const [email, setEmail] = useState<string | null>(null);
@@ -200,6 +210,12 @@ export default function AccountScreen() {
             title="Mes commandes"
             subtitle="Historique et suivi"
             onPress={() => router.push('/orders')}
+          />
+          <MenuRow
+            icon="🛒"
+            title="Panier"
+            subtitle={cartSubtitle}
+            onPress={() => router.push('/(tabs)/cart')}
           />
           <MenuRow
             icon="📍"

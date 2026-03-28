@@ -31,7 +31,7 @@ export default function TabsLayout() {
         name="index"
         options={{
           headerTitle: () => <BrandLogo variant="header" />,
-          tabBarLabel: 'Accueil',
+          tabBarLabel: 'Menu',
           tabBarIcon: ({ color, size }) => <TabIcon glyph="⌂" color={color} size={size} />,
         }}
       />
