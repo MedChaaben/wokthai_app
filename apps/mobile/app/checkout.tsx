@@ -161,11 +161,11 @@ export default function CheckoutScreen() {
 
   return (
     <ScrollView contentContainerStyle={styles.screen}>
-      <Text style={styles.heading}>Magasin</Text>
+      <Text style={styles.heading}>Point de vente</Text>
       {stores.isLoading ? (
         <ActivityIndicator color={wt.accent} />
       ) : (stores.data ?? []).length === 0 ? (
-        <Text style={styles.body}>Aucun magasin disponible pour le moment.</Text>
+        <Text style={styles.body}>Aucun point de vente disponible pour le moment.</Text>
       ) : (
         (stores.data ?? []).map((s) => (
           <Pressable key={s.id} onPress={() => setSelectedStoreId(s.id)}>
@@ -187,7 +187,7 @@ export default function CheckoutScreen() {
       <Text style={styles.heading}>Type</Text>
       {!deliveryEnabled ? (
         <Text style={styles.deliveryOffHint}>
-          Livraison momentanément indisponible pour ce magasin — retrait sur place uniquement.
+          Livraison momentanément indisponible pour ce point de vente — retrait sur place uniquement.
         </Text>
       ) : null}
       <View style={styles.segment}>
@@ -222,7 +222,7 @@ export default function CheckoutScreen() {
 
       <Text style={styles.heading}>Paiement</Text>
       <Text style={styles.body}>
-        Paiement en espèces à la livraison ou au magasin (à l’enlèvement).
+        Paiement en espèces à la livraison ou sur place (à l’enlèvement).
       </Text>
 
       {orderType === 'delivery' ? (
@@ -295,7 +295,7 @@ export default function CheckoutScreen() {
       ) : (
         <WtCard>
           <Text style={styles.body}>
-            Vous récupérez la commande au magasin choisi ci-dessus.
+            Vous récupérez la commande au point de vente choisi ci-dessus.
           </Text>
         </WtCard>
       )}
