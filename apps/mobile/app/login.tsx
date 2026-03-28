@@ -5,6 +5,7 @@ import * as Linking from 'expo-linking';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSupabase } from '@wokthai/shared';
 import { safeAuthRedirectPath } from '../lib/authRedirect';
+import { BrandCredit } from '../components/BrandCredit';
 import { BrandLogo } from '../components/BrandLogo';
 import { WtButton } from '../components/WtButton';
 import { WtCard } from '../components/WtCard';
@@ -195,9 +196,10 @@ export default function LoginScreen() {
 
   return (
     <View style={styles.screen}>
-      <BrandLogo variant="hero" style={styles.logoWrap} />
-      <Text style={styles.sub}>Restaurant asiatique - Marsa & Ennasr</Text>
-      <WtCard style={styles.card}>
+      <View style={styles.loginContent}>
+        <BrandLogo variant="hero" style={styles.logoWrap} />
+        <Text style={styles.sub}>Restaurant asiatique - Marsa & Ennasr</Text>
+        <WtCard style={styles.card}>
         <View style={styles.modeRow}>
           <Pressable onPress={() => setMode('signin')} style={[styles.modeBtn, mode === 'signin' && styles.modeBtnActive]}>
             <Text style={[styles.modeText, mode === 'signin' && styles.modeTextActive]}>Connexion</Text>
@@ -297,12 +299,15 @@ export default function LoginScreen() {
           />
         </View>
       ) : null}
+      </View>
+      <BrandCredit />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   screen: { flex: 1, padding: 24, paddingTop: 48, backgroundColor: wt.bg },
+  loginContent: { flexGrow: 1 },
   logoWrap: { marginBottom: 8, alignSelf: 'center' },
   sub: { marginBottom: 24, color: wt.textMuted, fontSize: 15, textAlign: 'center' },
   card: { gap: 12 },

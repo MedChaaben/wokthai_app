@@ -10,18 +10,21 @@ import {
   Platform,
   View,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   useSupabase,
   useMyUserProfile,
   phoneStorageToDisplay,
   canonicalizePhoneDisplayInput,
 } from '@wokthai/shared';
+import { BrandCredit } from '../components/BrandCredit';
 import { WtButton } from '../components/WtButton';
 import { WtCard } from '../components/WtCard';
 import { useRequireSession } from '../hooks/useRequireSession';
 import { wt } from '../lib/theme';
 
 export default function ProfileScreen() {
+  const insets = useSafeAreaInsets();
   const sessionOk = useRequireSession('/profile');
   const supabase = useSupabase();
   const { profile, isLoading, save, isSaving } = useMyUserProfile();
@@ -102,6 +105,7 @@ export default function ProfileScreen() {
       keyboardVerticalOffset={Platform.OS === 'ios' ? 64 : 0}
     >
       <ScrollView
+        style={styles.scroll}
         contentContainerStyle={styles.screen}
         keyboardShouldPersistTaps="handled"
         keyboardDismissMode="on-drag"
@@ -165,14 +169,29 @@ export default function ProfileScreen() {
           <WtButton title="Modifier" onPress={() => setEditing(true)} />
         )}
       </ScrollView>
+      <View
+        style={[
+          styles.creditFooter,
+          { paddingBottom: Math.max(insets.bottom, 10) },
+        ]}
+      >
+        <BrandCredit variant="footer" />
+      </View>
     </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
   flex: { flex: 1, backgroundColor: wt.bg },
+  scroll: { flex: 1 },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: wt.bg },
-  screen: { padding: 16, paddingBottom: 40, gap: 12 },
+  screen: { padding: 16, paddingBottom: 24, gap: 12 },
+  creditFooter: {
+    alignSelf: 'stretch',
+    paddingTop: 8,
+    paddingHorizontal: 16,
+    backgroundColor: wt.bg,
+  },
   lead: { fontSize: 14, color: wt.textMuted, lineHeight: 20, marginBottom: 4 },
   formCard: { gap: 10 },
   label: { fontSize: 14, fontWeight: '600', color: wt.text, marginTop: 4 },
