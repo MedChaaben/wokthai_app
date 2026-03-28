@@ -194,7 +194,16 @@ export default function AccountScreen() {
             title="Mon profil"
             subtitle="Nom, téléphone, email"
             onPress={() => router.push('/profile')}
+            isLast
           />
+        </WtCard>
+
+        <View style={styles.sectionSeparatorWrap}>
+          <View style={styles.sectionSeparatorLine} />
+        </View>
+
+        <Text style={styles.sectionHeadingAfterSeparator}>Légal et compte</Text>
+        <WtCard style={styles.menuCard}>
           <MenuRow
             icon="📜"
             title="Conditions générales"
@@ -279,6 +288,26 @@ const styles = StyleSheet.create({
     marginTop: 8,
     marginBottom: 4,
     marginLeft: 4,
+  },
+  sectionHeadingAfterSeparator: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: wt.textSecondary,
+    textTransform: 'uppercase',
+    letterSpacing: 0.6,
+    marginTop: 4,
+    marginBottom: 4,
+    marginLeft: 4,
+  },
+  sectionSeparatorWrap: {
+    marginTop: 20,
+    marginBottom: 4,
+    paddingHorizontal: 4,
+  },
+  sectionSeparatorLine: {
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: wt.borderStrong,
+    opacity: 0.85,
   },
   menuCard: { padding: 0, overflow: 'hidden' },
   menuRow: {
