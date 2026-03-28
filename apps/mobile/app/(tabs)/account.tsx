@@ -1,5 +1,6 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Text, StyleSheet, Pressable, ScrollView, ActivityIndicator, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import type { Session } from '@supabase/supabase-js';
 import { useSupabase, useMyUserProfile } from '@wokthai/shared';
@@ -87,10 +88,10 @@ export default function AccountScreen() {
     [profile?.first_name, profile?.last_name, email]
   );
 
-  async function signOut() {
+  const signOut = useCallback(async () => {
     await supabase.auth.signOut();
     router.replace('/(tabs)');
-  }
+  }, [supabase, router]);
 
   if (session === undefined) {
     return (
@@ -172,6 +173,15 @@ export default function AccountScreen() {
                 {email ?? '—'}
               </Text>
             </View>
+            <Pressable
+              onPress={() => void signOut()}
+              style={({ pressed }) => [styles.signOutIconWrap, pressed && styles.signOutIconPressed]}
+              accessibilityRole="button"
+              accessibilityLabel="Déconnexion"
+              hitSlop={10}
+            >
+              <Ionicons name="log-out-outline" size={22} color={wt.accentLight} />
+            </Pressable>
           </View>
         </WtCard>
 
@@ -230,16 +240,6 @@ export default function AccountScreen() {
             isLast
           />
         </WtCard>
-
-        <View style={styles.spacer} />
-
-        <Pressable
-          onPress={() => void signOut()}
-          style={({ pressed }) => [styles.signOutBtn, pressed && styles.signOutPressed]}
-          accessibilityRole="button"
-        >
-          <Text style={styles.signOutText}>Déconnexion</Text>
-        </Pressable>
       </ScrollView>
     </View>
   );
@@ -262,9 +262,8 @@ const styles = StyleSheet.create({
     gap: 8,
     backgroundColor: wt.bg,
   },
-  spacer: { flexGrow: 1, minHeight: 24 },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: wt.bg },
-  identityRow: { flexDirection: 'row', alignItems: 'center', gap: 16 },
+  identityRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   avatar: {
     width: 56,
     height: 56,
@@ -276,7 +275,18 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   avatarText: { fontSize: 20, fontWeight: '800', color: wt.accentLight },
-  identityText: { flex: 1, minWidth: 0 },
+  identityText: { flex: 1, minWidth: 0, paddingRight: 4 },
+  signOutIconWrap: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: wt.border,
+    backgroundColor: wt.surfaceMuted,
+  },
+  signOutIconPressed: { opacity: 0.82, backgroundColor: wt.surface },
   identityName: { fontSize: 20, fontWeight: '800', color: wt.text, marginBottom: 4 },
   identityEmail: { fontSize: 14, color: wt.textMuted },
   sectionHeading: {
@@ -324,15 +334,4 @@ const styles = StyleSheet.create({
   menuTitle: { fontSize: 16, fontWeight: '700', color: wt.text },
   menuSubtitle: { fontSize: 13, color: wt.textMuted, marginTop: 2, lineHeight: 18 },
   menuChevron: { fontSize: 22, color: wt.accentLight, fontWeight: '300', marginLeft: 4 },
-  signOutBtn: {
-    marginTop: 8,
-    paddingVertical: 16,
-    alignItems: 'center',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: wt.borderStrong,
-    backgroundColor: wt.surface,
-  },
-  signOutPressed: { opacity: 0.88, backgroundColor: wt.surfaceMuted },
-  signOutText: { fontSize: 16, fontWeight: '700', color: wt.accentLight },
 });
