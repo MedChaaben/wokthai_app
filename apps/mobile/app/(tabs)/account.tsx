@@ -130,6 +130,13 @@ export default function AccountScreen() {
               </Text>
               <Text style={styles.guestLegalMuted}>.</Text>
             </Text>
+            <Text style={styles.guestLegalSecondary}>
+              <Text style={styles.guestLegalMuted}>Voir les </Text>
+              <Text style={styles.guestLegalLink} onPress={() => router.push('/mentions')}>
+                mentions légales
+              </Text>
+              <Text style={styles.guestLegalMuted}>.</Text>
+            </Text>
           </WtCard>
         </ScrollView>
       </View>
@@ -201,6 +208,12 @@ export default function AccountScreen() {
             onPress={() => router.push('/privacy')}
           />
           <MenuRow
+            icon="⚖️"
+            title="Mentions légales"
+            subtitle="Éditeur et informations légales"
+            onPress={() => router.push('/mentions')}
+          />
+          <MenuRow
             icon="🗑️"
             title="Supprimer mon compte"
             subtitle="Données et accès supprimés"
@@ -229,6 +242,7 @@ const styles = StyleSheet.create({
   guestTitle: { fontSize: 20, fontWeight: '800', color: wt.text },
   guestBody: { fontSize: 15, color: wt.textMuted, lineHeight: 22 },
   guestLegal: { fontSize: 12, lineHeight: 18, marginTop: 8, textAlign: 'center' },
+  guestLegalSecondary: { fontSize: 12, lineHeight: 18, marginTop: 4, textAlign: 'center' },
   guestLegalMuted: { color: wt.textSecondary },
   guestLegalLink: { color: wt.accentLight, fontWeight: '600' },
   scroll: { flex: 1 },

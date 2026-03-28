@@ -11,8 +11,8 @@ export const PRIVACY_SECTIONS: PrivacySection[] = [
   {
     title: '1. Responsable du traitement',
     paragraphs: [
-      'Le responsable du traitement des données personnelles collectées via l’application mobile Wok Thai est le restaurant Wok Thai (établissements Marsa et Ennasr, Tunisie).',
-      'Pour toute question relative à cette politique ou à vos données, vous pouvez contacter le restaurant aux coordonnées communiquées sur vos supports habituels (site, réseaux sociaux, téléphone en magasin).',
+      'Le responsable du traitement des données personnelles collectées via l’application mobile Wok Thai est la société SOCIETE RAYMAR, SARL, immatriculée sous l’identifiant unique 1599773V, dont le siège social est situé au 50, rue Taieb Mhiri, 2078 La Marsa, Tunisie, exploitant l’enseigne Wok Thai (établissements Marsa et Ennasr).',
+      'Pour toute question relative à cette politique ou à vos données, vous pouvez contacter le restaurant aux coordonnées communiquées sur vos supports habituels (site, réseaux sociaux, téléphone en magasin) ou l’éditeur à l’adresse du siège social (voir également les mentions légales dans l’application).',
     ],
   },
   {

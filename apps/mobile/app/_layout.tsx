@@ -62,6 +62,7 @@ export default function RootLayout() {
                   <Stack.Screen name="profile" options={{ title: 'Mon profil' }} />
                   <Stack.Screen name="cgu" options={{ title: 'Conditions générales' }} />
                   <Stack.Screen name="privacy" options={{ title: 'Confidentialité' }} />
+                  <Stack.Screen name="mentions" options={{ title: 'Mentions légales' }} />
                   <Stack.Screen name="delete-account" options={{ title: 'Supprimer le compte' }} />
                   <Stack.Screen name="product/[id]" options={{ title: 'Produit' }} />
                   <Stack.Screen name="checkout" options={{ title: 'Commande' }} />

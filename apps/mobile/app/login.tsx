@@ -290,6 +290,13 @@ export default function LoginScreen() {
           </Text>
           <Text style={styles.legalHintMuted}>.</Text>
         </Text>
+        <Text style={styles.legalHintSecondary}>
+          <Text style={styles.legalHintMuted}>Voir les </Text>
+          <Text style={styles.legalHintLink} onPress={() => router.push('/mentions')}>
+            mentions légales
+          </Text>
+          <Text style={styles.legalHintMuted}>.</Text>
+        </Text>
         {mode === 'signin' ? (
           <Pressable onPress={() => router.push('/forgot-password')} style={styles.forgot}>
             <Text style={styles.forgotText}>Mot de passe oublié ?</Text>
@@ -342,6 +349,13 @@ const styles = StyleSheet.create({
   },
   legalHintMuted: { color: wt.textSecondary },
   legalHintLink: { color: wt.accentLight, fontWeight: '600' },
+  legalHintSecondary: {
+    fontSize: 12,
+    lineHeight: 17,
+    textAlign: 'center',
+    marginTop: 2,
+    paddingHorizontal: 4,
+  },
   forgot: { marginTop: 4, alignItems: 'center', paddingVertical: 8 },
   forgotText: { fontSize: 15, fontWeight: '600', color: wt.accentLight },
   label: { fontSize: 14, fontWeight: '600', color: wt.text },
