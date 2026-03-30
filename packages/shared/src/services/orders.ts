@@ -1,4 +1,5 @@
 import { assertDeliveryCity, getDeliveryFeeForStoreAndCity } from '../domain/delivery';
+import { phoneDisplayToStorage } from '../domain/normalizeCustomerPhone';
 import { validateLineOptionsAndPrice } from '../domain/order-line-options';
 import type { WokthaiSupabaseClient } from '../supabase/client';
 import type {
@@ -155,6 +156,23 @@ export async function fetchOrderById(
   if (!data) return null;
   let detail = normalizeOrderDetail(data as unknown as OrderDetailRow);
 
+  if (
+    detail.type === 'delivery' &&
+    !detail.addresses &&
+    detail.guest_delivery_address &&
+    detail.guest_delivery_city
+  ) {
+    detail = {
+      ...detail,
+      addresses: {
+        label: detail.guest_delivery_label ?? 'Livraison',
+        address: detail.guest_delivery_address,
+        city: detail.guest_delivery_city,
+        instructions: null,
+      },
+    };
+  }
+
   if (detail.type === 'delivery' && detail.address_id && !detail.addresses) {
     const { data: addrRows, error: rpcErr } = await client.rpc('order_delivery_address', {
       p_order_id: orderId,
@@ -220,14 +238,27 @@ function subtotalFromPrepared(lines: PreparedLine[]): number {
   return lines.reduce((s, l) => s + l.unitPrice * l.quantity, 0);
 }
 
+async function countNonCancelledOrdersForUser(
+  client: WokthaiSupabaseClient,
+  uid: string
+): Promise<number> {
+  const { count, error } = await client
+    .from('orders')
+    .select('*', { count: 'exact', head: true })
+    .eq('user_id', uid)
+    .neq('status', 'cancelled');
+  if (error) throw error;
+  return count ?? 0;
+}
+
 export async function createOrderWithItems(
   client: WokthaiSupabaseClient,
   input: CreateOrderInput
 ): Promise<{ order: OrderRow }> {
-  const { data: userData, error: userErr } = await client.auth.getUser();
-  if (userErr) throw userErr;
-  const userId = userData.user?.id;
-  if (!userId) throw new Error('Non authentifié');
+  // getSession() : invité sans JWT — getUser() échoue avec « Auth session missing ».
+  const { data: sessionData, error: sessionErr } = await client.auth.getSession();
+  if (sessionErr) throw sessionErr;
+  const userId = sessionData.session?.user?.id ?? null;
 
   if (input.lines.length === 0) throw new Error('Panier vide');
   if (!input.storeId?.trim()) throw new Error('Magasin requis');
@@ -269,29 +300,95 @@ export async function createOrderWithItems(
   }
 
   let deliveryFee = 0;
+  let deliveryPromo: string | null = null;
+
   if (input.type === 'delivery') {
-    if (!input.addressId) throw new Error('Adresse de livraison requise');
-    if (!input.addressCity || !assertDeliveryCity(input.addressCity)) {
-      throw new Error('Livraison uniquement à Tunis ou Ariana');
+    if (userId) {
+      if (!input.addressId) throw new Error('Adresse de livraison requise');
+      if (!input.addressCity || !assertDeliveryCity(input.addressCity)) {
+        throw new Error('Livraison uniquement à Tunis ou Ariana');
+      }
+      deliveryFee = getDeliveryFeeForStoreAndCity(storeId, input.addressCity, zones);
+      const prior = await countNonCancelledOrdersForUser(client, userId);
+      if (prior === 0) {
+        deliveryFee = 0;
+        deliveryPromo = 'first_order_free';
+      }
+    } else {
+      const gc = input.guestCheckout;
+      if (!gc?.delivery) throw new Error('Adresse de livraison requise');
+      const gRaw = gc.phone?.trim() ?? '';
+      const gStored = phoneDisplayToStorage(gRaw) ?? gRaw;
+      if (gStored.replace(/\D/g, '').length < 8) {
+        throw new Error('Numéro de téléphone requis pour la livraison');
+      }
+      if (!assertDeliveryCity(gc.delivery.city)) {
+        throw new Error('Livraison uniquement à Tunis ou Ariana');
+      }
+      deliveryFee = getDeliveryFeeForStoreAndCity(storeId, gc.delivery.city, zones);
     }
-    deliveryFee = getDeliveryFeeForStoreAndCity(storeId, input.addressCity, zones);
+  } else if (!userId) {
+    const raw = input.guestCheckout?.phone?.trim() ?? '';
+    const stored = phoneDisplayToStorage(raw) ?? raw;
+    if (stored.replace(/\D/g, '').length < 8) {
+      throw new Error('Numéro de téléphone requis pour commander sans compte');
+    }
   }
 
   const itemsTotal = subtotalFromPrepared(prepared);
   const total = itemsTotal + (input.type === 'delivery' ? deliveryFee : 0);
 
-  const orderInsert = {
-    user_id: userId,
-    store_id: storeId,
-    type: input.type,
-    status: 'pending' as const,
-    payment_status: input.paymentStatus,
-    total_price: total,
-    address_id: input.type === 'delivery' ? input.addressId : null,
-    delivery_notes: input.deliveryNotes,
-    estimated_delivery_time: null as string | null,
-    driver_id: null as string | null,
-  };
+  const guestPhoneNormalized = (() => {
+    if (userId || !input.guestCheckout?.phone) return null;
+    const raw = input.guestCheckout.phone.trim();
+    return phoneDisplayToStorage(raw) ?? raw;
+  })();
+
+  const orderInsert =
+    userId != null
+      ? {
+          user_id: userId,
+          store_id: storeId,
+          type: input.type,
+          status: 'pending' as const,
+          payment_status: input.paymentStatus,
+          total_price: total,
+          address_id: input.type === 'delivery' ? input.addressId : null,
+          delivery_notes: input.deliveryNotes,
+          estimated_delivery_time: null as string | null,
+          driver_id: null as string | null,
+          delivery_promo: deliveryPromo,
+          loyalty_points_credited: false,
+          guest_phone: null as string | null,
+          guest_delivery_label: null as string | null,
+          guest_delivery_address: null as string | null,
+          guest_delivery_city: null as string | null,
+          guest_lat: null as number | null,
+          guest_lng: null as number | null,
+        }
+      : {
+          user_id: null as string | null,
+          store_id: storeId,
+          type: input.type,
+          status: 'pending' as const,
+          payment_status: input.paymentStatus,
+          total_price: total,
+          address_id: null as string | null,
+          delivery_notes: input.deliveryNotes,
+          estimated_delivery_time: null as string | null,
+          driver_id: null as string | null,
+          delivery_promo: null as string | null,
+          loyalty_points_credited: false,
+          guest_phone: guestPhoneNormalized,
+          guest_delivery_label:
+            input.type === 'delivery' ? input.guestCheckout!.delivery!.label.trim() : null,
+          guest_delivery_address:
+            input.type === 'delivery' ? input.guestCheckout!.delivery!.addressLine.trim() : null,
+          guest_delivery_city:
+            input.type === 'delivery' ? input.guestCheckout!.delivery!.city : null,
+          guest_lat: input.type === 'delivery' ? input.guestCheckout!.delivery!.lat : null,
+          guest_lng: input.type === 'delivery' ? input.guestCheckout!.delivery!.lng : null,
+        };
 
   const { data: order, error: orderErr } = await client.from('orders').insert(orderInsert).select().single();
   if (orderErr) throw orderErr;

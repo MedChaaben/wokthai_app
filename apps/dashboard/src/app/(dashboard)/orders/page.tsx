@@ -56,8 +56,12 @@ type ViewMode = "active" | "history" | "all";
 function placeSummary(o: OrderListRow): string {
   if (o.type === "delivery") {
     const a = o.addresses;
-    if (!a) return "Livraison — adresse non disponible";
-    return `${a.label} · ${a.address}, ${a.city}`;
+    if (a) return `${a.label} · ${a.address}, ${a.city}`;
+    if (o.guest_delivery_address && o.guest_delivery_city) {
+      const lab = o.guest_delivery_label?.trim() || "Livraison";
+      return `${lab} · ${o.guest_delivery_address}, ${o.guest_delivery_city}`;
+    }
+    return "Livraison — adresse non disponible";
   }
   const s = o.stores;
   if (!s) return "À emporter — lieu inconnu";
@@ -80,6 +84,7 @@ function orderMatchesClientQuery(o: OrderListRow, queryRaw: string): boolean {
   if (!q) return true;
   const u = o.users;
   const phoneShown = u?.phone != null ? phoneStorageToDisplay(u.phone) : "";
+  const guestPhone = o.guest_phone?.trim() ?? "";
   const chunks = [
     formatCustomerDisplayName(u),
     u?.first_name ?? "",
@@ -87,6 +92,8 @@ function orderMatchesClientQuery(o: OrderListRow, queryRaw: string): boolean {
     u?.email ?? "",
     u?.phone ?? "",
     phoneShown,
+    guestPhone,
+    guestPhone ? phoneStorageToDisplay(guestPhone) : "",
   ];
   const haystack = chunks.join(" \n ").toLowerCase();
   if (haystack.includes(q)) return true;
@@ -95,6 +102,11 @@ function orderMatchesClientQuery(o: OrderListRow, queryRaw: string): boolean {
     const normalizedKey = normalizeCustomerPhone(u.phone) ?? "";
     const phoneDigits = normalizedKey || normalizeDigits(u.phone);
     if (phoneDigits.includes(qDigits)) return true;
+  }
+  if (qDigits.length >= 2 && guestPhone) {
+    const gKey = normalizeCustomerPhone(guestPhone) ?? "";
+    const gDigits = gKey || normalizeDigits(guestPhone);
+    if (gDigits.includes(qDigits)) return true;
   }
   return false;
 }

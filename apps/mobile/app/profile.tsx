@@ -115,6 +115,14 @@ export default function ProfileScreen() {
           jour.
         </Text>
 
+        <WtCard style={styles.loyaltyCard}>
+          <Text style={styles.loyaltyTitle}>Fidélité</Text>
+          <Text style={styles.loyaltyPoints}>{profile?.loyalty_points ?? 0} points</Text>
+          <Text style={styles.loyaltyHint}>
+            1 TND dépensé sur une commande livrée = 1 point (crédités lorsque le statut passe à « Livrée »).
+          </Text>
+        </WtCard>
+
         <WtCard style={styles.formCard}>
           <Text style={styles.label}>Prénom</Text>
           <TextInput
@@ -193,6 +201,10 @@ const styles = StyleSheet.create({
     backgroundColor: wt.bg,
   },
   lead: { fontSize: 14, color: wt.textMuted, lineHeight: 20, marginBottom: 4 },
+  loyaltyCard: { gap: 8, paddingVertical: 14 },
+  loyaltyTitle: { fontSize: 13, fontWeight: '700', color: wt.accentLight, textTransform: 'uppercase' },
+  loyaltyPoints: { fontSize: 22, fontWeight: '800', color: wt.text },
+  loyaltyHint: { fontSize: 12, color: wt.textSecondary, lineHeight: 17 },
   formCard: { gap: 10 },
   label: { fontSize: 14, fontWeight: '600', color: wt.text, marginTop: 4 },
   input: {

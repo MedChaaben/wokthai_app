@@ -94,6 +94,18 @@ export type CreateOrderLineInput = {
   selectedOptions: OrderLineOptionChoice[];
 };
 
+/** Contact pour une commande sans compte : téléphone obligatoire ; livraison = adresse snapshot (non enregistrée). */
+export type GuestCheckoutInput = {
+  phone: string;
+  delivery?: {
+    label: string;
+    addressLine: string;
+    city: AllowedCity;
+    lat: number;
+    lng: number;
+  };
+};
+
 export type CreateOrderInput = {
   type: OrderType;
   /** Magasin choisi par le client (livraison ou à emporter). */
@@ -104,4 +116,6 @@ export type CreateOrderInput = {
   deliveryNotes: string | null;
   /** Requis si type === 'delivery' : ville de l’adresse (frais de livraison) */
   addressCity?: AllowedCity;
+  /** Sans session : téléphone + éventuellement adresse (livraison). */
+  guestCheckout?: GuestCheckoutInput | null;
 };

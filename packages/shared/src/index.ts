@@ -45,3 +45,4 @@ export { useMyAddresses } from './hooks/useMyAddresses';
 export { useMyUserProfile } from './hooks/useMyUserProfile';
 export { useActiveStores } from './hooks/useActiveStores';
 export { useDeliveryZones } from './hooks/useDeliveryZones';
+export { useMyNonCancelledOrderCount } from './hooks/useMyNonCancelledOrderCount';

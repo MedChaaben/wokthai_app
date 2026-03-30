@@ -21,6 +21,7 @@ export type Database = {
           email: string | null;
           first_name: string | null;
           last_name: string | null;
+          loyalty_points: number;
           created_at: string;
         };
         Insert: {
@@ -29,6 +30,7 @@ export type Database = {
           email?: string | null;
           first_name?: string | null;
           last_name?: string | null;
+          loyalty_points?: number;
           created_at?: string;
         };
         Update: {
@@ -37,6 +39,7 @@ export type Database = {
           email?: string | null;
           first_name?: string | null;
           last_name?: string | null;
+          loyalty_points?: number;
           created_at?: string;
         };
         Relationships: [];
@@ -228,11 +231,19 @@ export type Database = {
           delivery_notes: string | null;
           estimated_delivery_time: string | null;
           driver_id: string | null;
+          guest_phone: string | null;
+          guest_delivery_label: string | null;
+          guest_delivery_address: string | null;
+          guest_delivery_city: string | null;
+          guest_lat: number | null;
+          guest_lng: number | null;
+          delivery_promo: string | null;
+          loyalty_points_credited: boolean;
           created_at: string;
         };
         Insert: {
           id?: string;
-          user_id: string;
+          user_id?: string | null;
           store_id: string;
           type: OrderTypeEnum;
           status?: OrderStatusEnum;
@@ -242,11 +253,19 @@ export type Database = {
           delivery_notes?: string | null;
           estimated_delivery_time?: string | null;
           driver_id?: string | null;
+          guest_phone?: string | null;
+          guest_delivery_label?: string | null;
+          guest_delivery_address?: string | null;
+          guest_delivery_city?: string | null;
+          guest_lat?: number | null;
+          guest_lng?: number | null;
+          delivery_promo?: string | null;
+          loyalty_points_credited?: boolean;
           created_at?: string;
         };
         Update: {
           id?: string;
-          user_id?: string;
+          user_id?: string | null;
           store_id?: string;
           type?: OrderTypeEnum;
           status?: OrderStatusEnum;
@@ -256,6 +275,14 @@ export type Database = {
           delivery_notes?: string | null;
           estimated_delivery_time?: string | null;
           driver_id?: string | null;
+          guest_phone?: string | null;
+          guest_delivery_label?: string | null;
+          guest_delivery_address?: string | null;
+          guest_delivery_city?: string | null;
+          guest_lat?: number | null;
+          guest_lng?: number | null;
+          delivery_promo?: string | null;
+          loyalty_points_credited?: boolean;
           created_at?: string;
         };
         Relationships: [];

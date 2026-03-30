@@ -9,16 +9,20 @@ import {
   Alert,
   ActivityIndicator,
 } from 'react-native';
+import type { Session } from '@supabase/supabase-js';
 import { useRouter } from 'expo-router';
 import {
   useCreateOrder,
   useMyAddresses,
   useActiveStores,
   useDeliveryZones,
+  useMyNonCancelledOrderCount,
   createAddress,
   useSupabase,
   getDeliveryFeeForStoreAndCity,
   formatStoreOpeningHoursLines,
+  phoneDisplayToStorage,
+  canonicalizePhoneDisplayInput,
   type AllowedCity,
 } from '@wokthai/shared';
 import { AddressMapPreview } from '../components/AddressMapPreview';
@@ -26,13 +30,15 @@ import { MapAddressPickerModal } from '../components/MapAddressPickerModal';
 import { WtButton } from '../components/WtButton';
 import { WtCard } from '../components/WtCard';
 import { useCart } from '../contexts/CartContext';
-import { useRequireSession } from '../hooks/useRequireSession';
 import { wt } from '../lib/theme';
 
 const CITIES: AllowedCity[] = ['Tunis', 'Ariana'];
 
+function digitsLen(s: string): number {
+  return s.replace(/\D/g, '').length;
+}
+
 export default function CheckoutScreen() {
-  const sessionOk = useRequireSession('/checkout');
   const router = useRouter();
   const supabase = useSupabase();
   const { lines, subtotal, clear } = useCart();
@@ -40,6 +46,22 @@ export default function CheckoutScreen() {
   const stores = useActiveStores();
   const zones = useDeliveryZones();
   const createOrder = useCreateOrder();
+
+  const [session, setSession] = useState<Session | null | undefined>(undefined);
+  useEffect(() => {
+    void supabase.auth.getSession().then(({ data }) => {
+      setSession(data.session ?? null);
+    });
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_e, sess) => {
+      setSession(sess ?? null);
+    });
+    return () => subscription.unsubscribe();
+  }, [supabase]);
+
+  const hasSession = Boolean(session);
+  const orderCount = useMyNonCancelledOrderCount(hasSession);
 
   const [selectedStoreId, setSelectedStoreId] = useState<string | null>(null);
   const [orderType, setOrderType] = useState<'delivery' | 'pickup'>('delivery');
@@ -61,6 +83,13 @@ export default function CheckoutScreen() {
   const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
   const [deliveryNotes, setDeliveryNotes] = useState('');
 
+  const [guestPhone, setGuestPhone] = useState('');
+  const [guestLabel, setGuestLabel] = useState('');
+  const [guestAddressLine, setGuestAddressLine] = useState('');
+  const [guestCity, setGuestCity] = useState<AllowedCity>('Tunis');
+  const [guestLat, setGuestLat] = useState<number | null>(null);
+  const [guestLng, setGuestLng] = useState<number | null>(null);
+
   const [showNewAddress, setShowNewAddress] = useState(false);
   const [label, setLabel] = useState('');
   const [addressLine, setAddressLine] = useState('');
@@ -69,6 +98,7 @@ export default function CheckoutScreen() {
   const [lng, setLng] = useState<number | null>(null);
   const [savingAddress, setSavingAddress] = useState(false);
   const [mapPickerVisible, setMapPickerVisible] = useState(false);
+  const [mapPickerForGuest, setMapPickerForGuest] = useState(false);
 
   async function saveNewAddress() {
     if (!label.trim() || !addressLine.trim()) {
@@ -109,10 +139,28 @@ export default function CheckoutScreen() {
       Alert.alert('Magasin', 'Choisissez le magasin pour cette commande.');
       return;
     }
-    if (orderType === 'delivery' && !selectedAddressId) {
+
+    if (!hasSession) {
+      const p = phoneDisplayToStorage(guestPhone.trim()) ?? guestPhone.trim();
+      if (digitsLen(p) < 8) {
+        Alert.alert('Téléphone', 'Indiquez un numéro valide (au moins 8 chiffres) pour cette commande.');
+        return;
+      }
+      if (orderType === 'delivery') {
+        if (!guestLabel.trim() || !guestAddressLine.trim()) {
+          Alert.alert('Adresse', 'Libellé et adresse écrite sont obligatoires.');
+          return;
+        }
+        if (guestLat == null || guestLng == null) {
+          Alert.alert('Position', 'Indiquez sur la carte où livrer.');
+          return;
+        }
+      }
+    } else if (orderType === 'delivery' && !selectedAddressId) {
       Alert.alert('Adresse', 'Sélectionnez ou créez une adresse de livraison.');
       return;
     }
+
     try {
       const selected = addresses.data?.find((a) => a.id === selectedAddressId);
       const result = await createOrder.mutateAsync({
@@ -124,12 +172,27 @@ export default function CheckoutScreen() {
           selectedOptions: l.selectedOptions,
         })),
         paymentStatus: 'paid_on_delivery',
-        addressId: orderType === 'delivery' ? selectedAddressId : null,
+        addressId: hasSession && orderType === 'delivery' ? selectedAddressId : null,
         deliveryNotes: deliveryNotes.trim() || null,
         addressCity:
-          orderType === 'delivery' && selected?.city
+          hasSession && orderType === 'delivery' && selected?.city
             ? (selected.city as AllowedCity)
             : undefined,
+        guestCheckout: !hasSession
+          ? {
+              phone: guestPhone,
+              delivery:
+                orderType === 'delivery'
+                  ? {
+                      label: guestLabel.trim(),
+                      addressLine: guestAddressLine.trim(),
+                      city: guestCity,
+                      lat: guestLat!,
+                      lng: guestLng!,
+                    }
+                  : undefined,
+            }
+          : undefined,
       });
       clear();
       router.replace(`/order/${result.order.id}`);
@@ -139,20 +202,26 @@ export default function CheckoutScreen() {
   }
 
   const selectedAddr = addresses.data?.find((a) => a.id === selectedAddressId);
-  const deliveryFee =
-    orderType === 'delivery' &&
-    selectedStoreId &&
-    selectedAddr?.city &&
-    zones.data?.length
-      ? getDeliveryFeeForStoreAndCity(
-          selectedStoreId,
-          selectedAddr.city as AllowedCity,
-          zones.data
-        )
+
+  const rawDeliveryFee =
+    orderType === 'delivery' && selectedStoreId && zones.data?.length
+      ? hasSession && selectedAddr?.city
+        ? getDeliveryFeeForStoreAndCity(
+            selectedStoreId,
+            selectedAddr.city as AllowedCity,
+            zones.data
+          )
+        : !hasSession
+          ? getDeliveryFeeForStoreAndCity(selectedStoreId, guestCity, zones.data)
+          : 0
       : 0;
+
+  const isFirstOrderFree =
+    hasSession && orderType === 'delivery' && (orderCount.data ?? 0) === 0 && deliveryEnabled;
+  const deliveryFee = orderType === 'delivery' && isFirstOrderFree ? 0 : rawDeliveryFee;
   const grandTotal = subtotal + (orderType === 'delivery' ? deliveryFee : 0);
 
-  if (!sessionOk) {
+  if (session === undefined) {
     return (
       <View style={styles.authWait}>
         <ActivityIndicator color={wt.accent} size="large" />
@@ -160,8 +229,48 @@ export default function CheckoutScreen() {
     );
   }
 
+  function openMap(forGuest: boolean) {
+    setMapPickerForGuest(forGuest);
+    setMapPickerVisible(true);
+  }
+
   return (
     <ScrollView contentContainerStyle={styles.screen}>
+      {!hasSession ? (
+        <WtCard style={styles.promoCard}>
+          <Text style={styles.promoTitle}>Créez un compte ou connectez-vous</Text>
+          <Text style={styles.promoBullet}>• Livraison offerte sur votre première commande</Text>
+          <Text style={styles.promoBullet}>
+            • Programme fidélité : 1 TND dépensé (commande livrée) = 1 point
+          </Text>
+          <WtButton
+            title="Me connecter / M’inscrire"
+            variant="ghost"
+            onPress={() =>
+              router.push(`/login?redirect=${encodeURIComponent('/checkout')}` as never)
+            }
+          />
+        </WtCard>
+      ) : null}
+
+      {!hasSession ? (
+        <>
+          <Text style={styles.heading}>Votre téléphone</Text>
+          <Text style={styles.body}>
+            Pour vous contacter concernant la commande (obligatoire sans compte).
+          </Text>
+          <TextInput
+            placeholder="12 34 56 78"
+            placeholderTextColor={wt.placeholder}
+            value={guestPhone}
+            onChangeText={setGuestPhone}
+            onBlur={() => setGuestPhone((p) => canonicalizePhoneDisplayInput(p))}
+            keyboardType="default"
+            style={styles.input}
+          />
+        </>
+      ) : null}
+
       <Text style={styles.heading}>Point de vente</Text>
       {stores.isLoading ? (
         <ActivityIndicator color={wt.accent} />
@@ -169,7 +278,9 @@ export default function CheckoutScreen() {
         <Text style={styles.body}>Aucun point de vente disponible pour le moment.</Text>
       ) : (
         (stores.data ?? []).map((s) => {
-          const { lines, isEmpty } = formatStoreOpeningHoursLines(s.store_opening_hours ?? undefined);
+          const { lines: hourLines, isEmpty } = formatStoreOpeningHoursLines(
+            s.store_opening_hours ?? undefined
+          );
           return (
             <Pressable key={s.id} onPress={() => setSelectedStoreId(s.id)}>
               <WtCard
@@ -186,7 +297,7 @@ export default function CheckoutScreen() {
                   <Text
                     style={[styles.storeHoursCaption, isEmpty ? styles.storeHoursEmpty : undefined]}
                   >
-                    {lines.join('\n')}
+                    {hourLines.join('\n')}
                   </Text>
                 </View>
               </WtCard>
@@ -199,6 +310,11 @@ export default function CheckoutScreen() {
       {!deliveryEnabled ? (
         <Text style={styles.deliveryOffHint}>
           Livraison momentanément indisponible pour ce point de vente — retrait sur place uniquement.
+        </Text>
+      ) : null}
+      {hasSession && orderType === 'delivery' && (orderCount.data ?? 0) === 0 && deliveryEnabled ? (
+        <Text style={styles.perkHint}>
+          Première commande : la livraison est offerte une fois votre commande validée.
         </Text>
       ) : null}
       <View style={styles.segment}>
@@ -239,37 +355,86 @@ export default function CheckoutScreen() {
       {orderType === 'delivery' ? (
         <>
           <Text style={styles.heading}>Adresse</Text>
-          {addresses.isLoading ? <ActivityIndicator color={wt.accent} /> : null}
-          {(addresses.data ?? []).map((a) => (
-            <Pressable key={a.id} onPress={() => setSelectedAddressId(a.id)}>
-              <WtCard
-                style={[
-                  styles.addrCard,
-                  selectedAddressId === a.id ? styles.addrSelected : undefined,
-                ]}
-              >
-                <Text style={styles.addrTitle}>{a.label}</Text>
-                <Text style={styles.addrMeta}>
-                  {a.address} — {a.city}
-                </Text>
-              </WtCard>
-            </Pressable>
-          ))}
-          <WtButton
-            title={showNewAddress ? 'Fermer le formulaire' : 'Nouvelle adresse'}
-            variant="ghost"
-            onPress={() => setShowNewAddress((v) => !v)}
-          />
-          {showNewAddress ? (
+          {hasSession ? (
+            <>
+              {addresses.isLoading ? <ActivityIndicator color={wt.accent} /> : null}
+              {(addresses.data ?? []).map((a) => (
+                <Pressable key={a.id} onPress={() => setSelectedAddressId(a.id)}>
+                  <WtCard
+                    style={[
+                      styles.addrCard,
+                      selectedAddressId === a.id ? styles.addrSelected : undefined,
+                    ]}
+                  >
+                    <Text style={styles.addrTitle}>{a.label}</Text>
+                    <Text style={styles.addrMeta}>
+                      {a.address} — {a.city}
+                    </Text>
+                  </WtCard>
+                </Pressable>
+              ))}
+              <WtButton
+                title={showNewAddress ? 'Fermer le formulaire' : 'Nouvelle adresse'}
+                variant="ghost"
+                onPress={() => setShowNewAddress((v) => !v)}
+              />
+              {showNewAddress ? (
+                <WtCard style={{ gap: 12 }}>
+                  <Text style={styles.formHint}>
+                    Renseignez le texte, puis indiquez le point exact sur la carte en dessous.
+                  </Text>
+                  <Text style={styles.sectionLabel}>Ville</Text>
+                  <View style={styles.cityRow}>
+                    {CITIES.map((c) => (
+                      <Pressable key={c} onPress={() => setCity(c)} style={styles.cityChipWrap}>
+                        <Text style={[styles.cityChip, city === c && styles.cityChipActive]}>{c}</Text>
+                      </Pressable>
+                    ))}
+                  </View>
+                  <Text style={styles.sectionLabel}>Libellé</Text>
+                  <TextInput
+                    placeholder="Ex. Maison, Bureau"
+                    placeholderTextColor={wt.placeholder}
+                    value={label}
+                    onChangeText={setLabel}
+                    style={styles.input}
+                  />
+                  <Text style={styles.sectionLabel}>Adresse écrite</Text>
+                  <TextInput
+                    placeholder="Rue, numéro, étage, digicode…"
+                    placeholderTextColor={wt.placeholder}
+                    value={addressLine}
+                    onChangeText={setAddressLine}
+                    style={styles.input}
+                  />
+                  <View style={styles.positionBlock}>
+                    <Text style={styles.sectionLabel}>Où livrer (carte)</Text>
+                    <AddressMapPreview
+                      lat={lat}
+                      lng={lng}
+                      onOpenPicker={() => openMap(false)}
+                    />
+                    <WtButton title="Choisir sur la carte" onPress={() => openMap(false)} />
+                    <Text style={[styles.coords, lat != null && lng != null ? styles.coordsOk : null]}>
+                      {lat != null && lng != null
+                        ? `Point enregistré · ${lat.toFixed(5)}, ${lng.toFixed(5)}`
+                        : 'À faire : ouvrir la carte et valider la position'}
+                    </Text>
+                  </View>
+                  <WtButton title="Enregistrer l’adresse" loading={savingAddress} onPress={saveNewAddress} />
+                </WtCard>
+              ) : null}
+            </>
+          ) : (
             <WtCard style={{ gap: 12 }}>
               <Text style={styles.formHint}>
-                Renseignez le texte, puis indiquez le point exact sur la carte en dessous.
+                Adresse utilisée uniquement pour cette commande (sans création de compte).
               </Text>
               <Text style={styles.sectionLabel}>Ville</Text>
               <View style={styles.cityRow}>
                 {CITIES.map((c) => (
-                  <Pressable key={c} onPress={() => setCity(c)} style={styles.cityChipWrap}>
-                    <Text style={[styles.cityChip, city === c && styles.cityChipActive]}>{c}</Text>
+                  <Pressable key={c} onPress={() => setGuestCity(c)} style={styles.cityChipWrap}>
+                    <Text style={[styles.cityChip, guestCity === c && styles.cityChipActive]}>{c}</Text>
                   </Pressable>
                 ))}
               </View>
@@ -277,31 +442,36 @@ export default function CheckoutScreen() {
               <TextInput
                 placeholder="Ex. Maison, Bureau"
                 placeholderTextColor={wt.placeholder}
-                value={label}
-                onChangeText={setLabel}
+                value={guestLabel}
+                onChangeText={setGuestLabel}
                 style={styles.input}
               />
               <Text style={styles.sectionLabel}>Adresse écrite</Text>
               <TextInput
                 placeholder="Rue, numéro, étage, digicode…"
                 placeholderTextColor={wt.placeholder}
-                value={addressLine}
-                onChangeText={setAddressLine}
+                value={guestAddressLine}
+                onChangeText={setGuestAddressLine}
                 style={styles.input}
               />
               <View style={styles.positionBlock}>
                 <Text style={styles.sectionLabel}>Où livrer (carte)</Text>
-                <AddressMapPreview lat={lat} lng={lng} onOpenPicker={() => setMapPickerVisible(true)} />
-                <WtButton title="Choisir sur la carte" onPress={() => setMapPickerVisible(true)} />
-                <Text style={[styles.coords, lat != null && lng != null ? styles.coordsOk : null]}>
-                  {lat != null && lng != null
-                    ? `Point enregistré · ${lat.toFixed(5)}, ${lng.toFixed(5)}`
+                <AddressMapPreview
+                  lat={guestLat}
+                  lng={guestLng}
+                  onOpenPicker={() => openMap(true)}
+                />
+                <WtButton title="Choisir sur la carte" onPress={() => openMap(true)} />
+                <Text
+                  style={[styles.coords, guestLat != null && guestLng != null ? styles.coordsOk : null]}
+                >
+                  {guestLat != null && guestLng != null
+                    ? `Point enregistré · ${guestLat.toFixed(5)}, ${guestLng.toFixed(5)}`
                     : 'À faire : ouvrir la carte et valider la position'}
                 </Text>
               </View>
-              <WtButton title="Enregistrer l’adresse" loading={savingAddress} onPress={saveNewAddress} />
             </WtCard>
-          ) : null}
+          )}
         </>
       ) : (
         <WtCard>
@@ -325,7 +495,14 @@ export default function CheckoutScreen() {
         <Text style={styles.total}>Articles : {subtotal.toFixed(2)} TND</Text>
         {orderType === 'delivery' ? (
           <>
-            <Text style={styles.feeLine}>Livraison : {deliveryFee.toFixed(2)} TND</Text>
+            {isFirstOrderFree && rawDeliveryFee > 0 ? (
+              <>
+                <Text style={styles.feeStruck}>Livraison : {rawDeliveryFee.toFixed(2)} TND</Text>
+                <Text style={styles.feePromo}>Livraison : 0,00 TND (offerte — 1re commande)</Text>
+              </>
+            ) : (
+              <Text style={styles.feeLine}>Livraison : {deliveryFee.toFixed(2)} TND</Text>
+            )}
             <Text style={styles.total}>Total : {grandTotal.toFixed(2)} TND</Text>
           </>
         ) : null}
@@ -342,14 +519,26 @@ export default function CheckoutScreen() {
 
       <MapAddressPickerModal
         visible={mapPickerVisible}
-        onClose={() => setMapPickerVisible(false)}
-        initialLat={lat}
-        initialLng={lng}
+        onClose={() => {
+          setMapPickerVisible(false);
+          setMapPickerForGuest(false);
+        }}
+        initialLat={mapPickerForGuest ? guestLat : lat}
+        initialLng={mapPickerForGuest ? guestLng : lng}
         onConfirm={(payload) => {
-          setLat(payload.lat);
-          setLng(payload.lng);
-          if (payload.geocoded?.addressLine) setAddressLine(payload.geocoded.addressLine);
-          if (payload.geocoded?.city) setCity(payload.geocoded.city);
+          if (mapPickerForGuest) {
+            setGuestLat(payload.lat);
+            setGuestLng(payload.lng);
+            if (payload.geocoded?.addressLine) setGuestAddressLine(payload.geocoded.addressLine);
+            if (payload.geocoded?.city) setGuestCity(payload.geocoded.city);
+          } else {
+            setLat(payload.lat);
+            setLng(payload.lng);
+            if (payload.geocoded?.addressLine) setAddressLine(payload.geocoded.addressLine);
+            if (payload.geocoded?.city) setCity(payload.geocoded.city);
+          }
+          setMapPickerVisible(false);
+          setMapPickerForGuest(false);
         }}
       />
     </ScrollView>
@@ -360,6 +549,16 @@ const styles = StyleSheet.create({
   authWait: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: wt.bg },
   screen: { padding: 16, paddingBottom: 40, gap: 12, backgroundColor: wt.bg },
   heading: { fontSize: 16, fontWeight: '800', color: wt.text, marginTop: 8 },
+  promoCard: { gap: 8, paddingVertical: 14 },
+  promoTitle: { fontSize: 15, fontWeight: '800', color: wt.text },
+  promoBullet: { fontSize: 13, color: wt.textMuted, lineHeight: 19 },
+  perkHint: {
+    fontSize: 13,
+    color: wt.accentLight,
+    lineHeight: 18,
+    marginBottom: 2,
+    fontWeight: '600',
+  },
   segment: { flexDirection: 'row', gap: 8 },
   segBtn: {
     flex: 1,
@@ -392,7 +591,6 @@ const styles = StyleSheet.create({
     color: wt.text,
     letterSpacing: -0.2,
   },
-  /** Adresse + horaires : même registre visuel, en retrait du nom */
   storeSecondary: {
     marginTop: 8,
     paddingTop: 10,
@@ -451,4 +649,12 @@ const styles = StyleSheet.create({
   total: { fontSize: 18, fontWeight: '800', color: wt.text },
   hint: { marginTop: 6, fontSize: 13, color: wt.textSecondary },
   feeLine: { marginTop: 8, fontSize: 15, fontWeight: '600', color: wt.textMuted },
+  feeStruck: {
+    marginTop: 8,
+    fontSize: 14,
+    fontWeight: '500',
+    color: wt.textSecondary,
+    textDecorationLine: 'line-through',
+  },
+  feePromo: { marginTop: 4, fontSize: 15, fontWeight: '700', color: wt.accentLight },
 });

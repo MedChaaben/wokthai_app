@@ -1,7 +1,6 @@
 import { View, Text, StyleSheet, Pressable, ScrollView, Image } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useSupabase } from '@wokthai/shared';
 import { WtButton } from '../../components/WtButton';
 import { WtCard } from '../../components/WtCard';
 import { useCart } from '../../contexts/CartContext';
@@ -9,18 +8,10 @@ import { wt } from '../../lib/theme';
 
 export default function CartTabScreen() {
   const router = useRouter();
-  const supabase = useSupabase();
   const insets = useSafeAreaInsets();
   const { lines, subtotal, setQuantity, removeLine } = useCart();
 
-  async function goCheckout() {
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
-    if (!session) {
-      router.push(`/login?redirect=${encodeURIComponent('/checkout')}` as never);
-      return;
-    }
+  function goCheckout() {
     router.push('/checkout');
   }
 
