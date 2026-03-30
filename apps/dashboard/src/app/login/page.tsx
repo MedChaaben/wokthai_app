@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useSupabase } from "@wokthai/shared";
+import { fetchMyStaffProfile, useSupabase } from "@wokthai/shared";
 import { ThemeToggle } from "@/components/ThemeToggle";
 
 export default function LoginPage() {
@@ -27,7 +27,8 @@ export default function LoginPage() {
       setError(signErr.message);
       return;
     }
-    router.replace("/orders");
+    const profile = await fetchMyStaffProfile(supabase);
+    router.replace(profile?.role === "platform_admin" ? "/admin" : "/orders");
   }
 
   return (

@@ -1,6 +1,6 @@
 import type { WokthaiSupabaseClient } from '../supabase/client';
 import type { Json } from '../types/database';
-import type { StoreOpeningHourRow, StoreRow } from '../types';
+import type { StoreInsert, StoreOpeningHourRow, StoreRow, StoreUpdate } from '../types';
 
 export type StoreWithOpeningHours = StoreRow & {
   store_opening_hours: StoreOpeningHourRow[] | null;
@@ -78,4 +78,33 @@ export async function updateStoreDeliveryEnabled(
     .single();
   if (error) throw error;
   return data;
+}
+
+export async function insertStore(client: WokthaiSupabaseClient, row: StoreInsert): Promise<StoreRow> {
+  const { data, error } = await client.from('stores').insert(row).select().single();
+  if (error) throw error;
+  return data;
+}
+
+export async function updateStore(
+  client: WokthaiSupabaseClient,
+  storeId: string,
+  patch: StoreUpdate
+): Promise<StoreRow> {
+  const { data, error } = await client.from('stores').update(patch).eq('id', storeId).select().single();
+  if (error) throw error;
+  return data;
+}
+
+/** Admin siège : remplace les créneaux d’un magasin donné. */
+export async function replaceStoreOpeningHoursForStoreAsAdmin(
+  client: WokthaiSupabaseClient,
+  storeId: string,
+  slots: StoreOpeningHourSlotInput[]
+): Promise<void> {
+  const { error } = await client.rpc('replace_store_opening_hours_for_store', {
+    p_store_id: storeId,
+    p_slots: slots as unknown as Json,
+  });
+  if (error) throw error;
 }

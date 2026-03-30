@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import {
   useOrder,
   useOrderRealtime,
+  useStaffProfile,
   useUpdateOrderStatus,
   formatCustomerDisplayName,
   phoneStorageToDisplay,
@@ -50,6 +51,10 @@ function fmtTimelineTime(iso: string): string {
 export default function OrderDetailPage() {
   const params = useParams();
   const id = typeof params.id === "string" ? params.id : undefined;
+  const staff = useStaffProfile();
+  const isPlatformAdmin = staff.data?.role === "platform_admin";
+  const ordersListHref = isPlatformAdmin ? "/admin/orders" : "/orders";
+  const ordersListLabel = isPlatformAdmin ? "← Toutes les commandes" : "← Commandes";
   const order = useOrder(id);
   useOrderRealtime(id);
   const updateStatus = useUpdateOrderStatus();
@@ -59,7 +64,7 @@ export default function OrderDetailPage() {
     return (
       <div>
         <p className="text-red-600">Commande introuvable ou accès refusé.</p>
-        <Link href="/orders" className="mt-4 inline-block text-wt-bordeaux dark:text-wt-accent">
+        <Link href={ordersListHref} className="mt-4 inline-block text-wt-bordeaux dark:text-wt-accent">
           Retour
         </Link>
       </div>
@@ -72,8 +77,8 @@ export default function OrderDetailPage() {
 
   return (
     <div className="max-w-3xl">
-      <Link href="/orders" className="text-sm font-semibold text-wt-bordeaux dark:text-wt-accent">
-        ← Commandes
+      <Link href={ordersListHref} className="text-sm font-semibold text-wt-bordeaux dark:text-wt-accent">
+        {ordersListLabel}
       </Link>
       <h1 className="mt-4 text-2xl font-extrabold text-zinc-900 dark:text-zinc-100">Détail commande</h1>
       <p className="mt-2 font-mono text-xs text-stone-600 dark:text-zinc-500">{o.id}</p>

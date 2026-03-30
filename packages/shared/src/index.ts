@@ -20,6 +20,7 @@ export * from './services/addresses';
 export * from './services/user-profile';
 export * from './services/account-deletion';
 export * from './services/staff';
+export * from './services/admin-dashboard';
 export { SupabaseProvider, useSupabase } from './context/SupabaseProvider';
 export { useProducts } from './hooks/useProducts';
 export { useProduct } from './hooks/useProduct';
@@ -41,6 +42,9 @@ export {
   type StoreOrdersRealtimeOptions,
 } from './hooks/useStoreOrdersRealtime';
 export { useStaffProfile } from './hooks/useStaffProfile';
+export { useAdminDashboardSummary } from './hooks/useAdminDashboardSummary';
+export { useAdminOrdersRealtime } from './hooks/useAdminOrdersRealtime';
+export { useAdminStaffList } from './hooks/useAdminStaffList';
 export { useMyAddresses } from './hooks/useMyAddresses';
 export { useMyUserProfile } from './hooks/useMyUserProfile';
 export { useActiveStores } from './hooks/useActiveStores';

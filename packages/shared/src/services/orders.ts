@@ -77,6 +77,50 @@ export async function fetchOrdersForStore(
   }));
 }
 
+/** Admin siège : toutes les commandes ou filtrées par magasin. */
+export async function fetchOrdersForAdmin(
+  client: WokthaiSupabaseClient,
+  opts?: { storeId?: string | null }
+): Promise<OrderListRow[]> {
+  let q = client.from('orders').select(
+    `
+      *,
+      users!orders_user_id_fkey ( phone, email, first_name, last_name ),
+      addresses!orders_address_id_fkey ( label, address, city ),
+      stores!orders_store_id_fkey ( name, address, city )
+    `
+  );
+  if (opts?.storeId) q = q.eq('store_id', opts.storeId);
+  const { data, error } = await q.order('created_at', { ascending: false });
+  if (error) throw error;
+  const rows = (data ?? []) as unknown as OrderListRow[];
+  const normalized = rows.map(normalizeOrderListRow);
+
+  const withUser = normalized.filter((r) => r.user_id != null).map((r) => r.id);
+  if (withUser.length === 0) return normalized;
+
+  const { data: custRows, error: rpcErr } = await client.rpc('staff_customers_for_admin_orders', {
+    p_order_ids: withUser,
+  });
+  if (rpcErr) throw rpcErr;
+  const byOrderId = new Map(
+    (custRows ?? []).map((r) => [
+      r.order_id,
+      {
+        phone: r.phone,
+        email: r.email,
+        first_name: r.first_name,
+        last_name: r.last_name,
+      },
+    ])
+  );
+
+  return normalized.map((row) => ({
+    ...row,
+    users: row.user_id ? (byOrderId.get(row.id) ?? row.users) : row.users,
+  }));
+}
+
 function asSingle<T>(v: T | T[] | null | undefined): T | null {
   if (v == null) return null;
   return Array.isArray(v) ? (v[0] ?? null) : v;

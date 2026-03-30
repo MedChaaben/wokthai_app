@@ -1,12 +1,14 @@
 import type { Database } from './database';
 
-export type { Database };
+export type { Database, StaffRoleEnum } from './database';
 
 export type UserRow = Database['public']['Tables']['users']['Row'];
 export type AddressRow = Database['public']['Tables']['addresses']['Row'];
 export type AddressInsert = Database['public']['Tables']['addresses']['Insert'];
 export type AddressUpdate = Database['public']['Tables']['addresses']['Update'];
 export type StoreRow = Database['public']['Tables']['stores']['Row'];
+export type StoreInsert = Database['public']['Tables']['stores']['Insert'];
+export type StoreUpdate = Database['public']['Tables']['stores']['Update'];
 export type StoreOpeningHourRow = Database['public']['Tables']['store_opening_hours']['Row'];
 export type StaffRow = Database['public']['Tables']['staff']['Row'];
 

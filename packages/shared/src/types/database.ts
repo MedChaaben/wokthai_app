@@ -10,6 +10,7 @@ export type OrderStatusEnum =
   | 'delivered'
   | 'cancelled';
 export type PaymentStatusEnum = 'unpaid' | 'paid_on_delivery';
+export type StaffRoleEnum = 'store' | 'platform_admin';
 
 export type Database = {
   public: {
@@ -144,9 +145,27 @@ export type Database = {
         Relationships: [];
       };
       staff: {
-        Row: { id: string; user_id: string; email: string; store_id: string };
-        Insert: { id?: string; user_id: string; email: string; store_id: string };
-        Update: { id?: string; user_id?: string; email?: string; store_id?: string };
+        Row: {
+          id: string;
+          user_id: string;
+          email: string;
+          store_id: string;
+          role: StaffRoleEnum;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          email: string;
+          store_id: string;
+          role?: StaffRoleEnum;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          email?: string;
+          store_id?: string;
+          role?: StaffRoleEnum;
+        };
         Relationships: [];
       };
       categories: {
@@ -417,6 +436,24 @@ export type Database = {
         Args: { p_slots: Json };
         Returns: undefined;
       };
+      replace_store_opening_hours_for_store: {
+        Args: { p_store_id: string; p_slots: Json };
+        Returns: undefined;
+      };
+      staff_customers_for_admin_orders: {
+        Args: { p_order_ids: string[] };
+        Returns: {
+          order_id: string;
+          phone: string | null;
+          email: string | null;
+          first_name: string | null;
+          last_name: string | null;
+        }[];
+      };
+      admin_dashboard_summary: {
+        Args: Record<string, never>;
+        Returns: Json;
+      };
       order_delivery_address: {
         Args: { p_order_id: string };
         Returns: {
@@ -450,6 +487,7 @@ export type Database = {
       order_type: OrderTypeEnum;
       order_status: OrderStatusEnum;
       payment_status: PaymentStatusEnum;
+      staff_role: StaffRoleEnum;
     };
     CompositeTypes: {
       [_ in never]: never;

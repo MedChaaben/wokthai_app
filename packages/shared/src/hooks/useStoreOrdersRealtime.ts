@@ -3,6 +3,8 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useSupabase } from '../context/SupabaseProvider';
 
 export type StoreOrdersRealtimeOptions = {
+  /** Si false, aucun abonnement Realtime (ex. admin siège sans vue commandes magasin). */
+  enabled?: boolean;
   /** Appelé à chaque nouvelle ligne `orders` pour ce magasin (événement Realtime INSERT). */
   onInsert?: (order: { id: string }) => void;
   /** Appelé à chaque mise à jour d’une ligne `orders` pour ce magasin (Realtime UPDATE). */
@@ -16,13 +18,14 @@ export function useStoreOrdersRealtime(
 ) {
   const client = useSupabase();
   const queryClient = useQueryClient();
+  const enabled = options?.enabled !== false;
   const onInsertRef = useRef(options?.onInsert);
   onInsertRef.current = options?.onInsert;
   const onUpdateRef = useRef(options?.onUpdate);
   onUpdateRef.current = options?.onUpdate;
 
   useEffect(() => {
-    if (!storeId) return;
+    if (!storeId || !enabled) return;
 
     const channel = client
       .channel(`store-orders-${storeId}`)
@@ -58,5 +61,5 @@ export function useStoreOrdersRealtime(
     return () => {
       void client.removeChannel(channel);
     };
-  }, [client, storeId, queryClient]);
+  }, [client, storeId, queryClient, enabled]);
 }

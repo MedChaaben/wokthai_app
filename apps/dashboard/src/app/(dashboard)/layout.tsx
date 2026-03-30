@@ -4,14 +4,49 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useOrders, useStaffProfile, useStoreOrdersRealtime, useSupabase } from "@wokthai/shared";
+import {
+  useOrders,
+  useStaffProfile,
+  useStoreOrdersRealtime,
+  useSupabase,
+  useAdminDashboardSummary,
+  useAdminOrdersRealtime,
+} from "@wokthai/shared";
 import { ThemeToggle } from "@/components/ThemeToggle";
 
-const nav = [
+const storeStaffNav = [
   { href: "/orders", label: "Commandes" },
   { href: "/products", label: "Produits" },
   { href: "/settings", label: "Magasin" },
-];
+] as const;
+
+const platformAdminNav = [
+  { href: "/products", label: "Produits" },
+  { href: "/admin", label: "Administration" },
+] as const;
+
+function formatQueryError(err: unknown): string {
+  if (err instanceof Error) return err.message;
+  if (err != null && typeof err === "object") {
+    const o = err as Record<string, unknown>;
+    const msg = o.message;
+    if (typeof msg === "string" && msg.length > 0) {
+      const details = o.details;
+      const hint = o.hint;
+      const code = o.code;
+      const parts = [msg];
+      if (typeof details === "string" && details.length > 0) parts.push(details);
+      if (typeof hint === "string" && hint.length > 0) parts.push(`Astuce : ${hint}`);
+      if (typeof code === "string" && code.length > 0) parts.push(`(code ${code})`);
+      return parts.join(" — ");
+    }
+  }
+  try {
+    return JSON.stringify(err);
+  } catch {
+    return String(err);
+  }
+}
 
 function useIsMdUp() {
   const [isMd, setIsMd] = useState<boolean | null>(null);
@@ -31,11 +66,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const pathname = usePathname();
   const staff = useStaffProfile();
   const storeId = staff.data?.store_id;
-  const orders = useOrders({ mode: "staff", storeId });
-  const pendingOrdersCount = useMemo(
-    () => (orders.data ?? []).filter((o) => o.status === "pending").length,
-    [orders.data]
-  );
+  const isPlatformAdmin = staff.data?.role === "platform_admin";
+  const orders = useOrders({ mode: "staff", storeId, enabled: Boolean(storeId) && !isPlatformAdmin });
+  const adminSummary = useAdminDashboardSummary(Boolean(isPlatformAdmin));
+  useAdminOrdersRealtime(Boolean(isPlatformAdmin));
+
+  const pendingOrdersCount = useMemo(() => {
+    if (isPlatformAdmin && adminSummary.data) return adminSummary.data.pending_count;
+    return (orders.data ?? []).filter((o) => o.status === "pending").length;
+  }, [isPlatformAdmin, adminSummary.data, orders.data]);
   const [newOrderAlert, setNewOrderAlert] = useState<{ id: string } | null>(null);
   const alertOrderIdRef = useRef<string | null>(null);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
@@ -46,6 +85,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   }
 
   useStoreOrdersRealtime(storeId, {
+    enabled: Boolean(storeId) && !isPlatformAdmin,
     onInsert: ({ id }) => {
       alertOrderIdRef.current = id;
       setNewOrderAlert({ id });
@@ -62,6 +102,17 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   useEffect(() => {
     setMobileNavOpen(false);
   }, [pathname]);
+
+  useEffect(() => {
+    if (staff.isLoading || !isPlatformAdmin) return;
+    const blockedStoreRoutes =
+      pathname === "/orders" ||
+      pathname === "/settings" ||
+      pathname.startsWith("/settings/");
+    if (blockedStoreRoutes) {
+      router.replace("/admin");
+    }
+  }, [staff.isLoading, isPlatformAdmin, pathname, router]);
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -99,6 +150,18 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     );
   }
 
+  if (staff.isError) {
+    return (
+      <div className="mx-auto max-w-lg px-4 py-20 text-center">
+        <h1 className="text-xl font-bold text-zinc-900 dark:text-zinc-100">Erreur profil équipe</h1>
+        <p className="mt-2 break-words text-stone-600 dark:text-zinc-400">{formatQueryError(staff.error)}</p>
+        <button type="button" onClick={() => void staff.refetch()} className="mt-6 wt-btn-primary">
+          Réessayer
+        </button>
+      </div>
+    );
+  }
+
   if (!staff.data) {
     return (
       <div className="mx-auto max-w-lg px-4 py-20 text-center">
@@ -115,14 +178,17 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     );
   }
 
+  const sidebarNavItems = isPlatformAdmin ? platformAdminNav : storeStaffNav;
+
   const navLinks = (
     <nav className="mt-4 flex flex-col gap-1" aria-label="Navigation principale">
-      {nav.map((item) => {
+      {sidebarNavItems.map((item) => {
         const active =
           pathname === item.href ||
           pathname.startsWith(`${item.href}/`) ||
-          (item.href === "/products" && pathname === "/categories");
-        const showPendingBadge = item.href === "/orders" && pendingOrdersCount > 0;
+          (item.href === "/products" && pathname === "/categories") ||
+          (item.href === "/admin" && pathname.startsWith("/admin"));
+        const showPendingBadge = item.href === "/admin" && pendingOrdersCount > 0;
         return (
           <Link
             key={item.href}
@@ -130,7 +196,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             onClick={() => setMobileNavOpen(false)}
             aria-label={
               showPendingBadge
-                ? `Commandes, ${pendingOrdersCount} commande${pendingOrdersCount > 1 ? "s" : ""} en attente`
+                ? `${item.label}, ${pendingOrdersCount} commande${pendingOrdersCount > 1 ? "s" : ""} en attente`
                 : undefined
             }
             className={`flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium ${
@@ -154,7 +220,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const sidebarInner = (
     <>
       <div className="flex items-start justify-between gap-2 md:block">
-        <Link href="/orders" className="inline-block shrink-0" onClick={() => setMobileNavOpen(false)}>
+        <Link
+          href={isPlatformAdmin ? "/admin" : "/orders"}
+          className="inline-block shrink-0"
+          onClick={() => setMobileNavOpen(false)}
+        >
           <span className="wt-logo-surface">
             <Image
               src="/wokthai-logo.png"
@@ -180,7 +250,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </button>
         </div>
       </div>
-      <p className="mt-4 px-3 text-sm text-stone-600 dark:text-zinc-400">Magasin assigné (commandes filtrées)</p>
+      <p className="mt-4 px-3 text-sm text-stone-600 dark:text-zinc-400">
+        {isPlatformAdmin ? "Magasin assigné (catalogue)" : "Magasin assigné (commandes filtrées)"}
+      </p>
       <p className="px-3 text-sm font-semibold text-zinc-900 dark:text-zinc-100">
         {staff.data.stores?.name ?? "—"}
         {staff.data.stores?.city ? (
@@ -241,7 +313,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </svg>
           </button>
           <Link
-            href="/orders"
+            href={isPlatformAdmin ? "/admin" : "/orders"}
             className="flex max-w-[min(100%,220px)] items-center justify-center"
             onClick={() => setMobileNavOpen(false)}
           >
@@ -260,7 +332,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <ThemeToggle className="shrink-0" />
           </div>
         </header>
-        {newOrderAlert ? (
+        {!isPlatformAdmin && newOrderAlert ? (
           <div
             role="alert"
             aria-live="assertive"
