@@ -127,7 +127,7 @@ export default function OrderTrackingScreen() {
               </Text>
             </>
           ) : (
-            <Text style={styles.muted}>Magasin non renseigné</Text>
+            <Text style={styles.muted}>Restaurant non renseigné</Text>
           )
         ) : data.addresses ? (
           <>

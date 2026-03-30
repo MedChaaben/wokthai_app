@@ -79,7 +79,7 @@ export async function PATCH(request: Request, context: { params: Promise<{ userI
     const wantClear = raw === null || (typeof raw === "string" && raw.trim() === "");
     if (wantClear) {
       if (staffRow.role !== "platform_admin") {
-        return NextResponse.json({ error: "Magasin requis" }, { status: 400 });
+        return NextResponse.json({ error: "Restaurant requis" }, { status: 400 });
       }
       if (staffRow.store_id !== null) {
         staffUpdates.store_id = null;
@@ -92,7 +92,7 @@ export async function PATCH(request: Request, context: { params: Promise<{ userI
       if (sid !== staffRow.store_id) {
         const { data: store, error: storeErr } = await service.from("stores").select("id").eq("id", sid).maybeSingle();
         if (storeErr || !store) {
-          return NextResponse.json({ error: "Magasin introuvable" }, { status: 400 });
+          return NextResponse.json({ error: "Restaurant introuvable" }, { status: 400 });
         }
         staffUpdates.store_id = sid;
       }

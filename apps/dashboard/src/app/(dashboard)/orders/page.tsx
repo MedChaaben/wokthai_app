@@ -175,7 +175,7 @@ export default function OrdersPage() {
 
   const storeLabel = staff.data?.stores?.name
     ? `${staff.data.stores.name} · ${staff.data.stores.city ?? ""}`
-    : "Magasin";
+    : "Restaurant";
 
   return (
     <div className="mx-auto max-w-5xl">

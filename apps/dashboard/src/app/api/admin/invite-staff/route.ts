@@ -43,7 +43,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Mot de passe : au moins 8 caractères" }, { status: 400 });
   }
   if (!storeId) {
-    return NextResponse.json({ error: "Magasin requis" }, { status: 400 });
+    return NextResponse.json({ error: "Restaurant requis" }, { status: 400 });
   }
 
   const { data: created, error: createErr } = await service.auth.admin.createUser({

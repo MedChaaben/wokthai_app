@@ -110,7 +110,7 @@ export type GuestCheckoutInput = {
 
 export type CreateOrderInput = {
   type: OrderType;
-  /** Magasin choisi par le client (livraison ou à emporter). */
+  /** Restaurant choisi par le client (livraison ou à emporter). */
   storeId: string;
   lines: CreateOrderLineInput[];
   paymentStatus: PaymentStatus;

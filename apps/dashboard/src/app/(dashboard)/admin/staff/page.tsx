@@ -13,7 +13,7 @@ import {
 import { useQuery } from "@tanstack/react-query";
 
 const ROLE_LABEL: Record<StaffRoleEnum, string> = {
-  store: "Magasin",
+  store: "Restaurant",
   platform_admin: "Siège",
 };
 
@@ -235,7 +235,7 @@ export default function AdminStaffPage() {
               <thead className="border-b border-stone-200 bg-stone-50 dark:border-zinc-800 dark:bg-zinc-900/80">
                 <tr>
                   <th className="px-4 py-3 font-semibold text-zinc-800 dark:text-zinc-200">E-mail</th>
-                  <th className="px-4 py-3 font-semibold text-zinc-800 dark:text-zinc-200">Magasin</th>
+                  <th className="px-4 py-3 font-semibold text-zinc-800 dark:text-zinc-200">Restaurant</th>
                   <th className="px-4 py-3 font-semibold text-zinc-800 dark:text-zinc-200">Rôle</th>
                   <th className="px-4 py-3 font-semibold text-zinc-800 dark:text-zinc-200">Actions</th>
                 </tr>

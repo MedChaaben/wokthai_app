@@ -1,4 +1,4 @@
--- Magasin optionnel pour les comptes siège (platform_admin) ; obligatoire pour le rôle magasin.
+-- Restaurant optionnel pour les comptes siège (platform_admin) ; obligatoire pour le rôle restaurant.
 
 ALTER TABLE public.staff
   DROP CONSTRAINT IF EXISTS staff_store_id_role_chk;
@@ -13,7 +13,7 @@ ALTER TABLE public.staff
   );
 
 COMMENT ON COLUMN public.staff.store_id IS
-  'Affectation magasin pour role store ; NULL autorisé pour platform_admin (siège).';
+  'Affectation restaurant pour role store ; NULL autorisé pour platform_admin (siège).';
 
 UPDATE public.staff
 SET store_id = NULL

@@ -325,8 +325,8 @@ export default function AdminStoresPage() {
       <section className="rounded-xl border border-stone-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900/40">
         <h2 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">Nouveau point de vente</h2>
         <p className="mt-1 text-sm text-stone-600 dark:text-zinc-400">
-          Crée le magasin et deux zones de livraison par défaut (Tunis / Ariana, 5 TND). Ajustez les frais ensuite si besoin
-          (écran Magasin côté équipe ou SQL).
+          Crée le restaurant et deux zones de livraison par défaut (Tunis / Ariana, 5 TND). Ajustez les frais ensuite si besoin
+          (écran Restaurant côté équipe ou SQL).
         </p>
         <div className="mt-4 grid gap-3 sm:grid-cols-2">
           <div className="sm:col-span-2">
@@ -394,12 +394,12 @@ export default function AdminStoresPage() {
           onClick={() => createMut.mutate()}
           className="mt-4 rounded-lg bg-wt-bordeaux px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
         >
-          {createMut.isPending ? "Création…" : "Créer le magasin"}
+          {createMut.isPending ? "Création…" : "Créer le restaurant"}
         </button>
       </section>
 
       <section>
-        <h2 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">Magasins</h2>
+        <h2 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">Restaurants</h2>
         {storesQuery.isLoading ? (
           <p className="mt-4 text-sm text-stone-600 dark:text-zinc-400">Chargement…</p>
         ) : (
@@ -529,7 +529,7 @@ export default function AdminStoresPage() {
               </div>
               <label className="flex items-center gap-2">
                 <input type="checkbox" checked={editActive} onChange={(e) => setEditActive(e.target.checked)} />
-                <span className="text-sm">Magasin actif (visible catalogue)</span>
+                <span className="text-sm">Restaurant actif (visible catalogue)</span>
               </label>
               <label className="flex items-center gap-2">
                 <input type="checkbox" checked={editDelivery} onChange={(e) => setEditDelivery(e.target.checked)} />

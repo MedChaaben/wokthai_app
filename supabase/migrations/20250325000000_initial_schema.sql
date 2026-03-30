@@ -38,7 +38,7 @@ CREATE TABLE public.addresses (
 
 CREATE INDEX addresses_user_id_idx ON public.addresses (user_id);
 
--- Magasins
+-- Restaurants
 CREATE TABLE public.stores (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   name TEXT NOT NULL,

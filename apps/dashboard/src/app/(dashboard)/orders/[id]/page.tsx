@@ -217,7 +217,7 @@ export default function OrderDetailPage() {
                   </p>
                 </>
               ) : (
-                <p className="text-stone-600 dark:text-zinc-500">Magasin non renseigné.</p>
+                <p className="text-stone-600 dark:text-zinc-500">Restaurant non renseigné.</p>
               )
             ) : o.addresses ? (
               <>

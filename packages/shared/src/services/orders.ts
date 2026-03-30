@@ -305,7 +305,7 @@ export async function createOrderWithItems(
   const userId = sessionData.session?.user?.id ?? null;
 
   if (input.lines.length === 0) throw new Error('Panier vide');
-  if (!input.storeId?.trim()) throw new Error('Magasin requis');
+  if (!input.storeId?.trim()) throw new Error('Restaurant requis');
 
   const productIds = input.lines.map((l) => l.productId);
   const [stores, zones, priceMap, treeMap] = await Promise.all([
@@ -335,7 +335,7 @@ export async function createOrderWithItems(
 
   const storeRow = stores.find((s) => s.id === input.storeId);
   if (!storeRow) {
-    throw new Error('Magasin invalide ou inactif');
+    throw new Error('Restaurant invalide ou inactif');
   }
   const storeId = input.storeId;
 

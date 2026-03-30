@@ -34,7 +34,7 @@ export default function AdminOverviewPage() {
           <div className="wt-card rounded-xl border border-stone-200 p-4 dark:border-zinc-800">
             <p className="text-xs font-semibold uppercase text-stone-600 dark:text-zinc-500">En attente</p>
             <p className="mt-1 text-3xl font-bold text-amber-800 dark:text-amber-300">{s.pending_count}</p>
-            <p className="mt-1 text-xs text-stone-600 dark:text-zinc-500">Tous magasins</p>
+            <p className="mt-1 text-xs text-stone-600 dark:text-zinc-500">Tous restaurants</p>
           </div>
           <div className="wt-card rounded-xl border border-stone-200 p-4 dark:border-zinc-800">
             <p className="text-xs font-semibold uppercase text-stone-600 dark:text-zinc-500">Commandes actives</p>
@@ -77,7 +77,7 @@ export default function AdminOverviewPage() {
           <table className="w-full min-w-[32rem] text-left text-sm">
             <thead className="border-b border-stone-200 bg-stone-50 dark:border-zinc-800 dark:bg-zinc-900/80">
               <tr>
-                <th className="px-4 py-3 font-semibold text-zinc-800 dark:text-zinc-200">Magasin</th>
+                <th className="px-4 py-3 font-semibold text-zinc-800 dark:text-zinc-200">Restaurant</th>
                 <th className="px-4 py-3 font-semibold text-zinc-800 dark:text-zinc-200">En attente</th>
                 <th className="px-4 py-3 font-semibold text-zinc-800 dark:text-zinc-200">Actives</th>
                 <th className="px-4 py-3 font-semibold text-zinc-800 dark:text-zinc-200">CA 7 j.</th>

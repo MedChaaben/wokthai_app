@@ -136,7 +136,7 @@ export default function CheckoutScreen() {
       return;
     }
     if (!selectedStoreId) {
-      Alert.alert('Magasin', 'Choisissez le magasin pour cette commande.');
+      Alert.alert('Restaurant', 'Choisissez le restaurant pour cette commande.');
       return;
     }
 

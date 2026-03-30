@@ -17,7 +17,7 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 const storeStaffNav = [
   { href: "/orders", label: "Commandes" },
   { href: "/products", label: "Produits" },
-  { href: "/settings", label: "Magasin" },
+  { href: "/settings", label: "Restaurant" },
 ] as const;
 
 const platformAdminNav = [

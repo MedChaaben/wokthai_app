@@ -197,12 +197,12 @@ export default function AdminOrdersPage() {
       <header className="border-b border-stone-200 pb-6 dark:border-zinc-800">
         <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-100">Toutes les commandes</h2>
         <p className="mt-2 text-sm text-stone-600 dark:text-zinc-400">
-          Filtrez par point de vente ou consultez l’ensemble du réseau. Le détail d’une commande ouvre la même fiche que pour un
-          magasin.
+          Filtrez par restaurant ou consultez l’ensemble du réseau. Le détail d’une commande ouvre la même fiche que pour un
+          restaurant.
         </p>
         <div className="mt-4 max-w-md">
           <label htmlFor="admin-store-filter" className="block text-xs font-semibold uppercase text-stone-600 dark:text-zinc-500">
-            Magasin
+            Restaurant
           </label>
           <select
             id="admin-store-filter"

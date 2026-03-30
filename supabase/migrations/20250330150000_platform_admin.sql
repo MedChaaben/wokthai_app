@@ -53,7 +53,7 @@ CREATE POLICY staff_delete_platform_admin ON public.staff
   FOR DELETE TO authenticated
   USING (public.is_platform_admin());
 
--- ── Magasins : création / suppression siège uniquement ; mise à jour par magasin assigné ou admin
+-- ── Restaurants : création / suppression siège uniquement ; mise à jour par restaurant assigné ou admin
 DROP POLICY IF EXISTS stores_all_staff ON public.stores;
 DROP POLICY IF EXISTS stores_insert_platform_admin ON public.stores;
 DROP POLICY IF EXISTS stores_update_by_scope ON public.stores;

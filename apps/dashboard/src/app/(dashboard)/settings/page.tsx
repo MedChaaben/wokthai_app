@@ -191,11 +191,11 @@ export default function StoreSettingsPage() {
   return (
     <div className="mx-auto max-w-lg space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">Magasin</h1>
+        <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">Restaurant</h1>
         <p className="mt-1 text-sm text-stone-600 dark:text-zinc-400">
           Options pour{" "}
           <span className="font-semibold text-zinc-800 dark:text-zinc-200">
-            {staff.data.stores?.name ?? "votre magasin"}
+            {staff.data.stores?.name ?? "votre restaurant"}
           </span>
           {staff.data.stores?.city ? ` · ${staff.data.stores.city}` : null}.
         </p>
