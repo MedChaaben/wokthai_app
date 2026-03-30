@@ -18,17 +18,39 @@ export default function LoginPage() {
     e.preventDefault();
     setLoading(true);
     setError(null);
-    const { error: signErr } = await supabase.auth.signInWithPassword({
-      email: email.trim(),
-      password,
-    });
-    setLoading(false);
-    if (signErr) {
-      setError(signErr.message);
-      return;
+    try {
+      const { error: signErr } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password,
+      });
+      if (signErr) {
+        setError(signErr.message);
+        return;
+      }
+
+      const {
+        data: { session },
+        error: sessionErr,
+      } = await supabase.auth.getSession();
+      if (sessionErr || !session) {
+        setError(sessionErr?.message ?? "Session non disponible après connexion. Réessayez.");
+        return;
+      }
+
+      const profile = await fetchMyStaffProfile(supabase);
+      if (!profile) {
+        setError(
+          "Aucun profil équipe (table staff) pour ce compte. Vérifiez en base que user_id et role sont corrects."
+        );
+        await supabase.auth.signOut();
+        return;
+      }
+      router.replace(profile.role === "platform_admin" ? "/admin" : "/orders");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Impossible de charger le profil équipe.");
+    } finally {
+      setLoading(false);
     }
-    const profile = await fetchMyStaffProfile(supabase);
-    router.replace(profile?.role === "platform_admin" ? "/admin" : "/orders");
   }
 
   return (

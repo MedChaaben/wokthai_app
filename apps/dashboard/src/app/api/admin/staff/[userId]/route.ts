@@ -9,7 +9,8 @@ function isUuid(s: string): boolean {
 type PatchBody = {
   email?: string;
   password?: string;
-  storeId?: string;
+  /** Absent = ne pas modifier ; null ou "" = détacher le magasin (platform_admin uniquement). */
+  storeId?: string | null;
 };
 
 export async function PATCH(request: Request, context: { params: Promise<{ userId: string }> }) {
@@ -43,7 +44,7 @@ export async function PATCH(request: Request, context: { params: Promise<{ userI
 
   const { data: staffRow, error: staffFetchErr } = await service
     .from("staff")
-    .select("user_id, email, store_id")
+    .select("user_id, email, store_id, role")
     .eq("user_id", targetUserId)
     .maybeSingle();
 
@@ -52,7 +53,6 @@ export async function PATCH(request: Request, context: { params: Promise<{ userI
   }
 
   const emailRaw = typeof body.email === "string" ? body.email.trim().toLowerCase() : undefined;
-  const storeIdIn = typeof body.storeId === "string" ? body.storeId.trim() : undefined;
   const password = typeof body.password === "string" ? body.password : "";
 
   const authUpdates: { email?: string; password?: string } = {};
@@ -69,22 +69,34 @@ export async function PATCH(request: Request, context: { params: Promise<{ userI
     authUpdates.email = emailRaw;
   }
 
-  if (storeIdIn !== undefined && storeIdIn !== staffRow.store_id) {
-    if (!storeIdIn) {
-      return NextResponse.json({ error: "Magasin requis" }, { status: 400 });
-    }
-    const { data: store, error: storeErr } = await service.from("stores").select("id").eq("id", storeIdIn).maybeSingle();
-    if (storeErr || !store) {
-      return NextResponse.json({ error: "Magasin introuvable" }, { status: 400 });
-    }
-  }
-
-  const staffUpdates: { email?: string; store_id?: string } = {};
+  const staffUpdates: { email?: string; store_id?: string | null } = {};
   if (emailRaw !== undefined && emailRaw !== staffRow.email) {
     staffUpdates.email = emailRaw;
   }
-  if (storeIdIn !== undefined && storeIdIn !== staffRow.store_id) {
-    staffUpdates.store_id = storeIdIn;
+
+  if (Object.prototype.hasOwnProperty.call(body, "storeId")) {
+    const raw = body.storeId;
+    const wantClear = raw === null || (typeof raw === "string" && raw.trim() === "");
+    if (wantClear) {
+      if (staffRow.role !== "platform_admin") {
+        return NextResponse.json({ error: "Magasin requis" }, { status: 400 });
+      }
+      if (staffRow.store_id !== null) {
+        staffUpdates.store_id = null;
+      }
+    } else if (typeof raw === "string") {
+      const sid = raw.trim();
+      if (!isUuid(sid)) {
+        return NextResponse.json({ error: "Identifiant magasin invalide" }, { status: 400 });
+      }
+      if (sid !== staffRow.store_id) {
+        const { data: store, error: storeErr } = await service.from("stores").select("id").eq("id", sid).maybeSingle();
+        if (storeErr || !store) {
+          return NextResponse.json({ error: "Magasin introuvable" }, { status: 400 });
+        }
+        staffUpdates.store_id = sid;
+      }
+    }
   }
 
   if (Object.keys(authUpdates).length === 0 && Object.keys(staffUpdates).length === 0) {

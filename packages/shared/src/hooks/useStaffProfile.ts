@@ -15,19 +15,33 @@ export function useStaffProfile() {
 
   useEffect(() => {
     let cancelled = false;
-    void client.auth.getSession().then(({ data }) => {
-      if (cancelled) return;
-      setHasSession(!!data.session);
-      setAuthResolved(true);
-    });
+    void client.auth
+      .getSession()
+      .then(({ data }) => {
+        if (cancelled) return;
+        setHasSession(!!data.session);
+        setAuthResolved(true);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setHasSession(false);
+        setAuthResolved(true);
+      });
+
     const { data: sub } = client.auth.onAuthStateChange((event, session) => {
-      setHasSession(!!session);
-      setAuthResolved(true);
-      if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-        void queryClient.invalidateQueries({ queryKey: ['staff', 'me'] });
-      }
+      if (cancelled) return;
+      // État initial : uniquement getSession() ci-dessus. Ici ne pas réagir à INITIAL_SESSION / null
+      // « fantômes » qui déclenchaient une redirection /login depuis le layout dashboard.
       if (event === 'SIGNED_OUT') {
+        setHasSession(false);
+        setAuthResolved(true);
         queryClient.removeQueries({ queryKey: ['staff', 'me'] });
+        return;
+      }
+      if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+        setHasSession(!!session);
+        setAuthResolved(true);
+        void queryClient.invalidateQueries({ queryKey: ['staff', 'me'] });
       }
     });
     return () => {
@@ -47,5 +61,7 @@ export function useStaffProfile() {
   return {
     ...query,
     isLoading,
+    authResolved,
+    hasSession,
   };
 }

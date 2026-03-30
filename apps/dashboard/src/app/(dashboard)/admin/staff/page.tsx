@@ -47,7 +47,7 @@ export default function AdminStaffPage() {
   useEffect(() => {
     if (!editRow) return;
     setEditEmail(editRow.email);
-    setEditStoreId(editRow.store_id);
+    setEditStoreId(editRow.store_id ?? "");
     setEditPassword("");
     setEditError(null);
     setEditOk(null);
@@ -69,7 +69,8 @@ export default function AdminStaffPage() {
         },
         body: JSON.stringify({
           email: editEmail.trim().toLowerCase(),
-          storeId: editStoreId,
+          storeId:
+            editRow.role === "platform_admin" && editStoreId === "" ? null : editStoreId,
           password: editPassword,
         }),
       });
@@ -285,7 +286,7 @@ export default function AdminStaffPage() {
           </div>
         )}
         <p className="mt-3 text-xs text-stone-500 dark:text-zinc-500">
-          Les rôles siège se gèrent en base (<code className="rounded bg-stone-100 px-1 dark:bg-zinc-800">staff.role = platform_admin</code>), pas depuis cet écran. Vous pouvez toutefois changer l’e-mail, le magasin assigné ou le mot de passe.
+          Les rôles siège se gèrent en base (<code className="rounded bg-stone-100 px-1 dark:bg-zinc-800">staff.role = platform_admin</code>), pas depuis cet écran. E-mail, mot de passe, et pour le siège un magasin optionnel (affichage catalogue) ou aucun.
         </p>
       </section>
 
@@ -332,17 +333,25 @@ export default function AdminStaffPage() {
                 </label>
                 <select
                   id="edit-store"
-                  required
+                  required={editRow.role !== "platform_admin"}
                   value={editStoreId}
                   onChange={(e) => setEditStoreId(e.target.value)}
                   className="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2 dark:border-zinc-600 dark:bg-zinc-950 dark:text-zinc-100"
                 >
+                  {editRow.role === "platform_admin" ? (
+                    <option value="">Aucun (siège uniquement)</option>
+                  ) : null}
                   {(storesQuery.data ?? []).map((s) => (
                     <option key={s.id} value={s.id}>
                       {s.name} · {s.city}
                     </option>
                   ))}
                 </select>
+                {editRow.role === "platform_admin" ? (
+                  <p className="mt-1 text-xs text-stone-500 dark:text-zinc-500">
+                    Optionnel : libellé « magasin » dans le menu latéral pour la page Produits.
+                  </p>
+                ) : null}
               </div>
               <div>
                 <label className="text-sm font-semibold text-zinc-800 dark:text-zinc-200" htmlFor="edit-pw">

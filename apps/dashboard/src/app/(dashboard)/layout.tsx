@@ -123,16 +123,17 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   }, []);
 
   useEffect(() => {
-    let cancelled = false;
-    supabase.auth.getSession().then(({ data }) => {
-      if (cancelled) return;
-      if (!data.session) router.replace("/login");
-    });
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (!session) router.replace("/login");
+    if (!staff.authResolved || staff.hasSession) return;
+    router.replace("/login");
+  }, [staff.authResolved, staff.hasSession, router]);
+
+  useEffect(() => {
+    const { data: sub } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "SIGNED_OUT") {
+        router.replace("/login");
+      }
     });
     return () => {
-      cancelled = true;
       sub.subscription.unsubscribe();
     };
   }, [router, supabase]);
@@ -251,10 +252,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </div>
       </div>
       <p className="mt-4 px-3 text-sm text-stone-600 dark:text-zinc-400">
-        {isPlatformAdmin ? "Magasin assigné (catalogue)" : "Magasin assigné (commandes filtrées)"}
+        {isPlatformAdmin
+          ? storeId
+            ? "Restaurant affiché (catalogue)"
+            : ""
+          : "Restaurant assigné (commandes filtrées)"}
       </p>
       <p className="px-3 text-sm font-semibold text-zinc-900 dark:text-zinc-100">
-        {staff.data.stores?.name ?? "—"}
+        {staff.data.stores?.name ?? ""}
         {staff.data.stores?.city ? (
           <span className="block text-xs font-normal text-stone-600 dark:text-zinc-500">{staff.data.stores.city}</span>
         ) : null}

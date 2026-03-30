@@ -149,21 +149,21 @@ export type Database = {
           id: string;
           user_id: string;
           email: string;
-          store_id: string;
+          store_id: string | null;
           role: StaffRoleEnum;
         };
         Insert: {
           id?: string;
           user_id: string;
           email: string;
-          store_id: string;
+          store_id?: string | null;
           role?: StaffRoleEnum;
         };
         Update: {
           id?: string;
           user_id?: string;
           email?: string;
-          store_id?: string;
+          store_id?: string | null;
           role?: StaffRoleEnum;
         };
         Relationships: [];

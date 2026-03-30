@@ -42,8 +42,8 @@ export default function AdminSectionLayout({ children }: { children: React.React
         <p className="text-xs font-semibold uppercase tracking-wide text-wt-bordeaux dark:text-wt-accent">Administration</p>
         <h1 className="mt-1 text-2xl font-extrabold text-zinc-900 dark:text-zinc-100">Siège · multi-magasins</h1>
         <p className="mt-2 text-sm text-stone-600 dark:text-zinc-400">
-          Gestion des points de vente, accès équipe et vision globale des commandes. Le menu latéral ne propose que « Produits » (catalogue du
-          magasin assigné) et cette section Administration.
+          Gestion des points de vente, accès équipe et vision globale des commandes. Le menu latéral propose « Produits » (catalogue global) et
+          cette section Administration ; un magasin sur le profil siège est optionnel (libellé d’affichage).
         </p>
         <nav className="mt-4 flex flex-wrap gap-2" aria-label="Sous-navigation admin">
           {adminNav.map((item) => {
