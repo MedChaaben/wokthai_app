@@ -9,7 +9,9 @@ import {
   KeyboardAvoidingView,
   Platform,
   View,
+  Pressable,
 } from 'react-native';
+import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   useSupabase,
@@ -24,6 +26,7 @@ import { useRequireSession } from '../hooks/useRequireSession';
 import { wt } from '../lib/theme';
 
 export default function ProfileScreen() {
+  const router = useRouter();
   const insets = useSafeAreaInsets();
   const sessionOk = useRequireSession('/profile');
   const supabase = useSupabase();
@@ -104,86 +107,93 @@ export default function ProfileScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       keyboardVerticalOffset={Platform.OS === 'ios' ? 64 : 0}
     >
-      <ScrollView
-        style={styles.scroll}
-        contentContainerStyle={styles.screen}
-        keyboardShouldPersistTaps="handled"
-        keyboardDismissMode="on-drag"
-      >
-        <Text style={styles.lead}>
-          Ces informations servent pour vos commandes et la livraison. Touchez « Modifier » pour les mettre à
-          jour.
-        </Text>
-
-        <WtCard style={styles.loyaltyCard}>
-          <Text style={styles.loyaltyTitle}>Fidélité</Text>
-          <Text style={styles.loyaltyPoints}>{profile?.loyalty_points ?? 0} points</Text>
-          <Text style={styles.loyaltyHint}>
-            1 TND dépensé sur une commande livrée = 1 point (crédités lorsque le statut passe à « Livrée »).
+      <View style={styles.mainColumn}>
+        <ScrollView
+          style={styles.scroll}
+          contentContainerStyle={styles.screen}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
+        >
+          <Text style={styles.lead}>
+            Ces informations servent pour vos commandes et la livraison. Touchez « Modifier » pour les mettre à
+            jour.
           </Text>
-        </WtCard>
 
-        <WtCard style={styles.formCard}>
-          <Text style={styles.label}>Prénom</Text>
-          <TextInput
-            value={firstName}
-            onChangeText={setFirstName}
-            placeholder="Votre prénom"
-            placeholderTextColor={wt.placeholder}
-            autoCapitalize="words"
-            editable={editing}
-            style={[styles.input, !editing && styles.inputReadonly]}
-          />
+          <WtCard style={styles.formCard}>
+            <Text style={styles.label}>Prénom</Text>
+            <TextInput
+              value={firstName}
+              onChangeText={setFirstName}
+              placeholder="Votre prénom"
+              placeholderTextColor={wt.placeholder}
+              autoCapitalize="words"
+              editable={editing}
+              style={[styles.input, !editing && styles.inputReadonly]}
+            />
 
-          <Text style={styles.label}>Nom</Text>
-          <TextInput
-            value={lastName}
-            onChangeText={setLastName}
-            placeholder="Votre nom"
-            placeholderTextColor={wt.placeholder}
-            autoCapitalize="words"
-            editable={editing}
-            style={[styles.input, !editing && styles.inputReadonly]}
-          />
+            <Text style={styles.label}>Nom</Text>
+            <TextInput
+              value={lastName}
+              onChangeText={setLastName}
+              placeholder="Votre nom"
+              placeholderTextColor={wt.placeholder}
+              autoCapitalize="words"
+              editable={editing}
+              style={[styles.input, !editing && styles.inputReadonly]}
+            />
 
-          <Text style={styles.label}>Téléphone</Text>
-          <TextInput
-            value={phone}
-            onChangeText={setPhone}
-            onBlur={() => {
-              if (editing) setPhone((p) => canonicalizePhoneDisplayInput(p));
-            }}
-            placeholder="12 34 56 78"
-            placeholderTextColor={wt.placeholder}
-            keyboardType={editing ? 'default' : 'phone-pad'}
-            editable={editing}
-            style={[styles.input, !editing && styles.inputReadonly]}
-          />
+            <Text style={styles.label}>Téléphone</Text>
+            <TextInput
+              value={phone}
+              onChangeText={setPhone}
+              onBlur={() => {
+                if (editing) setPhone((p) => canonicalizePhoneDisplayInput(p));
+              }}
+              placeholder="12 34 56 78"
+              placeholderTextColor={wt.placeholder}
+              keyboardType={editing ? 'default' : 'phone-pad'}
+              editable={editing}
+              style={[styles.input, !editing && styles.inputReadonly]}
+            />
+            {editing ? (
+              <Text style={styles.phoneHint}>Hors Tunisie, commencez par + et l’indicatif du pays.</Text>
+            ) : null}
+
+            <Text style={styles.label}>Email</Text>
+            <Text style={styles.emailReadonly}>{email ?? '—'}</Text>
+            <Text style={styles.emailNote}>Utilisé pour la connexion (non modifiable ici).</Text>
+          </WtCard>
+
           {editing ? (
-            <Text style={styles.phoneHint}>Hors Tunisie, commencez par + et l’indicatif du pays.</Text>
-          ) : null}
+            <>
+              <WtButton title="Enregistrer" loading={isSaving} onPress={() => void onSave()} />
+              <WtButton title="Annuler" variant="ghost" disabled={isSaving} onPress={cancelEdit} />
+            </>
+          ) : (
+            <WtButton title="Modifier" onPress={() => setEditing(true)} />
+          )}
+        </ScrollView>
 
-          <Text style={styles.label}>Email</Text>
-          <Text style={styles.emailReadonly}>{email ?? '—'}</Text>
-          <Text style={styles.emailNote}>Utilisé pour la connexion (non modifiable ici).</Text>
-        </WtCard>
+        <View style={styles.discreetDeleteSticky}>
+          <Pressable
+            onPress={() => router.push('/delete-account')}
+            style={({ pressed }) => [styles.discreetDeleteWrap, pressed && styles.discreetDeletePressed]}
+            accessibilityRole="button"
+            accessibilityLabel="Supprimer mon compte"
+            hitSlop={8}
+          >
+            <Text style={styles.discreetDeleteText}>Supprimer mon compte</Text>
+          </Pressable>
+        </View>
 
-        {editing ? (
-          <>
-            <WtButton title="Enregistrer" loading={isSaving} onPress={() => void onSave()} />
-            <WtButton title="Annuler" variant="ghost" disabled={isSaving} onPress={cancelEdit} />
-          </>
-        ) : (
-          <WtButton title="Modifier" onPress={() => setEditing(true)} />
-        )}
-      </ScrollView>
-      <View
-        style={[
-          styles.creditFooter,
-          { paddingBottom: Math.max(insets.bottom, 10) },
-        ]}
-      >
-        <BrandCredit variant="footer" />
+        <View
+          style={[
+            styles.creditFooter,
+            { paddingBottom: Math.max(insets.bottom, 10) },
+          ]}
+        >
+          <BrandCredit variant="footer" />
+        </View>
       </View>
     </KeyboardAvoidingView>
   );
@@ -191,20 +201,17 @@ export default function ProfileScreen() {
 
 const styles = StyleSheet.create({
   flex: { flex: 1, backgroundColor: wt.bg },
+  mainColumn: { flex: 1 },
   scroll: { flex: 1 },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: wt.bg },
-  screen: { padding: 16, paddingBottom: 24, gap: 12 },
+  screen: { padding: 16, paddingBottom: 16, gap: 12 },
   creditFooter: {
     alignSelf: 'stretch',
-    paddingTop: 8,
+    paddingTop: 2,
     paddingHorizontal: 16,
     backgroundColor: wt.bg,
   },
   lead: { fontSize: 14, color: wt.textMuted, lineHeight: 20, marginBottom: 4 },
-  loyaltyCard: { gap: 8, paddingVertical: 14 },
-  loyaltyTitle: { fontSize: 13, fontWeight: '700', color: wt.accentLight, textTransform: 'uppercase' },
-  loyaltyPoints: { fontSize: 22, fontWeight: '800', color: wt.text },
-  loyaltyHint: { fontSize: 12, color: wt.textSecondary, lineHeight: 17 },
   formCard: { gap: 10 },
   label: { fontSize: 14, fontWeight: '600', color: wt.text, marginTop: 4 },
   input: {
@@ -234,5 +241,25 @@ const styles = StyleSheet.create({
     lineHeight: 17,
     marginTop: 6,
     opacity: 0.85,
+  },
+  discreetDeleteSticky: {
+    alignItems: 'center',
+    paddingTop: 10,
+    paddingBottom: 4,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: wt.border,
+    backgroundColor: wt.bg,
+  },
+  discreetDeleteWrap: {
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+  },
+  discreetDeletePressed: { backgroundColor: wt.surfaceMuted },
+  discreetDeleteText: {
+    fontSize: 12,
+    color: wt.textSecondary,
+    fontWeight: '500',
+    textAlign: 'center',
   },
 });

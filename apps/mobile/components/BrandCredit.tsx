@@ -49,13 +49,13 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   muted: {
-    color: wt.placeholder,
-    opacity: 0.42,
+    color: wt.textSecondary,
+    opacity: 0.88,
     fontWeight: '400',
   },
   link: {
-    color: wt.placeholder,
-    opacity: 0.48,
-    fontWeight: '400',
+    color: wt.accentLight,
+    opacity: 0.92,
+    fontWeight: '500',
   },
 });

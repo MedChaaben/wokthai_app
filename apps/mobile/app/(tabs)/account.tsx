@@ -2,8 +2,10 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Text, StyleSheet, Pressable, ScrollView, ActivityIndicator, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { Session } from '@supabase/supabase-js';
 import { useSupabase, useMyUserProfile } from '@wokthai/shared';
+import { BrandCredit } from '../../components/BrandCredit';
 import { WtButton } from '../../components/WtButton';
 import { WtCard } from '../../components/WtCard';
 import { useCart } from '../../contexts/CartContext';
@@ -61,6 +63,7 @@ function MenuRow({ icon, title, subtitle, onPress, isLast }: MenuItemProps) {
 
 export default function AccountScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const { lines } = useCart();
   const cartCount = useMemo(() => lines.reduce((sum, l) => sum + l.quantity, 0), [lines]);
   const cartSubtitle = useMemo(
@@ -203,6 +206,14 @@ export default function AccountScreen() {
           </View>
         </WtCard>
 
+        <Text style={styles.sectionHeading}>Fidélité</Text>
+        <WtCard style={styles.loyaltyCard}>
+          <Text style={styles.loyaltyPoints}>{profile?.loyalty_points ?? 0} points</Text>
+          <Text style={styles.loyaltyHint}>
+            1 TND dépensé sur une commande livrée = 1 point (crédités lorsque le statut passe à « Livrée »).
+          </Text>
+        </WtCard>
+
         <Text style={styles.sectionHeading}>Commandes et livraison</Text>
         <WtCard style={styles.menuCard}>
           <MenuRow
@@ -225,40 +236,31 @@ export default function AccountScreen() {
             isLast
           />
         </WtCard>
-
-        <View style={styles.sectionSeparatorWrap}>
-          <View style={styles.sectionSeparatorLine} />
-        </View>
-
-        <Text style={styles.sectionHeadingAfterSeparator}>Légal et compte</Text>
-        <WtCard style={styles.menuCard}>
-          <MenuRow
-            icon="📜"
-            title="Conditions générales"
-            subtitle="Utilisation de l’application"
-            onPress={() => router.push('/cgu')}
-          />
-          <MenuRow
-            icon="🔐"
-            title="Politique de confidentialité"
-            subtitle="Données personnelles et droits"
-            onPress={() => router.push('/privacy')}
-          />
-          <MenuRow
-            icon="⚖️"
-            title="Mentions légales"
-            subtitle="Éditeur et informations légales"
-            onPress={() => router.push('/mentions')}
-          />
-          <MenuRow
-            icon="🗑️"
-            title="Supprimer mon compte"
-            subtitle="Données et accès supprimés"
-            onPress={() => router.push('/delete-account')}
-            isLast
-          />
-        </WtCard>
       </ScrollView>
+
+      <View
+        style={[
+          styles.discreetFooter,
+          {
+            paddingBottom: Math.max(insets.bottom, 6) + 4,
+          },
+        ]}
+      >
+        <Text style={styles.discreetFooterText}>
+          <Text style={styles.discreetLink} onPress={() => router.push('/cgu')}>
+            CGU
+          </Text>
+          <Text style={styles.discreetSep}> · </Text>
+          <Text style={styles.discreetLink} onPress={() => router.push('/privacy')}>
+            Confidentialité
+          </Text>
+          <Text style={styles.discreetSep}> · </Text>
+          <Text style={styles.discreetLink} onPress={() => router.push('/mentions')}>
+            Mentions légales
+          </Text>
+        </Text>
+        <BrandCredit variant="footer" />
+      </View>
     </View>
   );
 }
@@ -276,7 +278,7 @@ const styles = StyleSheet.create({
   screen: {
     flexGrow: 1,
     padding: 16,
-    paddingBottom: 32,
+    paddingBottom: 16,
     gap: 8,
     backgroundColor: wt.bg,
   },
@@ -337,26 +339,30 @@ const styles = StyleSheet.create({
     marginBottom: 4,
     marginLeft: 4,
   },
-  sectionHeadingAfterSeparator: {
-    fontSize: 13,
-    fontWeight: '700',
+  loyaltyCard: { gap: 8, paddingVertical: 14 },
+  loyaltyPoints: { fontSize: 22, fontWeight: '800', color: wt.text },
+  loyaltyHint: { fontSize: 12, color: wt.textSecondary, lineHeight: 17 },
+  discreetFooter: {
+    paddingTop: 10,
+    paddingHorizontal: 12,
+    alignItems: 'center',
+    gap: 2,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: wt.border,
+    backgroundColor: wt.bg,
+  },
+  discreetFooterText: {
+    fontSize: 12,
+    lineHeight: 18,
     color: wt.textSecondary,
-    textTransform: 'uppercase',
-    letterSpacing: 0.6,
-    marginTop: 4,
-    marginBottom: 4,
-    marginLeft: 4,
+    textAlign: 'center',
   },
-  sectionSeparatorWrap: {
-    marginTop: 20,
-    marginBottom: 4,
-    paddingHorizontal: 4,
+  discreetLink: {
+    color: wt.accentLight,
+    fontWeight: '600',
+    fontSize: 12,
   },
-  sectionSeparatorLine: {
-    height: StyleSheet.hairlineWidth,
-    backgroundColor: wt.borderStrong,
-    opacity: 0.85,
-  },
+  discreetSep: { color: wt.textSecondary, fontSize: 12 },
   menuCard: { padding: 0, overflow: 'hidden' },
   menuRow: {
     flexDirection: 'row',

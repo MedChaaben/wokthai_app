@@ -56,7 +56,7 @@ export const PRIVACY_SECTIONS: PrivacySection[] = [
     title: '7. Vos droits',
     paragraphs: [
       'Selon la loi applicable, vous pouvez disposer d’un droit d’accès, de rectification, d’effacement, de limitation du traitement, d’opposition et de portabilité lorsque ces droits sont prévus.',
-      'Pour les demandes relatives à votre compte, vous pouvez utiliser les fonctions prévues dans l’application (par ex. modification du profil, suppression du compte depuis le menu Compte). Pour d’autres demandes, contactez le restaurant en précisant votre identité.',
+      'Pour les demandes relatives à votre compte, vous pouvez utiliser les fonctions prévues dans l’application (par ex. modification du profil, suppression du compte via le lien en bas de l’écran Modifier le profil). Pour d’autres demandes, contactez le restaurant en précisant votre identité.',
       'Vous pouvez introduire une réclamation auprès de l’autorité de protection des données compétente si vous estimez que vos droits ne sont pas respectés.',
     ],
   },
