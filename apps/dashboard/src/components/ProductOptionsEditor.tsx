@@ -1,8 +1,10 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
 import {
   useProductOptionGroups,
+  useCustomizationPresets,
   useSupabase,
   insertProductOptionGroup,
   insertProductOption,
@@ -10,6 +12,8 @@ import {
   updateProductOption,
   deleteProductOptionGroup,
   deleteProductOption,
+  importCustomizationPresetToProduct,
+  type ImportPresetMode,
 } from "@wokthai/shared";
 
 type ProductOptionsEditorProps = {
@@ -20,11 +24,22 @@ export function ProductOptionsEditor({ productId }: ProductOptionsEditorProps) {
   const supabase = useSupabase();
   const qc = useQueryClient();
   const tree = useProductOptionGroups(productId);
+  const presets = useCustomizationPresets();
+  const [importPresetId, setImportPresetId] = useState("");
+  const [importMode, setImportMode] = useState<ImportPresetMode>("append");
 
   const invalidate = () => {
     void qc.invalidateQueries({ queryKey: ["product-option-groups", productId] });
     void qc.invalidateQueries({ queryKey: ["product-ids-required-options"] });
   };
+
+  const importPreset = useMutation({
+    mutationFn: async () => {
+      if (!importPresetId) throw new Error("Choisissez un préréglage");
+      await importCustomizationPresetToProduct(supabase, productId, importPresetId, importMode);
+    },
+    onSuccess: invalidate,
+  });
 
   const addGroup = useMutation({
     mutationFn: async () => {
@@ -59,17 +74,73 @@ export function ProductOptionsEditor({ productId }: ProductOptionsEditorProps) {
   return (
     <div className="mt-6 border-t border-stone-200 pt-5 dark:border-zinc-800">
       <p className="text-xs font-semibold uppercase tracking-wide text-wt-bordeaux dark:text-wt-accent">
-        Personnalisations (app)
+        Personnalisations
       </p>
-      <p className="mt-1 text-sm text-stone-600 dark:text-zinc-400">
-        Chaque bloc correspond à une question sur la fiche produit : avec <span className="font-medium">1 choix max</span> vous obtenez un sélecteur du type « Piquant : doux / moyen / fort ». Avec plusieurs choix max, le client peut combiner des options (ex. garnitures). Pour « avec / sans », créez deux valeurs dans le même bloc et laissez <span className="font-medium">1 choix max</span>.
+      <p className="mt-1 text-xs text-stone-600 dark:text-zinc-500">
+        Préréglage = copie depuis la <span className="font-medium">bibliothèque</span> (haut de page). Sinon, personnalisation
+        uniquement pour ce plat. <span className="font-medium">1 choix max</span> = un seul niveau (ex. piquant) ; plusieurs =
+        combinaisons possibles.
       </p>
 
-      {groups.length === 0 ? (
-        <p className="mt-3 text-sm italic text-stone-600 dark:text-zinc-500">
-          Aucune personnalisation : le plat s’ajoute au panier sans étape d’options (sauf si vous en ajoutez).
+      <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-end">
+        <div className="min-w-[10rem] flex-1 sm:max-w-xs">
+          <label className="sr-only">Préréglage</label>
+          <select
+            value={importPresetId}
+            onChange={(e) => setImportPresetId(e.target.value)}
+            className="w-full rounded-lg border border-stone-300 dark:border-zinc-700 bg-white px-3 py-2 text-sm dark:bg-zinc-950"
+            disabled={presets.isLoading || (presets.data?.length ?? 0) === 0}
+            aria-label="Préréglage à importer"
+          >
+            <option value="">— Préréglage —</option>
+            {(presets.data ?? []).map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.name}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="min-w-[11rem]">
+          <label className="sr-only">Mode d’import</label>
+          <select
+            value={importMode}
+            onChange={(e) => setImportMode(e.target.value as ImportPresetMode)}
+            className="w-full rounded-lg border border-stone-300 dark:border-zinc-700 bg-white px-3 py-2 text-sm dark:bg-zinc-950"
+            aria-label="Mode d’import"
+          >
+            <option value="append">Ajouter aux existantes</option>
+            <option value="replace">Remplacer tout</option>
+          </select>
+        </div>
+        <button
+          type="button"
+          disabled={importPreset.isPending || !importPresetId}
+          onClick={() => importPreset.mutate()}
+          className="rounded-lg bg-wt-bordeaux px-4 py-2 text-sm font-semibold text-white hover:bg-wt-bordeaux-hover disabled:opacity-50"
+        >
+          {importPreset.isPending ? "…" : "Ajouter"}
+        </button>
+        <button
+          type="button"
+          disabled={addGroup.isPending}
+          onClick={() => addGroup.mutate()}
+          className="rounded-lg border border-dashed border-stone-300 px-4 py-2 text-sm font-semibold text-zinc-800 hover:bg-stone-50 dark:border-zinc-600 dark:text-zinc-200 dark:hover:bg-zinc-800 disabled:opacity-50"
+        >
+          {addGroup.isPending ? "…" : "+ Personnalisation"}
+        </button>
+      </div>
+      {importPreset.isError ? (
+        <p className="mt-2 text-xs text-red-600 dark:text-red-400">
+          {importPreset.error instanceof Error ? importPreset.error.message : "Erreur"}
         </p>
-      ) : (
+      ) : null}
+      {(presets.data?.length ?? 0) === 0 && !presets.isLoading ? (
+        <p className="mt-2 text-xs text-stone-500 dark:text-zinc-500">
+          Bibliothèque vide — créez des préréglages plus haut sur la page, ou utilisez « + Personnalisation ».
+        </p>
+      ) : null}
+
+      {groups.length > 0 ? (
         <ul className="mt-4 space-y-4">
           {groups.map((g) => (
             <li
@@ -85,16 +156,7 @@ export function ProductOptionsEditor({ productId }: ProductOptionsEditorProps) {
             </li>
           ))}
         </ul>
-      )}
-
-      <button
-        type="button"
-        disabled={addGroup.isPending}
-        onClick={() => addGroup.mutate()}
-        className="mt-4 rounded-xl border border-dashed border-stone-300 bg-white px-4 py-2.5 text-sm font-semibold text-zinc-800 hover:bg-stone-50 dark:border-zinc-600 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800 disabled:opacity-50"
-      >
-        {addGroup.isPending ? "Ajout…" : "+ Ajouter une personnalisation"}
-      </button>
+      ) : null}
       {addGroup.isError ? (
         <p className="mt-2 text-sm text-red-600 dark:text-red-400">
           {addGroup.error instanceof Error ? addGroup.error.message : "Erreur"}
