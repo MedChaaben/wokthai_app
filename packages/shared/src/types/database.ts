@@ -351,6 +351,78 @@ export type Database = {
         };
         Relationships: [];
       };
+      customization_preset_groups: {
+        Row: {
+          id: string;
+          preset_id: string;
+          name: string;
+          required: boolean;
+          max_select: number;
+          position: number;
+        };
+        Insert: {
+          id?: string;
+          preset_id: string;
+          name: string;
+          required?: boolean;
+          max_select?: number;
+          position?: number;
+        };
+        Update: {
+          id?: string;
+          preset_id?: string;
+          name?: string;
+          required?: boolean;
+          max_select?: number;
+          position?: number;
+        };
+        Relationships: [];
+      };
+      customization_preset_options: {
+        Row: {
+          id: string;
+          preset_group_id: string;
+          name: string;
+          price_modifier: string;
+          position: number;
+        };
+        Insert: {
+          id?: string;
+          preset_group_id: string;
+          name: string;
+          price_modifier?: number | string;
+          position?: number;
+        };
+        Update: {
+          id?: string;
+          preset_group_id?: string;
+          name?: string;
+          price_modifier?: number | string;
+          position?: number;
+        };
+        Relationships: [];
+      };
+      customization_presets: {
+        Row: {
+          id: string;
+          name: string;
+          position: number;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          position?: number;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+          position?: number;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
       product_option_groups: {
         Row: {
           id: string;

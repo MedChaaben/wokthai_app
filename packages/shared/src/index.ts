@@ -7,6 +7,14 @@ export * from './domain/store-opening-hours';
 export * from './domain/delivery';
 export * from './domain/order-line-options';
 export * from './domain/order-status';
+export {
+  getEstimatedRemainingTime,
+  getCurrentStatusEnteredAt,
+  getOrderTrackingProgress,
+  ORDER_STAGE_MINUTES,
+  type EstimatedRemainingTimeResult,
+  type OrderTrackingEstimateInput,
+} from './domain/order-tracking-estimate';
 export * from './domain/customer-display';
 export * from './domain/normalizeCustomerPhone';
 export * from './services/stores';
@@ -14,6 +22,7 @@ export * from './services/categories';
 export * from './services/products';
 export * from './services/orders';
 export * from './services/product-options';
+export * from './services/customization-presets';
 export * from './services/products-pricing';
 export * from './services/delivery-zones';
 export * from './services/addresses';
@@ -25,6 +34,8 @@ export { SupabaseProvider, useSupabase } from './context/SupabaseProvider';
 export { useProducts } from './hooks/useProducts';
 export { useProduct } from './hooks/useProduct';
 export { useProductOptionGroups } from './hooks/useProductOptionGroups';
+export { useCustomizationPresets } from './hooks/useCustomizationPresets';
+export { useCustomizationPresetTree } from './hooks/useCustomizationPresetTree';
 export { useProductIdsWithRequiredOptions } from './hooks/useProductIdsWithRequiredOptions';
 export { useCategories } from './hooks/useCategories';
 export { useOrders, type UseOrdersMode } from './hooks/useOrders';

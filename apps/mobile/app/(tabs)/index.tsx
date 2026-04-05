@@ -8,7 +8,6 @@ import {
   ActivityIndicator,
   RefreshControl,
   Image,
-  ScrollView,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import {
@@ -20,6 +19,7 @@ import {
   type ProductRow,
 } from '@wokthai/shared';
 import { CartFloatingBar } from '../../components/CartFloatingBar';
+import { MenuCategoryPicker } from '../../components/MenuCategoryPicker';
 import { WtCard } from '../../components/WtCard';
 import { useCart } from '../../contexts/CartContext';
 import { wt } from '../../lib/theme';
@@ -160,6 +160,11 @@ export default function HomeMenuScreen() {
   const visibleProducts =
     activeCategoryId != null ? (byCategory.get(activeCategoryId) ?? []) : [];
 
+  const categoryPickerItems = useMemo(
+    () => categoriesWithProducts.map((c) => ({ id: c.id, name: c.name })),
+    [categoriesWithProducts]
+  );
+
   return (
     <View style={styles.screen}>
       {loading ? (
@@ -170,29 +175,11 @@ export default function HomeMenuScreen() {
         <Text style={styles.emptyMsg}>Aucun produit disponible pour le moment.</Text>
       ) : (
         <View style={styles.menuBody}>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.tabBarInner}
-            style={styles.tabBar}
-          >
-            {categoriesWithProducts.map((c) => {
-              const count = byCategory.get(c.id)?.length ?? 0;
-              const active = c.id === activeCategoryId;
-              return (
-                <Pressable
-                  key={c.id}
-                  onPress={() => setActiveCategoryId(c.id)}
-                  style={[styles.tab, active && styles.tabActive]}
-                >
-                  <Text style={[styles.tabText, active && styles.tabTextActive]} numberOfLines={1}>
-                    {c.name}
-                  </Text>
-                  <Text style={[styles.tabCount, active && styles.tabCountActive]}>({count})</Text>
-                </Pressable>
-              );
-            })}
-          </ScrollView>
+          <MenuCategoryPicker
+            items={categoryPickerItems}
+            activeId={activeCategoryId}
+            onSelect={setActiveCategoryId}
+          />
           <FlatList
             data={visibleProducts}
             keyExtractor={(p) => p.id}
@@ -228,36 +215,6 @@ export default function HomeMenuScreen() {
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: wt.bg },
   menuBody: { flex: 1 },
-  tabBar: {
-    maxHeight: 52,
-    borderBottomWidth: 1,
-    borderBottomColor: wt.border,
-    backgroundColor: wt.bgElevated,
-  },
-  tabBarInner: {
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    gap: 8,
-    alignItems: 'center',
-  },
-  tab: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 999,
-    backgroundColor: wt.surfaceMuted,
-  },
-  tabActive: {
-    backgroundColor: wt.accentMuted,
-    borderWidth: 1,
-    borderColor: wt.accentBorder,
-  },
-  tabText: { fontSize: 14, fontWeight: '700', color: wt.textSecondary, maxWidth: 140 },
-  tabTextActive: { color: wt.accentLight },
-  tabCount: { fontSize: 12, fontWeight: '600', color: wt.textMuted },
-  tabCountActive: { color: wt.accentLight },
   productList: { flex: 1 },
   list: { padding: 16, paddingBottom: 40, gap: 8 },
   productCard: { marginBottom: 10, padding: 12, overflow: 'hidden' },

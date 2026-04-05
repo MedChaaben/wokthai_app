@@ -1,6 +1,11 @@
 import type { OptionGroupWithOptions } from '../domain/order-line-options';
-import type { ProductOptionRow } from '../types';
+import type { Database, ProductOptionRow } from '../types';
 import type { WokthaiSupabaseClient } from '../supabase/client';
+
+type GroupInsert = Database['public']['Tables']['product_option_groups']['Insert'];
+type GroupUpdate = Database['public']['Tables']['product_option_groups']['Update'];
+type OptionInsert = Database['public']['Tables']['product_options']['Insert'];
+type OptionUpdate = Database['public']['Tables']['product_options']['Update'];
 
 export async function fetchProductOptionTree(
   client: WokthaiSupabaseClient,
@@ -79,4 +84,54 @@ export async function fetchOptionTreesForProducts(
     list.sort((a, b) => a.position - b.position);
   }
   return map;
+}
+
+export async function insertProductOptionGroup(
+  client: WokthaiSupabaseClient,
+  input: GroupInsert
+): Promise<{ id: string }> {
+  const { data, error } = await client
+    .from('product_option_groups')
+    .insert(input)
+    .select('id')
+    .single();
+  if (error) throw error;
+  return { id: data.id };
+}
+
+export async function updateProductOptionGroup(
+  client: WokthaiSupabaseClient,
+  id: string,
+  patch: GroupUpdate
+): Promise<void> {
+  const { error } = await client.from('product_option_groups').update(patch).eq('id', id);
+  if (error) throw error;
+}
+
+export async function deleteProductOptionGroup(client: WokthaiSupabaseClient, id: string): Promise<void> {
+  const { error } = await client.from('product_option_groups').delete().eq('id', id);
+  if (error) throw error;
+}
+
+export async function insertProductOption(
+  client: WokthaiSupabaseClient,
+  input: OptionInsert
+): Promise<{ id: string }> {
+  const { data, error } = await client.from('product_options').insert(input).select('id').single();
+  if (error) throw error;
+  return { id: data.id };
+}
+
+export async function updateProductOption(
+  client: WokthaiSupabaseClient,
+  id: string,
+  patch: OptionUpdate
+): Promise<void> {
+  const { error } = await client.from('product_options').update(patch).eq('id', id);
+  if (error) throw error;
+}
+
+export async function deleteProductOption(client: WokthaiSupabaseClient, id: string): Promise<void> {
+  const { error } = await client.from('product_options').delete().eq('id', id);
+  if (error) throw error;
 }

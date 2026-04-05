@@ -1,18 +1,26 @@
-import { useLocalSearchParams } from 'expo-router';
-import { View, Text, StyleSheet, ActivityIndicator, ScrollView } from 'react-native';
-import { useOrder, useOrderRealtime } from '@wokthai/shared';
+import { useOrder, useOrderRealtime, getOrderTrackingProgress } from '@wokthai/shared';
+import * as Linking from 'expo-linking';
+import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import {
+  ActivityIndicator,
+  Alert,
+  LayoutChangeEvent,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
+import { OrderProgress } from '../../components/OrderProgress';
+import { OrderTrackingEtaHeader } from '../../components/OrderTrackingEtaHeader';
+import { OrderTrackingTimeline } from '../../components/OrderTrackingTimeline';
 import { WtCard } from '../../components/WtCard';
 import { wt } from '../../lib/theme';
 
-const STATUS_LABEL: Record<string, string> = {
-  pending: 'En attente',
-  confirmed: 'Confirmée',
-  preparing: 'En préparation',
-  ready: 'Prête',
-  delivering: 'En cours de livraison',
-  delivered: 'Livrée',
-  cancelled: 'Annulée',
-};
+const TICK_MS = 30_000;
+
+const REVIEW_URL = process.env.EXPO_PUBLIC_STORE_REVIEW_URL?.trim();
 
 function fmtMoney(n: string | number): string {
   return Number(n).toFixed(2);
@@ -32,22 +40,27 @@ function fmtOrderDateTime(iso: string | null | undefined): string {
   });
 }
 
-function fmtTimelineTime(iso: string): string {
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return '—';
-  return d.toLocaleString('fr-FR', {
-    day: 'numeric',
-    month: 'short',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
-}
-
 export default function OrderTrackingScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
+  const router = useRouter();
   const orderId = Array.isArray(id) ? id[0] : id;
   const { data, isLoading, error } = useOrder(orderId);
   useOrderRealtime(orderId);
+
+  const scrollRef = useRef<ScrollView>(null);
+  const [nowMs, setNowMs] = useState(() => Date.now());
+  const [timelineBlockY, setTimelineBlockY] = useState(0);
+
+  useEffect(() => {
+    const idTimer = setInterval(() => setNowMs(Date.now()), TICK_MS);
+    return () => clearInterval(idTimer);
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      setNowMs(Date.now());
+    }, [])
+  );
 
   if (isLoading) {
     return (
@@ -65,17 +78,74 @@ export default function OrderTrackingScreen() {
   }
 
   const items = data.order_items ?? [];
-  const statusEvents = data.order_status_events ?? [{ status: data.status, created_at: data.created_at }];
+  const progress = getOrderTrackingProgress(data, nowMs);
+  const isDelivered = data.status === 'delivered';
+  const isCancelled = data.status === 'cancelled';
+
+  function onTimelineWrapperLayout(e: LayoutChangeEvent) {
+    setTimelineBlockY(e.nativeEvent.layout.y);
+  }
+
+  function openReview() {
+    if (REVIEW_URL) {
+      void Linking.openURL(REVIEW_URL);
+      return;
+    }
+    Alert.alert(
+      'Merci !',
+      'Votre avis nous aide à nous améliorer. Le lien vers la page d’avis sera bientôt disponible dans l’application.'
+    );
+  }
 
   return (
-    <ScrollView contentContainerStyle={styles.screen}>
+    <ScrollView
+      ref={scrollRef}
+      stickyHeaderIndices={[0]}
+      contentContainerStyle={styles.screen}
+      keyboardShouldPersistTaps="handled"
+    >
+      <View style={styles.stickyHeader}>
+        <OrderTrackingEtaHeader order={data} nowMs={nowMs} />
+      </View>
+
+      {!isCancelled ? (
+        <WtCard style={styles.progressCard}>
+          <OrderProgress progress={progress} />
+        </WtCard>
+      ) : null}
+
+      <Text style={styles.sectionTitle}>Étapes</Text>
+      <View onLayout={onTimelineWrapperLayout}>
+        <WtCard>
+          <OrderTrackingTimeline
+            status={data.status}
+            orderType={data.type}
+            scrollViewRef={scrollRef}
+            timelineBlockY={timelineBlockY}
+          />
+        </WtCard>
+      </View>
+
+      {isDelivered ? (
+        <View style={styles.ctaRow}>
+          <Pressable
+            style={({ pressed }) => [styles.ctaPrimary, pressed && styles.ctaPressed]}
+            onPress={() => router.push('/(tabs)')}
+          >
+            <Text style={styles.ctaPrimaryText}>Commander à nouveau</Text>
+          </Pressable>
+          <Pressable
+            style={({ pressed }) => [styles.ctaSecondary, pressed && styles.ctaPressed]}
+            onPress={openReview}
+          >
+            <Text style={styles.ctaSecondaryText}>Laisser un avis</Text>
+          </Pressable>
+        </View>
+      ) : null}
+
       <WtCard>
-        <Text style={styles.title}>Commande</Text>
+        <Text style={styles.title}>Détails</Text>
         <Text style={styles.orderTime}>{fmtOrderDateTime(data.created_at)}</Text>
-        <Text style={styles.row}>
-          <Text style={styles.label}>Statut : </Text>
-          <Text style={styles.value}>{STATUS_LABEL[data.status] ?? data.status}</Text>
-        </Text>
         <Text style={styles.row}>
           <Text style={styles.label}>Type : </Text>
           <Text style={styles.value}>{data.type === 'delivery' ? 'Livraison' : 'À emporter'}</Text>
@@ -90,27 +160,6 @@ export default function OrderTrackingScreen() {
           <Text style={styles.label}>Total : </Text>
           <Text style={styles.value}>{fmtMoney(data.total_price)} TND</Text>
         </Text>
-      </WtCard>
-
-      <Text style={styles.sectionTitle}>Suivi du statut</Text>
-      <WtCard>
-        <View style={styles.timeline}>
-          {statusEvents.map((ev, i) => {
-            const isLast = i === statusEvents.length - 1;
-            return (
-              <View key={`${ev.created_at}-${ev.status}-${i}`} style={styles.timelineRow}>
-                <View style={styles.timelineTrack}>
-                  <View style={[styles.timelineDot, isLast && styles.timelineDotCurrent]} />
-                  {!isLast ? <View style={styles.timelineLine} /> : null}
-                </View>
-                <View style={[styles.timelineBody, isLast && styles.timelineBodyLast]}>
-                  <Text style={styles.timelineLabel}>{STATUS_LABEL[ev.status] ?? ev.status}</Text>
-                  <Text style={styles.timelineMeta}>{fmtTimelineTime(ev.created_at)}</Text>
-                </View>
-              </View>
-            );
-          })}
-        </View>
       </WtCard>
 
       <Text style={styles.sectionTitle}>Lieu</Text>
@@ -195,17 +244,26 @@ export default function OrderTrackingScreen() {
         })
       )}
 
-      <Text style={styles.hint}>Mise à jour en temps réel lorsque le restaurant change le statut.</Text>
+      {!isCancelled ? (
+        <Text style={styles.hint}>Mise à jour automatique lorsque le restaurant avance la commande.</Text>
+      ) : null}
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   screen: { padding: 16, paddingBottom: 32, backgroundColor: wt.bg, gap: 10 },
+  stickyHeader: {
+    backgroundColor: wt.bg,
+    paddingBottom: 4,
+    marginHorizontal: -16,
+    paddingHorizontal: 16,
+  },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: wt.bg },
   errorTitle: { fontSize: 16, fontWeight: '600', color: wt.text },
-  title: { fontSize: 20, fontWeight: '800', color: wt.text },
-  orderTime: { marginTop: 6, fontSize: 15, color: wt.textMuted, fontWeight: '600' },
+  progressCard: { paddingVertical: 14 },
+  title: { fontSize: 18, fontWeight: '800', color: wt.text },
+  orderTime: { marginTop: 6, fontSize: 14, color: wt.textMuted, fontWeight: '600' },
   row: { marginTop: 10, fontSize: 15 },
   label: { color: wt.textMuted, fontWeight: '600' },
   value: { color: wt.text, fontWeight: '700' },
@@ -230,37 +288,24 @@ const styles = StyleSheet.create({
   opts: { marginTop: 8, gap: 4 },
   optItem: { fontSize: 13, color: wt.textMuted },
   hint: { fontSize: 13, color: wt.textSecondary, paddingHorizontal: 4, marginTop: 8 },
-  timeline: { gap: 0 },
-  timelineRow: { flexDirection: 'row', alignItems: 'stretch' },
-  timelineTrack: {
-    width: 22,
-    marginRight: 12,
-    flexDirection: 'column',
+  ctaRow: { gap: 10, marginTop: 4 },
+  ctaPrimary: {
+    backgroundColor: wt.accent,
+    paddingVertical: 14,
+    paddingHorizontal: 18,
+    borderRadius: 12,
     alignItems: 'center',
-    alignSelf: 'stretch',
   },
-  timelineDot: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    backgroundColor: wt.border,
+  ctaPrimaryText: { color: wt.white, fontSize: 16, fontWeight: '800' },
+  ctaSecondary: {
+    backgroundColor: wt.surface,
+    paddingVertical: 14,
+    paddingHorizontal: 18,
+    borderRadius: 12,
+    alignItems: 'center',
     borderWidth: 2,
-    borderColor: wt.textMuted,
+    borderColor: wt.borderStrong,
   },
-  timelineDotCurrent: {
-    backgroundColor: wt.accentMuted,
-    borderColor: wt.accentLight,
-  },
-  timelineLine: {
-    width: 2,
-    flex: 1,
-    minHeight: 10,
-    marginTop: 4,
-    backgroundColor: wt.border,
-    borderRadius: 1,
-  },
-  timelineBody: { flex: 1, paddingBottom: 18 },
-  timelineBodyLast: { paddingBottom: 0 },
-  timelineLabel: { fontSize: 16, fontWeight: '700', color: wt.text },
-  timelineMeta: { marginTop: 4, fontSize: 13, color: wt.textMuted },
+  ctaSecondaryText: { color: wt.text, fontSize: 16, fontWeight: '700' },
+  ctaPressed: { opacity: 0.88 },
 });
