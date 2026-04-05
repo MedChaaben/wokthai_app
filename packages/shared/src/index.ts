@@ -7,6 +7,14 @@ export * from './domain/store-opening-hours';
 export * from './domain/delivery';
 export * from './domain/order-line-options';
 export * from './domain/order-status';
+export {
+  getEstimatedRemainingTime,
+  getCurrentStatusEnteredAt,
+  getOrderTrackingProgress,
+  ORDER_STAGE_MINUTES,
+  type EstimatedRemainingTimeResult,
+  type OrderTrackingEstimateInput,
+} from './domain/order-tracking-estimate';
 export * from './domain/customer-display';
 export * from './domain/normalizeCustomerPhone';
 export * from './services/stores';
