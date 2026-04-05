@@ -13,6 +13,7 @@ import {
 import type { ProductRow as ProductRowType } from "@wokthai/shared";
 import { CategoryMenuManager } from "../../../components/CategoryMenuManager";
 import { Modal } from "../../../components/Modal";
+import { ProductOptionsEditor } from "../../../components/ProductOptionsEditor";
 
 /** Alignée sur la page Commandes : compense le padding du <main>, z-20 au-dessus de la liste. */
 const CATEGORY_PILLS_STICKY =
@@ -143,7 +144,8 @@ export default function ProductsPage() {
           <p className="mt-2 max-w-2xl text-sm text-stone-600 dark:text-zinc-400">
             L’ordre d’affichage dans l’app mobile suit le champ <span className="font-medium">Position</span> (plus
             petit en premier) par catégorie. L’ordre des onglets et les noms de catégories se gèrent dans la section
-            repliable ci-dessous.
+            repliable ci-dessous. Les personnalisations du plat (piquant, avec/sans, suppléments, etc.) se configurent
+            dans <span className="font-medium">Modifier</span>, en bas du formulaire d’édition.
           </p>
         </div>
         <button
@@ -607,6 +609,7 @@ function ProductListRow({
                   }}
                 />
               </div>
+              <ProductOptionsEditor productId={product.id} />
               <div className="flex flex-wrap gap-2 pt-1">
                 <button
                   type="button"
