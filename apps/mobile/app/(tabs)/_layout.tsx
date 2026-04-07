@@ -1,5 +1,6 @@
 import { Tabs } from 'expo-router';
-import { View, Text, StyleSheet } from 'react-native';
+import { useEffect, useRef } from 'react';
+import { View, Text, StyleSheet, Animated, Easing } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { BrandLogo } from '../../components/BrandLogo';
 import { useCart } from '../../contexts/CartContext';
@@ -14,10 +15,36 @@ function TabIcon({
   color: string;
   focused: boolean;
 }) {
+  const scale = useRef(new Animated.Value(focused ? 1 : 0.95)).current;
+  const opacity = useRef(new Animated.Value(focused ? 1 : 0.88)).current;
+
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(scale, {
+        toValue: focused ? 1 : 0.95,
+        duration: 180,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true,
+      }),
+      Animated.timing(opacity, {
+        toValue: focused ? 1 : 0.88,
+        duration: 180,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, [focused, opacity, scale]);
+
   return (
-    <View style={[styles.tabIconWrap, focused && styles.tabIconWrapActive]}>
+    <Animated.View
+      style={[
+        styles.tabIconWrap,
+        focused && styles.tabIconWrapActive,
+        { transform: [{ scale }], opacity },
+      ]}
+    >
       <Ionicons name={name} size={18} color={color} />
-    </View>
+    </Animated.View>
   );
 }
 
@@ -40,7 +67,13 @@ export default function TabsLayout() {
           height: 64,
           paddingTop: 6,
           paddingBottom: 8,
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: -4 },
+          shadowOpacity: 0.18,
+          shadowRadius: 10,
+          elevation: 14,
         },
+        tabBarItemStyle: { paddingVertical: 1 },
         tabBarActiveTintColor: wt.accentLight,
         tabBarInactiveTintColor: wt.textMuted,
         tabBarLabelStyle: { fontSize: 11, fontWeight: '700', marginTop: 1 },
