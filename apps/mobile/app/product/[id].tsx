@@ -203,19 +203,36 @@ export default function ProductDetailScreen() {
           </View>
         ) : null}
 
-        <Text style={styles.label}>Quantité dans le panier</Text>
         <View style={styles.stepper}>
           <Pressable
             onPress={decrement}
             disabled={cartQty <= 0}
-            style={[styles.stepBtn, cartQty <= 0 && styles.stepBtnDisabled]}
-            hitSlop={8}
+            style={({ pressed }) => [
+              styles.stepBtn,
+              pressed && cartQty > 0 && styles.stepBtnPressed,
+              cartQty <= 0 && styles.stepBtnDisabled,
+            ]}
+            hitSlop={10}
+            accessibilityRole="button"
+            accessibilityLabel={`Retirer un ${product.name}`}
           >
             <Text style={styles.stepBtnText}>−</Text>
           </Pressable>
-          <Text style={styles.stepQty}>{cartQty}</Text>
-          <Pressable onPress={increment} style={styles.stepBtn} hitSlop={8}>
-            <Text style={styles.stepBtnText}>+</Text>
+          <View style={styles.stepQtyBadge}>
+            <Text style={styles.stepQty}>{cartQty}</Text>
+          </View>
+          <Pressable
+            onPress={increment}
+            style={({ pressed }) => [
+              styles.stepBtn,
+              styles.stepBtnPlus,
+              pressed && styles.stepBtnPlusPressed,
+            ]}
+            hitSlop={10}
+            accessibilityRole="button"
+            accessibilityLabel={`Ajouter un ${product.name}`}
+          >
+            <Text style={[styles.stepBtnText, styles.stepBtnPlusText]}>+</Text>
           </Pressable>
         </View>
 
@@ -256,36 +273,56 @@ const styles = StyleSheet.create({
   },
   errorTitle: { fontSize: 16, fontWeight: '600', color: wt.text },
   muted: { color: wt.textMuted },
-  name: { fontSize: 22, fontWeight: '800', color: wt.text },
-  desc: { marginTop: 8, fontSize: 15, color: wt.textMuted, lineHeight: 22 },
-  price: { marginTop: 12, fontSize: 20, fontWeight: '800', color: wt.accentLight },
-  priceHint: { fontSize: 14, fontWeight: '600', color: wt.textMuted },
-  breakdown: { marginTop: 4, fontSize: 13, color: wt.textMuted },
-  label: { marginTop: 20, fontWeight: '600', color: wt.text },
+  name: { fontSize: 16, fontWeight: '700', color: wt.text },
+  desc: { marginTop: 4, fontSize: 13, color: wt.textMuted, lineHeight: 18 },
+  price: { marginTop: 8, fontSize: 15, fontWeight: '700', color: wt.accentLight },
+  priceHint: { fontSize: 12, fontWeight: '600', color: wt.textMuted },
+  breakdown: { marginTop: 4, fontSize: 12, color: wt.textMuted },
   stepper: {
     marginTop: 8,
     flexDirection: 'row',
     alignItems: 'center',
     alignSelf: 'flex-start',
-    borderWidth: 1,
-    borderColor: wt.border,
-    borderRadius: 10,
-    backgroundColor: wt.surface,
+    borderWidth: 0,
+    borderRadius: 999,
+    backgroundColor: wt.surfaceMuted,
+    padding: 4,
+    gap: 6,
   },
   stepBtn: {
-    minWidth: 44,
-    paddingVertical: 10,
+    width: 44,
+    height: 44,
+    borderRadius: 999,
+    backgroundColor: wt.surface,
+    borderWidth: 1,
+    borderColor: wt.border,
     alignItems: 'center',
     justifyContent: 'center',
   },
+  stepBtnPlus: {
+    backgroundColor: wt.accent,
+    borderColor: wt.accent,
+  },
+  stepBtnPressed: { opacity: 0.8, transform: [{ scale: 0.97 }] },
+  stepBtnPlusPressed: { opacity: 0.9, transform: [{ scale: 0.97 }] },
   stepBtnDisabled: { opacity: 0.35 },
-  stepBtnText: { fontSize: 20, fontWeight: '700', color: wt.accentLight, lineHeight: 24 },
+  stepBtnText: { fontSize: 20, fontWeight: '700', color: wt.accentLight, lineHeight: 22 },
+  stepBtnPlusText: { color: wt.bg },
   stepQty: {
-    minWidth: 36,
+    minWidth: 24,
     textAlign: 'center',
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: '800',
     color: wt.text,
+  },
+  stepQtyBadge: {
+    minWidth: 56,
+    paddingHorizontal: 10,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 999,
+    backgroundColor: 'transparent',
   },
   subtotalLabel: { marginTop: 12, fontSize: 15, color: wt.textMuted },
   subtotalValue: { fontWeight: '800', color: wt.text },

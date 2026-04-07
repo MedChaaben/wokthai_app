@@ -68,18 +68,28 @@ export default function CartTabScreen() {
                 <View style={styles.qtyRow}>
                   <Pressable
                     onPress={() => setQuantity(l.lineKey, l.quantity - 1)}
-                    style={styles.qtyBtn}
+                    style={({ pressed }) => [styles.qtyBtn, pressed && styles.qtyBtnPressed]}
                     accessibilityRole="button"
+                    accessibilityLabel={`Retirer un ${l.name}`}
+                    hitSlop={10}
                   >
                     <Text style={styles.qtyBtnText}>−</Text>
                   </Pressable>
-                  <Text style={styles.qty}>{l.quantity}</Text>
+                  <View style={styles.qtyBadge}>
+                    <Text style={styles.qty}>{l.quantity}</Text>
+                  </View>
                   <Pressable
                     onPress={() => setQuantity(l.lineKey, l.quantity + 1)}
-                    style={styles.qtyBtn}
+                    style={({ pressed }) => [
+                      styles.qtyBtn,
+                      styles.qtyBtnPlus,
+                      pressed && styles.qtyBtnPlusPressed,
+                    ]}
                     accessibilityRole="button"
+                    accessibilityLabel={`Ajouter un ${l.name}`}
+                    hitSlop={10}
                   >
-                    <Text style={styles.qtyBtnText}>+</Text>
+                    <Text style={[styles.qtyBtnText, styles.qtyBtnPlusText]}>+</Text>
                   </Pressable>
                 </View>
               </View>
@@ -135,19 +145,45 @@ const styles = StyleSheet.create({
   opts: { fontSize: 12, color: wt.textMuted },
   remove: { color: wt.error, fontWeight: '600', fontSize: 14 },
   meta: { color: wt.textMuted, fontSize: 14 },
-  qtyRow: { flexDirection: 'row', alignItems: 'center', gap: 16, marginTop: 4 },
+  qtyRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 6,
+    borderWidth: 0,
+    borderRadius: 999,
+    backgroundColor: wt.surfaceMuted,
+    padding: 4,
+    gap: 6,
+    alignSelf: 'flex-start',
+  },
   qtyBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 10,
-    backgroundColor: wt.accentMuted,
+    width: 44,
+    height: 44,
+    borderRadius: 999,
+    backgroundColor: wt.surface,
     borderWidth: 1,
-    borderColor: wt.accentBorder,
+    borderColor: wt.border,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  qtyBtnText: { fontSize: 22, fontWeight: '700', color: wt.accentLight },
-  qty: { fontSize: 17, fontWeight: '800', minWidth: 28, textAlign: 'center', color: wt.text },
+  qtyBtnPlus: {
+    backgroundColor: wt.accent,
+    borderColor: wt.accent,
+  },
+  qtyBtnPressed: { opacity: 0.8, transform: [{ scale: 0.97 }] },
+  qtyBtnPlusPressed: { opacity: 0.9, transform: [{ scale: 0.97 }] },
+  qtyBtnText: { fontSize: 20, fontWeight: '700', color: wt.accentLight, lineHeight: 22 },
+  qtyBtnPlusText: { color: wt.bg },
+  qtyBadge: {
+    minWidth: 56,
+    paddingHorizontal: 10,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 999,
+    backgroundColor: 'transparent',
+  },
+  qty: { fontSize: 17, fontWeight: '800', minWidth: 24, textAlign: 'center', color: wt.text },
   checkoutDock: {
     borderTopWidth: 2,
     borderTopColor: wt.accent,

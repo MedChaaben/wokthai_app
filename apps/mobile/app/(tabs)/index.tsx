@@ -297,7 +297,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 999,
-    backgroundColor: wt.surface,
+    backgroundColor: 'transparent',
   },
   stepQty: {
     minWidth: 24,
