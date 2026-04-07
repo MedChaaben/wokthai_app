@@ -87,16 +87,14 @@ function MenuProductRow({
         </Pressable>
         <Pressable onPress={goDetail} style={styles.productInfo}>
           <Text style={styles.productName}>{p.name}</Text>
-          {p.description ? (
-            <Text style={styles.productDesc} numberOfLines={2}>
-              {p.description}
-            </Text>
-          ) : null}
-          <Text style={styles.price}>{base.toFixed(2)} TND</Text>
+          {p.description ? <Text style={styles.productDesc}>{p.description}</Text> : null}
           {!canQuickAdd ? (
             <Text style={styles.optionsHint}>Options sur la fiche produit</Text>
           ) : null}
         </Pressable>
+      </View>
+      <View style={styles.productFooter}>
+        <Text style={styles.price}>{base.toFixed(2)} TND</Text>
         <View style={styles.stepper}>
           <Pressable
             onPress={decrement}
@@ -222,45 +220,50 @@ const styles = StyleSheet.create({
   menuBody: { flex: 1 },
   productList: { flex: 1 },
   list: { padding: 16, paddingBottom: 40, gap: 8 },
-  productCard: { marginBottom: 10, padding: 12, overflow: 'hidden' },
-  productRow: { flexDirection: 'row', alignItems: 'stretch', gap: 12 },
+  productCard: { marginBottom: 10, padding: 12, overflow: 'hidden', gap: 10 },
+  productRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 12 },
   thumbWrap: { alignSelf: 'flex-start' },
-  thumb: { width: 88, height: 88, borderRadius: 12, backgroundColor: wt.surfaceMuted },
+  thumb: { width: 84, height: 84, borderRadius: 12, backgroundColor: wt.surfaceMuted },
   thumbPlaceholder: {
-    width: 88,
-    height: 88,
+    width: 84,
+    height: 84,
     borderRadius: 12,
     backgroundColor: wt.borderStrong,
     alignItems: 'center',
     justifyContent: 'center',
   },
   thumbPlaceholderText: { fontSize: 12, color: wt.textMuted, fontWeight: '600' },
-  productInfo: { flex: 1, minWidth: 0, justifyContent: 'center' },
+  productInfo: { flex: 1, minWidth: 0, justifyContent: 'flex-start' },
   productName: { fontSize: 16, fontWeight: '700', color: wt.text },
-  productDesc: { marginTop: 4, color: wt.textMuted, fontSize: 13 },
-  price: { marginTop: 6, fontSize: 15, fontWeight: '700', color: wt.accentLight },
+  productDesc: { marginTop: 4, color: wt.textMuted, fontSize: 13, lineHeight: 18 },
+  productFooter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12,
+  },
+  price: { fontSize: 15, fontWeight: '700', color: wt.accentLight, flexShrink: 1, marginRight: 8 },
   optionsHint: { marginTop: 4, fontSize: 11, color: wt.textSecondary, fontStyle: 'italic' },
   stepper: {
     flexDirection: 'row',
     alignItems: 'center',
-    alignSelf: 'center',
     borderWidth: 1,
     borderColor: wt.border,
-    borderRadius: 10,
+    borderRadius: 999,
     backgroundColor: wt.surface,
   },
   stepBtn: {
-    minWidth: 40,
-    paddingVertical: 10,
+    minWidth: 32,
+    paddingVertical: 6,
     alignItems: 'center',
     justifyContent: 'center',
   },
   stepBtnDisabled: { opacity: 0.35 },
-  stepBtnText: { fontSize: 20, fontWeight: '700', color: wt.accentLight, lineHeight: 24 },
+  stepBtnText: { fontSize: 18, fontWeight: '700', color: wt.accentLight, lineHeight: 20 },
   stepQty: {
-    minWidth: 28,
+    minWidth: 24,
     textAlign: 'center',
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '800',
     color: wt.text,
   },
