@@ -30,7 +30,7 @@ function initials(first: string | null | undefined, last: string | null | undefi
 }
 
 type MenuItemProps = {
-  icon: string;
+  icon: keyof typeof Ionicons.glyphMap;
   title: string;
   subtitle?: string;
   onPress: () => void;
@@ -45,9 +45,9 @@ function MenuRow({ icon, title, subtitle, onPress, isLast }: MenuItemProps) {
       accessibilityRole="button"
       accessibilityLabel={title}
     >
-      <Text style={styles.menuIcon} accessible={false}>
-        {icon}
-      </Text>
+      <View style={styles.menuIconWrap}>
+        <Ionicons name={icon} size={18} color={wt.accentLight} />
+      </View>
       <View style={styles.menuTextCol}>
         <Text style={styles.menuTitle}>{title}</Text>
         {subtitle ? (
@@ -56,7 +56,7 @@ function MenuRow({ icon, title, subtitle, onPress, isLast }: MenuItemProps) {
           </Text>
         ) : null}
       </View>
-      <Text style={styles.menuChevron}>›</Text>
+      <Ionicons name="chevron-forward" size={16} color={wt.textSecondary} />
     </Pressable>
   );
 }
@@ -185,14 +185,16 @@ export default function AccountScreen() {
                 <Text style={styles.avatarText}>{avatar}</Text>
               </View>
               <View style={styles.identityText}>
+                <Text style={styles.identityOverline}>Compte</Text>
                 <Text style={styles.identityName} numberOfLines={2}>
                   {name}
                 </Text>
                 <Text style={styles.identityEmail} numberOfLines={1}>
                   {email ?? '—'}
                 </Text>
-                <Text style={styles.identityHint}>Modifier le profil ›</Text>
+                <Text style={styles.identityHint}>Modifier mon profil</Text>
               </View>
+              <Text style={styles.identityChevron}>›</Text>
             </Pressable>
             <Pressable
               onPress={() => void signOut()}
@@ -217,19 +219,19 @@ export default function AccountScreen() {
         <Text style={styles.sectionHeading}>Commandes et livraison</Text>
         <WtCard style={styles.menuCard}>
           <MenuRow
-            icon="📋"
+            icon="receipt-outline"
             title="Mes commandes"
             subtitle="Historique et suivi"
             onPress={() => router.push('/orders')}
           />
           <MenuRow
-            icon="🛒"
+            icon="cart-outline"
             title="Panier"
             subtitle={cartSubtitle}
             onPress={() => router.push('/(tabs)/cart')}
           />
           <MenuRow
-            icon="📍"
+            icon="location-outline"
             title="Mes adresses"
             subtitle="Livraison et points sur la carte"
             onPress={() => router.push('/addresses')}
@@ -277,31 +279,32 @@ const styles = StyleSheet.create({
   scroll: { flex: 1 },
   screen: {
     flexGrow: 1,
-    padding: 16,
-    paddingBottom: 16,
+    paddingHorizontal: 14,
+    paddingTop: 10,
+    paddingBottom: 14,
     gap: 8,
     backgroundColor: wt.bg,
   },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: wt.bg },
-  identityRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  identityRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   identityPressable: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
     minWidth: 0,
-    marginVertical: -4,
-    marginLeft: -4,
-    paddingVertical: 4,
-    paddingLeft: 4,
-    paddingRight: 4,
-    borderRadius: 10,
+    marginVertical: -2,
+    marginLeft: -2,
+    paddingVertical: 6,
+    paddingLeft: 2,
+    paddingRight: 2,
+    borderRadius: 12,
   },
   identityPressablePressed: { backgroundColor: wt.surfaceMuted },
   avatar: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+    width: 58,
+    height: 58,
+    borderRadius: 29,
     backgroundColor: wt.accentMuted,
     borderWidth: 2,
     borderColor: wt.accentBorder,
@@ -310,6 +313,14 @@ const styles = StyleSheet.create({
   },
   avatarText: { fontSize: 20, fontWeight: '800', color: wt.accentLight },
   identityText: { flex: 1, minWidth: 0, paddingRight: 4 },
+  identityOverline: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: wt.textSecondary,
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
+    marginBottom: 4,
+  },
   signOutIconWrap: {
     width: 44,
     height: 44,
@@ -321,13 +332,18 @@ const styles = StyleSheet.create({
     backgroundColor: wt.surfaceMuted,
   },
   signOutIconPressed: { opacity: 0.82, backgroundColor: wt.surface },
-  identityName: { fontSize: 20, fontWeight: '800', color: wt.text, marginBottom: 4 },
+  identityName: { fontSize: 21, fontWeight: '800', color: wt.text, marginBottom: 2 },
   identityEmail: { fontSize: 14, color: wt.textMuted },
   identityHint: {
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '600',
     color: wt.accentLight,
     marginTop: 8,
+  },
+  identityChevron: {
+    fontSize: 24,
+    color: wt.textSecondary,
+    marginRight: 2,
   },
   sectionHeading: {
     fontSize: 13,
@@ -335,13 +351,13 @@ const styles = StyleSheet.create({
     color: wt.textSecondary,
     textTransform: 'uppercase',
     letterSpacing: 0.6,
-    marginTop: 8,
+    marginTop: 6,
     marginBottom: 4,
     marginLeft: 4,
   },
   loyaltyCard: { gap: 8, paddingVertical: 14 },
-  loyaltyPoints: { fontSize: 22, fontWeight: '800', color: wt.text },
-  loyaltyHint: { fontSize: 12, color: wt.textSecondary, lineHeight: 17 },
+  loyaltyPoints: { fontSize: 24, fontWeight: '800', color: wt.text },
+  loyaltyHint: { fontSize: 12, color: wt.textSecondary, lineHeight: 18 },
   discreetFooter: {
     paddingTop: 10,
     paddingHorizontal: 12,
@@ -367,15 +383,23 @@ const styles = StyleSheet.create({
   menuRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 14,
+    paddingVertical: 13,
     paddingHorizontal: 14,
-    gap: 12,
+    gap: 10,
   },
   menuRowBorder: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: wt.border },
   menuRowPressed: { backgroundColor: wt.surfaceMuted },
-  menuIcon: { fontSize: 22, width: 32, textAlign: 'center' },
+  menuIconWrap: {
+    width: 30,
+    height: 30,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: wt.accentMuted,
+    borderWidth: 1,
+    borderColor: wt.accentBorder,
+  },
   menuTextCol: { flex: 1, minWidth: 0 },
   menuTitle: { fontSize: 16, fontWeight: '700', color: wt.text },
   menuSubtitle: { fontSize: 13, color: wt.textMuted, marginTop: 2, lineHeight: 18 },
-  menuChevron: { fontSize: 22, color: wt.accentLight, fontWeight: '300', marginLeft: 4 },
 });
