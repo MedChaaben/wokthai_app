@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Text, StyleSheet, Pressable, ScrollView, ActivityIndicator, View } from 'react-native';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Text, StyleSheet, Pressable, ScrollView, ActivityIndicator, View, Animated, Easing } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -37,27 +37,64 @@ type MenuItemProps = {
   isLast?: boolean;
 };
 
+function usePressAnimation() {
+  const scale = useRef(new Animated.Value(1)).current;
+  const opacity = useRef(new Animated.Value(1)).current;
+
+  const animateTo = useCallback(
+    (toScale: number, toOpacity: number, duration: number) => {
+      Animated.parallel([
+        Animated.timing(scale, {
+          toValue: toScale,
+          duration,
+          easing: Easing.out(Easing.cubic),
+          useNativeDriver: true,
+        }),
+        Animated.timing(opacity, {
+          toValue: toOpacity,
+          duration,
+          easing: Easing.out(Easing.cubic),
+          useNativeDriver: true,
+        }),
+      ]).start();
+    },
+    [opacity, scale]
+  );
+
+  return {
+    animatedStyle: { transform: [{ scale }], opacity },
+    onPressIn: () => animateTo(0.985, 0.94, 110),
+    onPressOut: () => animateTo(1, 1, 150),
+  };
+}
+
 function MenuRow({ icon, title, subtitle, onPress, isLast }: MenuItemProps) {
+  const pressAnim = usePressAnimation();
+
   return (
-    <Pressable
-      onPress={onPress}
-      style={({ pressed }) => [styles.menuRow, !isLast && styles.menuRowBorder, pressed && styles.menuRowPressed]}
-      accessibilityRole="button"
-      accessibilityLabel={title}
-    >
-      <View style={styles.menuIconWrap}>
-        <Ionicons name={icon} size={18} color={wt.accentLight} />
-      </View>
-      <View style={styles.menuTextCol}>
-        <Text style={styles.menuTitle}>{title}</Text>
-        {subtitle ? (
-          <Text style={styles.menuSubtitle} numberOfLines={2}>
-            {subtitle}
-          </Text>
-        ) : null}
-      </View>
-      <Ionicons name="chevron-forward" size={16} color={wt.textSecondary} />
-    </Pressable>
+    <Animated.View style={pressAnim.animatedStyle}>
+      <Pressable
+        onPress={onPress}
+        onPressIn={pressAnim.onPressIn}
+        onPressOut={pressAnim.onPressOut}
+        style={({ pressed }) => [styles.menuRow, !isLast && styles.menuRowBorder, pressed && styles.menuRowPressed]}
+        accessibilityRole="button"
+        accessibilityLabel={title}
+      >
+        <View style={styles.menuIconWrap}>
+          <Ionicons name={icon} size={18} color={wt.accentLight} />
+        </View>
+        <View style={styles.menuTextCol}>
+          <Text style={styles.menuTitle}>{title}</Text>
+          {subtitle ? (
+            <Text style={styles.menuSubtitle} numberOfLines={2}>
+              {subtitle}
+            </Text>
+          ) : null}
+        </View>
+        <Ionicons name="chevron-forward" size={16} color={wt.textSecondary} />
+      </Pressable>
+    </Animated.View>
   );
 }
 
@@ -105,6 +142,7 @@ export default function AccountScreen() {
     await supabase.auth.signOut();
     router.replace('/(tabs)');
   }, [supabase, router]);
+  const profilePressAnim = usePressAnimation();
 
   if (session === undefined) {
     return (
@@ -175,27 +213,31 @@ export default function AccountScreen() {
       >
         <WtCard>
           <View style={styles.identityRow}>
-            <Pressable
-              onPress={() => router.push('/profile')}
-              style={({ pressed }) => [styles.identityPressable, pressed && styles.identityPressablePressed]}
-              accessibilityRole="button"
-              accessibilityLabel="Mon profil, modifier mes informations"
-            >
-              <View style={styles.avatar}>
-                <Text style={styles.avatarText}>{avatar}</Text>
-              </View>
-              <View style={styles.identityText}>
-                <Text style={styles.identityOverline}>Compte</Text>
-                <Text style={styles.identityName} numberOfLines={2}>
-                  {name}
-                </Text>
-                <Text style={styles.identityEmail} numberOfLines={1}>
-                  {email ?? '—'}
-                </Text>
-                <Text style={styles.identityHint}>Modifier mon profil</Text>
-              </View>
-              <Text style={styles.identityChevron}>›</Text>
-            </Pressable>
+            <Animated.View style={[styles.identityAnimatedWrap, profilePressAnim.animatedStyle]}>
+              <Pressable
+                onPress={() => router.push('/profile')}
+                onPressIn={profilePressAnim.onPressIn}
+                onPressOut={profilePressAnim.onPressOut}
+                style={({ pressed }) => [styles.identityPressable, pressed && styles.identityPressablePressed]}
+                accessibilityRole="button"
+                accessibilityLabel="Mon profil, modifier mes informations"
+              >
+                <View style={styles.avatar}>
+                  <Text style={styles.avatarText}>{avatar}</Text>
+                </View>
+                <View style={styles.identityText}>
+                  <Text style={styles.identityOverline}>Compte</Text>
+                  <Text style={styles.identityName} numberOfLines={2}>
+                    {name}
+                  </Text>
+                  <Text style={styles.identityEmail} numberOfLines={1}>
+                    {email ?? '—'}
+                  </Text>
+                  <Text style={styles.identityHint}>Modifier mon profil</Text>
+                </View>
+                <Text style={styles.identityChevron}>›</Text>
+              </Pressable>
+            </Animated.View>
             <Pressable
               onPress={() => void signOut()}
               style={({ pressed }) => [styles.signOutIconWrap, pressed && styles.signOutIconPressed]}
@@ -287,6 +329,7 @@ const styles = StyleSheet.create({
   },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: wt.bg },
   identityRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  identityAnimatedWrap: { flex: 1 },
   identityPressable: {
     flex: 1,
     flexDirection: 'row',
