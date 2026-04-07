@@ -7,6 +7,7 @@ import {
   Modal,
   FlatList,
   Dimensions,
+  ScrollView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -55,10 +56,15 @@ export function MenuCategoryPicker({ items, activeId, onSelect }: MenuCategoryPi
 
   const categoriesCountLabel =
     items.length > 1 ? `${items.length} catégories disponibles` : '1 catégorie disponible';
+  const otherCategories = items.filter((c) => c.id !== active?.id);
+  const otherCategoriesCount = otherCategories.length;
+  const quickChips = otherCategories.slice(0, 3);
+  const hiddenChipsCount = Math.max(otherCategoriesCount - quickChips.length, 0);
 
   const barContent = (
     <>
       <View style={styles.barTextBlock}>
+        <Text style={styles.barEyebrow}>Catégories</Text>
         <View style={styles.barTitleRow}>
           <Text style={styles.barTitle} numberOfLines={1}>
             {active.name}
@@ -71,12 +77,14 @@ export function MenuCategoryPicker({ items, activeId, onSelect }: MenuCategoryPi
         </View>
         {items.length > 1 ? (
           <Text style={styles.barHint} numberOfLines={2}>
-            Touchez pour voir les autres catégories du menu
+            {otherCategoriesCount} autre{otherCategoriesCount > 1 ? 's' : ''} disponible
+            {otherCategoriesCount > 1 ? 's' : ''} • Touchez pour explorer
           </Text>
         ) : null}
       </View>
       {items.length > 1 ? (
         <View style={styles.barChevronWrap}>
+          <Text style={styles.barChevronText}>Voir</Text>
           <Ionicons name="chevron-down" size={22} color={wt.accentLight} accessibilityElementsHidden />
         </View>
       ) : null}
@@ -87,16 +95,48 @@ export function MenuCategoryPicker({ items, activeId, onSelect }: MenuCategoryPi
     <>
       <View style={styles.bar} accessibilityElementsHidden={open}>
         {items.length > 1 ? (
-          <Pressable
-            onPress={() => setOpen(true)}
-            style={({ pressed }) => [styles.barPressable, pressed && styles.barPressablePressed]}
-            accessibilityRole="button"
-            accessibilityLabel={openerLabel}
-            accessibilityHint="Ouvre la liste complète des catégories"
-            accessibilityValue={{ text: categoriesCountLabel }}
-          >
-            {barContent}
-          </Pressable>
+          <>
+            <Pressable
+              onPress={() => setOpen(true)}
+              style={({ pressed }) => [styles.barPressable, pressed && styles.barPressablePressed]}
+              accessibilityRole="button"
+              accessibilityLabel={openerLabel}
+              accessibilityHint="Ouvre la liste complète des catégories"
+              accessibilityValue={{ text: categoriesCountLabel }}
+            >
+              {barContent}
+            </Pressable>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.quickChipsContent}
+              style={styles.quickChipsScroll}
+            >
+              {quickChips.map((c) => (
+                <Pressable
+                  key={c.id}
+                  onPress={() => onSelect(c.id)}
+                  style={({ pressed }) => [styles.quickChip, pressed && styles.quickChipPressed]}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Aller à ${c.name}`}
+                >
+                  <Text style={styles.quickChipText} numberOfLines={1}>
+                    {c.name}
+                  </Text>
+                </Pressable>
+              ))}
+              {hiddenChipsCount > 0 ? (
+                <Pressable
+                  onPress={() => setOpen(true)}
+                  style={({ pressed }) => [styles.quickChipMore, pressed && styles.quickChipPressed]}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Voir ${hiddenChipsCount} catégories supplémentaires`}
+                >
+                  <Text style={styles.quickChipMoreText}>+{hiddenChipsCount}</Text>
+                </Pressable>
+              ) : null}
+            </ScrollView>
+          </>
         ) : (
           <View style={styles.barPressable} accessibilityRole="header" accessibilityLabel={openerLabel}>
             {barContent}
@@ -191,7 +231,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingTop: 12,
+    paddingBottom: 10,
     gap: 12,
     minHeight: 48,
   },
@@ -201,6 +242,14 @@ const styles = StyleSheet.create({
   barTextBlock: {
     flex: 1,
     minWidth: 0,
+  },
+  barEyebrow: {
+    marginBottom: 2,
+    fontSize: 11,
+    fontWeight: '700',
+    color: wt.textSecondary,
+    textTransform: 'uppercase',
+    letterSpacing: 0.7,
   },
   barTitleRow: {
     flexDirection: 'row',
@@ -237,14 +286,61 @@ const styles = StyleSheet.create({
     color: wt.textMuted,
   },
   barChevronWrap: {
-    width: 30,
-    height: 30,
+    minWidth: 58,
+    height: 32,
+    paddingHorizontal: 8,
     borderRadius: 999,
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: wt.surface,
     borderWidth: 1,
     borderColor: wt.accentBorder,
+    gap: 2,
+  },
+  barChevronText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: wt.accentLight,
+  },
+  quickChipsScroll: {
+    paddingBottom: 10,
+  },
+  quickChipsContent: {
+    paddingHorizontal: 16,
+    gap: 8,
+  },
+  quickChip: {
+    maxWidth: 160,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: wt.border,
+    backgroundColor: wt.surface,
+  },
+  quickChipMore: {
+    minWidth: 42,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 999,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: wt.accentBorder,
+    backgroundColor: wt.accentMuted,
+  },
+  quickChipPressed: {
+    opacity: 0.9,
+  },
+  quickChipText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: wt.textSecondary,
+  },
+  quickChipMoreText: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: wt.accentLight,
   },
   modalRoot: {
     flex: 1,
