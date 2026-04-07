@@ -432,6 +432,7 @@ export type Database = {
           id: string;
           preset_group_id: string;
           name: string;
+          is_chargeable: boolean;
           price_modifier: string;
           position: number;
         };
@@ -439,6 +440,7 @@ export type Database = {
           id?: string;
           preset_group_id: string;
           name: string;
+          is_chargeable?: boolean;
           price_modifier?: number | string;
           position?: number;
         };
@@ -446,6 +448,7 @@ export type Database = {
           id?: string;
           preset_group_id?: string;
           name?: string;
+          is_chargeable?: boolean;
           price_modifier?: number | string;
           position?: number;
         };
@@ -504,6 +507,7 @@ export type Database = {
           id: string;
           group_id: string;
           name: string;
+          is_chargeable: boolean;
           price_modifier: string;
           position: number;
         };
@@ -511,6 +515,7 @@ export type Database = {
           id?: string;
           group_id: string;
           name: string;
+          is_chargeable?: boolean;
           price_modifier?: number | string;
           position?: number;
         };
@@ -518,6 +523,7 @@ export type Database = {
           id?: string;
           group_id?: string;
           name?: string;
+          is_chargeable?: boolean;
           price_modifier?: number | string;
           position?: number;
         };

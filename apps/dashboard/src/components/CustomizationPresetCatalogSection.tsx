@@ -273,6 +273,7 @@ function PresetGroupBlock({
       await insertCustomizationPresetOption(supabase, {
         preset_group_id: g.id,
         name: "Nouvelle valeur",
+        is_chargeable: true,
         price_modifier: 0,
         position: pos,
       });
@@ -373,7 +374,7 @@ function PresetOptionRow({
   option: o,
   onChanged,
 }: {
-  option: { id: string; name: string; price_modifier: string | number; position: number };
+  option: { id: string; name: string; is_chargeable: boolean; price_modifier: string | number; position: number };
   onChanged: () => void;
 }) {
   const supabase = useSupabase();
@@ -391,6 +392,7 @@ function PresetOptionRow({
     onSuccess: onChanged,
   });
 
+  const isChargeable = o.is_chargeable;
   const priceStr = Number(o.price_modifier).toFixed(2);
 
   return (
@@ -408,19 +410,31 @@ function PresetOptionRow({
         />
       </div>
       <div>
+        <label className="flex cursor-pointer items-center gap-2 text-[10px] font-semibold uppercase text-stone-500 dark:text-zinc-500">
+          <input
+            type="checkbox"
+            key={`${o.id}-c-${isChargeable}`}
+            defaultChecked={isChargeable}
+            onChange={(e) => patch.mutate({ is_chargeable: e.target.checked })}
+          />
+          Payant
+        </label>
+      </div>
+      <div>
         <label className="text-[10px] font-semibold uppercase text-stone-500 dark:text-zinc-500">Supplément TND</label>
         <input
           type="number"
           step="0.01"
           defaultValue={priceStr}
           key={`${o.id}-p-${priceStr}`}
+          disabled={!isChargeable}
           onBlur={(e) => {
             const n = parseFloat(e.target.value);
             if (!Number.isFinite(n)) return;
-            const cur = Number(o.price_modifier);
+            const cur = isChargeable ? Number(o.price_modifier) : 0;
             if (n !== cur) patch.mutate({ price_modifier: n });
           }}
-          className="mt-0.5 w-24 rounded-lg border border-stone-300 dark:border-zinc-700 px-2 py-1.5 text-sm"
+          className="mt-0.5 w-24 rounded-lg border border-stone-300 dark:border-zinc-700 px-2 py-1.5 text-sm disabled:opacity-50"
         />
       </div>
       <div>

@@ -184,9 +184,8 @@ export default function ProductDetailScreen() {
                 <View style={styles.chips}>
                   {g.product_options.map((o) => {
                     const picked = (sel[g.id] ?? []).includes(o.id);
-                    const mod = Number(o.price_modifier);
-                    const label =
-                      mod === 0 ? o.name : `${o.name} (+${mod.toFixed(2)} TND)`;
+                    const mod = o.is_chargeable ? Number(o.price_modifier) : 0;
+                    const label = mod === 0 ? o.name : `${o.name} (+${mod.toFixed(2)} TND)`;
                     return (
                       <Pressable
                         key={o.id}

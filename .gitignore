@@ -10,3 +10,4 @@ coverage
 .turbo
 apps/dashboard/pnpm-lock.yaml
 .vercel
+supabase/.temp

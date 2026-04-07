@@ -26,6 +26,7 @@ type PresetGroupRowEmbed = {
   position: number;
   customization_preset_options: {
     name: string;
+    is_chargeable: boolean;
     price_modifier: string | number;
     position: number;
   }[];
@@ -195,7 +196,7 @@ export async function importCustomizationPresetToProduct(
       required,
       max_select,
       position,
-      customization_preset_options ( name, price_modifier, position )
+      customization_preset_options ( name, is_chargeable, price_modifier, position )
     `
     )
     .eq('preset_id', presetId)
@@ -246,6 +247,7 @@ export async function importCustomizationPresetToProduct(
         opts.map((o, j) => ({
           group_id: newGid,
           name: o.name,
+          is_chargeable: o.is_chargeable,
           price_modifier: Number(o.price_modifier),
           position: j,
         }))

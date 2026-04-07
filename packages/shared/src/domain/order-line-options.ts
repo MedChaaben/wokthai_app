@@ -84,7 +84,7 @@ export function validateLineOptionsAndPrice(
   for (const c of choices) {
     const meta = optionById.get(c.optionId);
     if (!meta) throw new Error('Option invalide');
-    const mod = Number(meta.price_modifier);
+    const mod = meta.is_chargeable ? Number(meta.price_modifier) : 0;
     modifiers += mod;
     snapshots.push({
       option_name: `${meta.groupName}: ${meta.name}`,
@@ -105,7 +105,7 @@ export function sumSelectedModifiersPreview(
   const optionById = new Map<string, number>();
   for (const g of groups) {
     for (const o of g.product_options) {
-      optionById.set(o.id, Number(o.price_modifier));
+      optionById.set(o.id, o.is_chargeable ? Number(o.price_modifier) : 0);
     }
   }
   let sum = 0;
