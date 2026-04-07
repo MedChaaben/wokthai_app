@@ -225,6 +225,7 @@ export default function CheckoutScreen() {
   const grandTotal = subtotal + (orderType === 'delivery' ? deliveryFee : 0);
   const itemCount = lines.reduce((sum, l) => sum + l.quantity, 0);
   const recapThumbs = lines.slice(0, 4);
+  const hasAddresses = (addresses.data?.length ?? 0) > 0;
 
   if (session === undefined) {
     return (
@@ -246,8 +247,16 @@ export default function CheckoutScreen() {
         <Text style={styles.heroEyebrow}>Validation de commande</Text>
         <Text style={styles.heroTitle}>Paiement et livraison</Text>
         <Text style={styles.heroSub}>
-          Vérifiez vos informations, choisissez le mode de réception, puis confirmez en toute confiance.
+          Parcours rapide et clair pour confirmer votre commande en toute confiance.
         </Text>
+      </View>
+      <View style={styles.trustRow}>
+        <View style={styles.trustBadge}>
+          <Text style={styles.trustBadgeText}>Paiement à la réception</Text>
+        </View>
+        <View style={styles.trustBadge}>
+          <Text style={styles.trustBadgeText}>Tarifs transparents</Text>
+        </View>
       </View>
       {!hasSession ? (
         <WtCard style={styles.promoCard}>
@@ -268,10 +277,8 @@ export default function CheckoutScreen() {
 
       {!hasSession ? (
         <>
-          <Text style={styles.heading}>Votre téléphone</Text>
-          <Text style={styles.body}>
-            Pour vous contacter concernant la commande (obligatoire sans compte).
-          </Text>
+          <Text style={styles.heading}>Contact</Text>
+          <Text style={styles.body}>Numéro de téléphone utilisé uniquement pour cette commande.</Text>
           <TextInput
             placeholder="12 34 56 78"
             placeholderTextColor={wt.placeholder}
@@ -284,7 +291,7 @@ export default function CheckoutScreen() {
         </>
       ) : null}
 
-      <Text style={styles.heading}>1. Point de vente</Text>
+      <Text style={styles.heading}>Point de vente</Text>
       {stores.isLoading ? (
         <ActivityIndicator color={wt.accent} />
       ) : (stores.data ?? []).length === 0 ? (
@@ -319,15 +326,15 @@ export default function CheckoutScreen() {
         })
       )}
 
-      <Text style={styles.heading}>2. Mode de réception</Text>
+      <Text style={styles.heading}>Mode de réception</Text>
       {!deliveryEnabled ? (
         <Text style={styles.deliveryOffHint}>
-          Livraison momentanément indisponible pour ce point de vente — retrait sur place uniquement.
+          Livraison indisponible pour ce point de vente, retrait uniquement.
         </Text>
       ) : null}
       {hasSession && orderType === 'delivery' && (orderCount.data ?? 0) === 0 && deliveryEnabled ? (
         <Text style={styles.perkHint}>
-          Première commande : la livraison est offerte une fois votre commande validée.
+          Première commande: livraison offerte.
         </Text>
       ) : null}
       <View style={styles.segment}>
@@ -355,22 +362,25 @@ export default function CheckoutScreen() {
           style={[styles.segBtn, orderType === 'pickup' && styles.segActive]}
         >
           <Text style={[styles.segText, orderType === 'pickup' && styles.segTextActive]}>
-            À emporter
+            A emporter
           </Text>
         </Pressable>
       </View>
 
-      <Text style={styles.heading}>3. Paiement</Text>
+      <Text style={styles.heading}>Paiement</Text>
       <Text style={styles.body}>
-        Paiement en espèces à la livraison ou sur place. Le montant final est affiché dans le récapitulatif.
+        Paiement en espèces à la livraison ou sur place. Aucun frais caché.
       </Text>
 
       {orderType === 'delivery' ? (
         <>
-          <Text style={styles.heading}>4. Adresse de livraison</Text>
+          <Text style={styles.heading}>Adresse de livraison</Text>
           {hasSession ? (
             <>
               {addresses.isLoading ? <ActivityIndicator color={wt.accent} /> : null}
+              {!addresses.isLoading && !hasAddresses ? (
+                <Text style={styles.body}>Aucune adresse enregistrée. Ajoutez-en une pour continuer.</Text>
+              ) : null}
               {(addresses.data ?? []).map((a) => (
                 <Pressable key={a.id} onPress={() => setSelectedAddressId(a.id)}>
                   <WtCard
@@ -394,7 +404,7 @@ export default function CheckoutScreen() {
               {showNewAddress ? (
                 <WtCard style={{ gap: 12 }}>
                   <Text style={styles.formHint}>
-                    Renseignez le texte, puis indiquez le point exact sur la carte en dessous.
+                    Renseignez les informations puis confirmez le point exact sur la carte.
                   </Text>
                   <Text style={styles.sectionLabel}>Ville</Text>
                   <View style={styles.cityRow}>
@@ -431,7 +441,7 @@ export default function CheckoutScreen() {
                     <Text style={[styles.coords, lat != null && lng != null ? styles.coordsOk : null]}>
                       {lat != null && lng != null
                         ? `Point enregistré · ${lat.toFixed(5)}, ${lng.toFixed(5)}`
-                        : 'À faire : ouvrir la carte et valider la position'}
+                        : 'Ouvrez la carte puis validez la position'}
                     </Text>
                   </View>
                   <WtButton title="Enregistrer l’adresse" loading={savingAddress} onPress={saveNewAddress} />
@@ -441,7 +451,7 @@ export default function CheckoutScreen() {
           ) : (
             <WtCard style={{ gap: 12 }}>
               <Text style={styles.formHint}>
-                Adresse utilisée uniquement pour cette commande (sans création de compte).
+                Adresse utilisée uniquement pour cette commande.
               </Text>
               <Text style={styles.sectionLabel}>Ville</Text>
               <View style={styles.cityRow}>
@@ -480,7 +490,7 @@ export default function CheckoutScreen() {
                 >
                   {guestLat != null && guestLng != null
                     ? `Point enregistré · ${guestLat.toFixed(5)}, ${guestLng.toFixed(5)}`
-                    : 'À faire : ouvrir la carte et valider la position'}
+                    : 'Ouvrez la carte puis validez la position'}
                 </Text>
               </View>
             </WtCard>
@@ -494,7 +504,7 @@ export default function CheckoutScreen() {
         </WtCard>
       )}
 
-      <Text style={styles.heading}>5. Notes de commande</Text>
+      <Text style={styles.heading}>Notes de commande (optionnel)</Text>
       <TextInput
         placeholder="Instructions pour le restaurant / livreur"
         placeholderTextColor={wt.placeholder}
@@ -622,7 +632,19 @@ const styles = StyleSheet.create({
   },
   heroTitle: { fontSize: 24, color: wt.text, fontWeight: '800' },
   heroSub: { fontSize: 13, lineHeight: 18, color: wt.textMuted },
-  heading: { fontSize: 16, fontWeight: '800', color: wt.text, marginTop: 8 },
+  trustRow: { flexDirection: 'row', gap: 8 },
+  trustBadge: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: wt.borderStrong,
+    backgroundColor: wt.surface,
+    borderRadius: 999,
+    paddingVertical: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  trustBadgeText: { fontSize: 12, color: wt.textMuted, fontWeight: '600' },
+  heading: { fontSize: 17, fontWeight: '800', color: wt.text, marginTop: 10 },
   promoCard: { gap: 8, paddingVertical: 14 },
   promoTitle: { fontSize: 15, fontWeight: '800', color: wt.text },
   promoBullet: { fontSize: 13, color: wt.textMuted, lineHeight: 19 },
@@ -688,9 +710,9 @@ const styles = StyleSheet.create({
   storeHoursEmpty: { fontStyle: 'italic', opacity: 0.92 },
   input: {
     borderWidth: 1,
-    borderColor: wt.border,
-    borderRadius: 10,
-    padding: 12,
+    borderColor: wt.borderStrong,
+    borderRadius: 12,
+    padding: 13,
     fontSize: 15,
     backgroundColor: wt.surface,
     color: wt.text,
@@ -740,7 +762,7 @@ const styles = StyleSheet.create({
     paddingTop: 12,
     gap: 10,
     shadowColor: '#000',
-    shadowOpacity: 0.25,
+    shadowOpacity: 0.32,
     shadowRadius: 10,
     shadowOffset: { width: 0, height: -4 },
     elevation: 16,
