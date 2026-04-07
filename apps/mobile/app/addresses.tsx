@@ -80,6 +80,12 @@ export default function AddressesScreen() {
     resetForm();
   }
 
+  function openMapPickerFromForm() {
+    // Evite les conflits de superposition entre modales sur mobile.
+    setShowForm(false);
+    setMapPickerVisible(true);
+  }
+
   async function saveAddress() {
     if (!label.trim() || !addressLine.trim()) {
       Alert.alert('Champs requis', 'Libellé et adresse sont obligatoires.');
@@ -276,8 +282,13 @@ export default function AddressesScreen() {
 
               <View style={styles.positionBlock}>
                 <Text style={styles.sectionLabel}>Où livrer (carte)</Text>
-                <AddressMapPreview lat={lat} lng={lng} onOpenPicker={() => setMapPickerVisible(true)} />
-                <WtButton title="Choisir sur la carte" onPress={() => setMapPickerVisible(true)} />
+                <AddressMapPreview lat={lat} lng={lng} onOpenPicker={openMapPickerFromForm} />
+                <Pressable
+                  onPress={openMapPickerFromForm}
+                  style={({ pressed }) => [styles.mapBtn, pressed && styles.pressed]}
+                >
+                  <Text style={styles.mapBtnText}>Choisir sur la carte</Text>
+                </Pressable>
                 <Text style={[styles.coords, lat != null && lng != null ? styles.coordsOk : null]}>
                   {lat != null && lng != null
                     ? `Point enregistré · ${lat.toFixed(5)}, ${lng.toFixed(5)}`
@@ -285,12 +296,38 @@ export default function AddressesScreen() {
                 </Text>
               </View>
 
-              <WtButton
-                title={editingId ? 'Enregistrer les modifications' : 'Enregistrer l’adresse'}
-                loading={savingAddress}
-                onPress={saveAddress}
-              />
-              <WtButton title="Annuler" variant="ghost" onPress={closeForm} />
+              <View style={styles.modalActions}>
+                <Pressable
+                  onPress={closeForm}
+                  disabled={savingAddress}
+                  style={({ pressed }) => [
+                    styles.actionBtn,
+                    styles.actionBtnGhost,
+                    pressed && styles.pressed,
+                    savingAddress && styles.actionBtnDisabled,
+                  ]}
+                >
+                  <Text style={styles.actionBtnGhostText}>Annuler</Text>
+                </Pressable>
+                <Pressable
+                  onPress={() => void saveAddress()}
+                  disabled={savingAddress}
+                  style={({ pressed }) => [
+                    styles.actionBtn,
+                    styles.actionBtnPrimary,
+                    pressed && styles.pressed,
+                    savingAddress && styles.actionBtnDisabled,
+                  ]}
+                >
+                  {savingAddress ? (
+                    <ActivityIndicator color={wt.white} size="small" />
+                  ) : (
+                    <Text style={styles.actionBtnPrimaryText}>
+                      {editingId ? 'Enregistrer' : 'Ajouter'}
+                    </Text>
+                  )}
+                </Pressable>
+              </View>
             </ScrollView>
           </View>
         </KeyboardAvoidingView>
@@ -298,7 +335,10 @@ export default function AddressesScreen() {
 
       <MapAddressPickerModal
         visible={mapPickerVisible}
-        onClose={() => setMapPickerVisible(false)}
+        onClose={() => {
+          setMapPickerVisible(false);
+          setShowForm(true);
+        }}
         initialLat={lat}
         initialLng={lng}
         onConfirm={(payload) => {
@@ -306,6 +346,7 @@ export default function AddressesScreen() {
           setLng(payload.lng);
           if (payload.geocoded?.addressLine) setAddressLine(payload.geocoded.addressLine);
           if (payload.geocoded?.city) setCity(payload.geocoded.city);
+          setShowForm(true);
         }}
       />
     </ScrollView>
@@ -381,6 +422,41 @@ const styles = StyleSheet.create({
   },
   modalCloseText: { color: wt.text, fontSize: 16, fontWeight: '700' },
   modalBody: { gap: 12, paddingBottom: 8 },
+  modalActions: { flexDirection: 'row', gap: 10, marginTop: 4 },
+  actionBtn: {
+    flex: 1,
+    minHeight: 42,
+    borderRadius: 10,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
+  actionBtnGhost: {
+    borderColor: wt.borderStrong,
+    backgroundColor: wt.surfaceMuted,
+  },
+  actionBtnPrimary: {
+    borderColor: wt.accentBorder,
+    backgroundColor: wt.accent,
+  },
+  actionBtnDisabled: { opacity: 0.65 },
+  actionBtnGhostText: { color: wt.textMuted, fontSize: 14, fontWeight: '700' },
+  actionBtnPrimaryText: { color: wt.white, fontSize: 14, fontWeight: '800' },
+  mapBtn: {
+    minHeight: 38,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: wt.borderStrong,
+    backgroundColor: wt.surfaceMuted,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  mapBtnText: { color: wt.text, fontSize: 13, fontWeight: '700' },
+  pressed: { opacity: 0.86 },
   sectionLabel: { fontSize: 13, fontWeight: '700', color: wt.textSecondary, marginBottom: 6 },
   positionBlock: {
     padding: 12,

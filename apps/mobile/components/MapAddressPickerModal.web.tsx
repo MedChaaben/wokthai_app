@@ -67,6 +67,7 @@ export function MapAddressPickerModal({
   return (
     <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
       <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
+        <View style={styles.grabber} />
         <View style={styles.header}>
           <Text style={styles.title}>Position pour la livraison</Text>
           <Text style={styles.subtitle}>{hint}</Text>
@@ -75,16 +76,19 @@ export function MapAddressPickerModal({
           </Text>
         </View>
         <View style={styles.fallbackBody}>
-          <Text style={styles.coordsLine}>
-            {coord.latitude.toFixed(5)}, {coord.longitude.toFixed(5)}
-          </Text>
-          <WtButton title="Utiliser ma position" onPress={() => void centerOnMyLocation()} />
+          <View style={styles.coordPill}>
+            <Text style={styles.coordPillText}>
+              {coord.latitude.toFixed(5)}, {coord.longitude.toFixed(5)}
+            </Text>
+          </View>
+          <WtButton title="Ma position" style={styles.btnCompact} onPress={() => void centerOnMyLocation()} />
           <WtButton
-            title="Valider cette position"
+            title="Valider"
             loading={resolving}
+            style={styles.btnCompact}
             onPress={() => void handleConfirm()}
           />
-          <WtButton title="Annuler" variant="ghost" onPress={onClose} />
+          <WtButton title="Annuler" variant="ghost" style={styles.btnCompact} onPress={onClose} />
         </View>
       </SafeAreaView>
     </Modal>
@@ -93,10 +97,30 @@ export function MapAddressPickerModal({
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: wt.bg },
+  grabber: {
+    alignSelf: 'center',
+    width: 44,
+    height: 5,
+    borderRadius: 999,
+    backgroundColor: wt.borderStrong,
+    marginTop: 6,
+    marginBottom: 8,
+  },
   header: { paddingHorizontal: 16, paddingBottom: 10, gap: 6 },
   title: { fontSize: 18, fontWeight: '800', color: wt.text },
   subtitle: { fontSize: 14, color: wt.textMuted, lineHeight: 20 },
   subtitle2: { fontSize: 13, color: wt.textSecondary, lineHeight: 18 },
-  fallbackBody: { flex: 1, padding: 16, gap: 12, justifyContent: 'center' },
-  coordsLine: { fontSize: 15, color: wt.text, textAlign: 'center', fontVariant: ['tabular-nums'] },
+  fallbackBody: { flex: 1, padding: 16, gap: 8, justifyContent: 'center' },
+  coordPill: {
+    alignSelf: 'center',
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: wt.borderStrong,
+    backgroundColor: wt.surfaceMuted,
+    borderRadius: 999,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+  },
+  coordPillText: { fontSize: 12, color: wt.textSecondary, textAlign: 'center', fontVariant: ['tabular-nums'] },
+  btnCompact: { minHeight: 42, paddingVertical: 10, borderRadius: 10 },
 });
