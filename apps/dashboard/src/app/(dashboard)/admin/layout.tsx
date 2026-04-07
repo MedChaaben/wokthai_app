@@ -8,6 +8,7 @@ import { useStaffProfile } from "@wokthai/shared";
 const adminNav = [
   { href: "/admin", label: "Vue d’ensemble" },
   { href: "/admin/orders", label: "Toutes les commandes" },
+  { href: "/admin/announcements", label: "Annonces" },
   { href: "/admin/stores", label: "Points de vente" },
   { href: "/admin/staff", label: "Équipe & accès" },
 ] as const;

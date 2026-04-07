@@ -11,6 +11,7 @@ export type OrderStatusEnum =
   | 'cancelled';
 export type PaymentStatusEnum = 'unpaid' | 'paid_on_delivery';
 export type StaffRoleEnum = 'store' | 'platform_admin';
+export type AnnouncementTypeEnum = 'info' | 'warning' | 'promo' | 'important';
 
 export type Database = {
   public: {
@@ -23,6 +24,8 @@ export type Database = {
           first_name: string | null;
           last_name: string | null;
           loyalty_points: number;
+          expo_push_token: string | null;
+          expo_push_token_updated_at: string | null;
           created_at: string;
         };
         Insert: {
@@ -32,6 +35,8 @@ export type Database = {
           first_name?: string | null;
           last_name?: string | null;
           loyalty_points?: number;
+          expo_push_token?: string | null;
+          expo_push_token_updated_at?: string | null;
           created_at?: string;
         };
         Update: {
@@ -41,6 +46,8 @@ export type Database = {
           first_name?: string | null;
           last_name?: string | null;
           loyalty_points?: number;
+          expo_push_token?: string | null;
+          expo_push_token_updated_at?: string | null;
           created_at?: string;
         };
         Relationships: [];
@@ -78,6 +85,48 @@ export type Database = {
           lng?: number;
           instructions?: string | null;
           created_at?: string;
+        };
+        Relationships: [];
+      };
+      announcements: {
+        Row: {
+          id: string;
+          title: string;
+          message: string;
+          is_active: boolean;
+          send_push: boolean;
+          type: AnnouncementTypeEnum;
+          priority: number;
+          created_at: string;
+          start_at: string | null;
+          end_at: string | null;
+          push_last_sent_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          title: string;
+          message: string;
+          is_active?: boolean;
+          send_push?: boolean;
+          type?: AnnouncementTypeEnum;
+          priority?: number;
+          created_at?: string;
+          start_at?: string | null;
+          end_at?: string | null;
+          push_last_sent_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          title?: string;
+          message?: string;
+          is_active?: boolean;
+          send_push?: boolean;
+          type?: AnnouncementTypeEnum;
+          priority?: number;
+          created_at?: string;
+          start_at?: string | null;
+          end_at?: string | null;
+          push_last_sent_at?: string | null;
         };
         Relationships: [];
       };
@@ -556,6 +605,7 @@ export type Database = {
       };
     };
     Enums: {
+      announcement_type: AnnouncementTypeEnum;
       order_type: OrderTypeEnum;
       order_status: OrderStatusEnum;
       payment_status: PaymentStatusEnum;

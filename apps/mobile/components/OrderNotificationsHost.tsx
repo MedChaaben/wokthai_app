@@ -2,12 +2,16 @@ import * as Notifications from "expo-notifications";
 import { useRouter } from "expo-router";
 import { useCallback, useEffect, useRef } from "react";
 import { Platform } from "react-native";
+import { useQueryClient } from "@tanstack/react-query";
 import {
+  ANNOUNCEMENTS_BANNER_QUERY_KEY,
   useMyOrdersRealtime,
   type MyOrdersRealtimeEvent,
 } from "@wokthai/shared";
+import { clearAnnouncementDismissalForId } from "../lib/announcementDismiss";
 
 const ANDROID_ORDER_CHANNEL = "order-status";
+const ANDROID_ANNOUNCEMENTS_CHANNEL = "announcements";
 
 const STATUS_LABEL: Record<string, string> = {
   pending: "En attente",
@@ -57,6 +61,7 @@ async function presentOrderNotification(event: MyOrdersRealtimeEvent) {
  */
 export function OrderNotificationsHost() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const handlerSet = useRef(false);
 
   const onEvent = useCallback((event: MyOrdersRealtimeEvent) => {
@@ -92,21 +97,34 @@ export function OrderNotificationsHost() {
           name: "Suivi des commandes",
           importance: Notifications.AndroidImportance.HIGH,
         });
+        await Notifications.setNotificationChannelAsync(ANDROID_ANNOUNCEMENTS_CHANNEL, {
+          name: "Annonces",
+          importance: Notifications.AndroidImportance.HIGH,
+        });
       }
     })();
 
-    const sub = Notifications.addNotificationResponseReceivedListener((response) => {
-      const orderId = response.notification.request.content.data?.orderId;
+    const handleNotificationOpen = (response: Notifications.NotificationResponse) => {
+      const data = response.notification.request.content.data as Record<string, unknown> | undefined;
+      if (data?.type === "announcement" && typeof data.announcementId === "string") {
+        void clearAnnouncementDismissalForId(data.announcementId);
+        void queryClient.invalidateQueries({ queryKey: [...ANNOUNCEMENTS_BANNER_QUERY_KEY] });
+        router.replace("/(tabs)");
+        return;
+      }
+      const orderId = data?.orderId;
       if (typeof orderId === "string") {
         router.push(`/order/${orderId}`);
       }
-    });
+    };
+
+    const sub = Notifications.addNotificationResponseReceivedListener(handleNotificationOpen);
 
     return () => {
       cancelled = true;
       sub.remove();
     };
-  }, [router]);
+  }, [router, queryClient]);
 
   return null;
 }

@@ -16,6 +16,11 @@ export type StaffRow = Database['public']['Tables']['staff']['Row'];
 export type StaffProfileRow = StaffRow & {
   stores: Pick<StoreRow, 'name' | 'city'> | null;
 };
+
+export type AnnouncementRow = Database['public']['Tables']['announcements']['Row'];
+export type AnnouncementInsert = Database['public']['Tables']['announcements']['Insert'];
+export type AnnouncementUpdate = Database['public']['Tables']['announcements']['Update'];
+export type AnnouncementType = Database['public']['Enums']['announcement_type'];
 export type CategoryRow = Database['public']['Tables']['categories']['Row'];
 export type CategoryInsert = Database['public']['Tables']['categories']['Insert'];
 export type ProductRow = Database['public']['Tables']['products']['Row'];

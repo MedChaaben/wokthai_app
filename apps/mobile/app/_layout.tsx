@@ -9,6 +9,8 @@ import { SupabaseProvider } from '@wokthai/shared';
 import { AuthDeepLinkHandler } from '../components/AuthDeepLinkHandler';
 import { OngoingOrderBanner } from '../components/OngoingOrderBanner';
 import { OrderNotificationsHost } from '../components/OrderNotificationsHost';
+import { GlobalAnnouncementBanner } from '../components/GlobalAnnouncementBanner';
+import { ExpoPushTokenRegistrar } from '../components/ExpoPushTokenRegistrar';
 import { CartProvider } from '../contexts/CartContext';
 import { getSupabase, supabaseReady } from '../lib/supabase';
 
@@ -39,8 +41,10 @@ export default function RootLayout() {
           <CartProvider>
             <StatusBar style="light" />
             <OrderNotificationsHost />
+            <ExpoPushTokenRegistrar />
             <AuthDeepLinkHandler />
             <View style={styles.root}>
+              <GlobalAnnouncementBanner />
               <OngoingOrderBanner />
               <View style={styles.stackWrap}>
                 <Stack
