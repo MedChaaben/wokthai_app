@@ -1,4 +1,10 @@
-import { useOrder, useOrderRealtime, getOrderTrackingProgress, useProducts } from '@wokthai/shared';
+import {
+  useOrder,
+  useOrderRealtime,
+  getOrderTrackingProgress,
+  useProducts,
+  useUpdateOrderStatus,
+} from '@wokthai/shared';
 import * as Linking from 'expo-linking';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -50,6 +56,7 @@ export default function OrderTrackingScreen() {
   const { data, isLoading, error } = useOrder(orderId);
   useOrderRealtime(orderId);
   const products = useProducts({ onlyAvailable: false });
+  const updateStatus = useUpdateOrderStatus();
   const { clear, addLine } = useCart();
 
   const scrollRef = useRef<ScrollView>(null);
@@ -172,6 +179,32 @@ export default function OrderTrackingScreen() {
     setReorderReport({ replaced, missing, addedCount });
   }
 
+  function handleCancelPendingOrder() {
+    if (!orderId || data?.status !== 'pending') return;
+    Alert.alert(
+      'Annuler la commande ?',
+      'Votre commande est encore en attente. Vous pouvez l’annuler maintenant.',
+      [
+        { text: 'Garder la commande', style: 'cancel' },
+        {
+          text: 'Annuler la commande',
+          style: 'destructive',
+          onPress: () => {
+            updateStatus.mutate(
+              { orderId, status: 'cancelled' },
+              {
+                onError: (err) => {
+                  const msg = err instanceof Error ? err.message : 'Impossible d’annuler pour le moment.';
+                  Alert.alert('Annulation impossible', msg);
+                },
+              }
+            );
+          },
+        },
+      ]
+    );
+  }
+
   return (
     <>
       <ScrollView
@@ -187,6 +220,27 @@ export default function OrderTrackingScreen() {
       {!isCancelled && !isDelivered ? (
         <WtCard style={styles.progressCard}>
           <OrderProgress progress={progress} />
+        </WtCard>
+      ) : null}
+
+      {data.status === 'pending' ? (
+        <WtCard>
+          <Text style={styles.muted}>
+            Votre commande n’est pas encore confirmée par le restaurant.
+          </Text>
+          <Pressable
+            style={({ pressed }) => [
+              styles.cancelBtn,
+              (pressed || updateStatus.isPending) && styles.ctaPressed,
+              updateStatus.isPending && styles.cancelBtnDisabled,
+            ]}
+            disabled={updateStatus.isPending}
+            onPress={handleCancelPendingOrder}
+          >
+            <Text style={styles.cancelBtnText}>
+              {updateStatus.isPending ? 'Annulation…' : 'Annuler la commande'}
+            </Text>
+          </Pressable>
         </WtCard>
       ) : null}
 
@@ -442,6 +496,18 @@ const styles = StyleSheet.create({
   },
   ctaSecondaryText: { color: wt.text, fontSize: 16, fontWeight: '700' },
   ctaPressed: { opacity: 0.88 },
+  cancelBtn: {
+    marginTop: 10,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: wt.errorStrong,
+    backgroundColor: wt.surface,
+    minHeight: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  cancelBtnDisabled: { opacity: 0.7 },
+  cancelBtnText: { color: wt.errorStrong, fontSize: 14, fontWeight: '800' },
   infoOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.35)',
