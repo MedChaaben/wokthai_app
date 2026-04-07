@@ -73,6 +73,8 @@ export default function CartTabScreen() {
   }
 
   const articleCount = lines.reduce((s, l) => s + l.quantity, 0);
+  const totalBeforeDelivery = subtotal;
+  const recapThumbs = lines.slice(0, 4);
 
   if (lines.length === 0) {
     return (
@@ -94,9 +96,13 @@ export default function CartTabScreen() {
         contentContainerStyle={styles.scroll}
         keyboardShouldPersistTaps="handled"
       >
-        <Text style={styles.listHint}>
-          {articleCount} article{articleCount > 1 ? 's' : ''} · vérifiez les quantités puis commandez.
-        </Text>
+        <View style={styles.headerBlock}>
+          <Text style={styles.headerEyebrow}>Votre commande</Text>
+          <Text style={styles.headerTitle}>Panier</Text>
+          <Text style={styles.headerSub}>
+            {articleCount} article{articleCount > 1 ? 's' : ''} · vérifiez puis finalisez en toute sérénité.
+          </Text>
+        </View>
         {lines.map((l) => (
           <WtCard key={l.lineKey} style={styles.row}>
             <View style={styles.rowMain}>
@@ -119,9 +125,10 @@ export default function CartTabScreen() {
                     {l.optionSummary.join(' · ')}
                   </Text>
                 ) : null}
-                <Text style={styles.meta}>
-                  {l.unitPrice.toFixed(2)} TND × {l.quantity} = {(l.unitPrice * l.quantity).toFixed(2)} TND
-                </Text>
+                <View style={styles.metaRow}>
+                  <Text style={styles.metaUnit}>{l.unitPrice.toFixed(2)} TND / unité</Text>
+                  <Text style={styles.metaTotal}>{(l.unitPrice * l.quantity).toFixed(2)} TND</Text>
+                </View>
                 <View style={styles.qtyRow}>
                   <Pressable
                     onPress={() => setQuantity(l.lineKey, l.quantity - 1)}
@@ -156,12 +163,48 @@ export default function CartTabScreen() {
       </ScrollView>
 
       <View style={[styles.checkoutDock, { paddingBottom: Math.max(insets.bottom, 14) }]}>
+        <View style={styles.recapTopRow}>
+          <Text style={styles.recapTitle}>Récapitulatif</Text>
+          <Text style={styles.recapCount}>
+            {articleCount} article{articleCount > 1 ? 's' : ''}
+          </Text>
+        </View>
+        <View style={styles.recapThumbRow}>
+          {recapThumbs.map((item) =>
+            item.image_url ? (
+              <Image key={item.lineKey} source={{ uri: item.image_url }} style={styles.recapThumb} resizeMode="cover" />
+            ) : (
+              <View key={item.lineKey} style={styles.recapThumbPlaceholder}>
+                <Text style={styles.recapThumbPlaceholderText}>Photo</Text>
+              </View>
+            )
+          )}
+          {lines.length > 4 ? (
+            <View style={styles.recapMoreBadge}>
+              <Text style={styles.recapMoreText}>+{lines.length - 4}</Text>
+            </View>
+          ) : null}
+        </View>
+        <View style={styles.recapList}>
+          {lines.slice(0, 3).map((item) => (
+            <View key={item.lineKey} style={styles.recapItemRow}>
+              <Text numberOfLines={1} style={styles.recapItemName}>
+                {item.name}
+              </Text>
+              <Text style={styles.recapItemMeta}>x{item.quantity}</Text>
+              <Text style={styles.recapItemPrice}>{(item.unitPrice * item.quantity).toFixed(2)} TND</Text>
+            </View>
+          ))}
+          {lines.length > 3 ? (
+            <Text style={styles.recapExtraLine}>+ {lines.length - 3} autre{lines.length - 3 > 1 ? 's' : ''} article(s)</Text>
+          ) : null}
+        </View>
         <View style={styles.totalRow}>
-          <Text style={styles.totalLabel}>Sous-total</Text>
-          <Text style={styles.totalValue}>{subtotal.toFixed(2)} TND</Text>
+          <Text style={styles.totalLabel}>Total estimé</Text>
+          <Text style={styles.totalValue}>{totalBeforeDelivery.toFixed(2)} TND</Text>
         </View>
         <WtButton title="Commander" onPress={() => void goCheckout()} />
-        <Text style={styles.dockHint}>Livraison ou retrait au choix à l’étape suivante.</Text>
+        <Text style={styles.dockHint}>Paiement sécurisé · Livraison ou retrait à l’étape suivante.</Text>
       </View>
 
       <Modal visible={upsellOpen} transparent animationType="slide" onRequestClose={() => setUpsellOpen(false)}>
@@ -235,25 +278,36 @@ export default function CartTabScreen() {
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: wt.bg },
   scrollView: { flex: 1 },
-  scroll: { padding: 16, paddingBottom: 12, gap: 12 },
-  listHint: {
-    fontSize: 13,
-    color: wt.textMuted,
-    marginBottom: 4,
-    lineHeight: 18,
+  scroll: { padding: 16, paddingBottom: 300, gap: 12 },
+  headerBlock: {
+    padding: 14,
+    borderWidth: 1,
+    borderColor: wt.border,
+    borderRadius: 14,
+    backgroundColor: wt.bgElevated,
+    marginBottom: 2,
   },
-  row: { gap: 0 },
+  headerEyebrow: {
+    fontSize: 12,
+    color: wt.accentLight,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  headerTitle: { marginTop: 4, fontSize: 28, color: wt.text, fontWeight: '800' },
+  headerSub: { marginTop: 4, fontSize: 14, color: wt.textMuted, lineHeight: 20 },
+  row: { gap: 0, borderRadius: 16, borderColor: wt.borderStrong, backgroundColor: wt.bgElevated },
   rowMain: { flexDirection: 'row', alignItems: 'flex-start', gap: 12 },
   thumb: {
-    width: 80,
-    height: 80,
-    borderRadius: 12,
+    width: 84,
+    height: 84,
+    borderRadius: 14,
     backgroundColor: wt.surfaceMuted,
   },
   thumbPlaceholder: {
-    width: 80,
-    height: 80,
-    borderRadius: 12,
+    width: 84,
+    height: 84,
+    borderRadius: 14,
     backgroundColor: wt.surfaceMuted,
     borderWidth: 1,
     borderColor: wt.border,
@@ -261,16 +315,18 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   thumbPlaceholderText: { fontSize: 11, color: wt.textMuted, fontWeight: '600' },
-  rowContent: { flex: 1, minWidth: 0, gap: 6 },
+  rowContent: { flex: 1, minWidth: 0, gap: 7 },
   rowTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8 },
-  name: { fontSize: 16, fontWeight: '700', color: wt.text, flex: 1 },
+  name: { fontSize: 17, fontWeight: '700', color: wt.text, flex: 1, lineHeight: 22 },
   opts: { fontSize: 12, color: wt.textMuted },
   remove: { color: wt.error, fontWeight: '600', fontSize: 14 },
-  meta: { color: wt.textMuted, fontSize: 14 },
+  metaRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
+  metaUnit: { color: wt.textSecondary, fontSize: 12 },
+  metaTotal: { color: wt.text, fontSize: 15, fontWeight: '700' },
   qtyRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 6,
+    marginTop: 4,
     borderWidth: 0,
     borderRadius: 999,
     backgroundColor: wt.surfaceMuted,
@@ -279,8 +335,8 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
   },
   qtyBtn: {
-    width: 44,
-    height: 44,
+    width: 40,
+    height: 40,
     borderRadius: 999,
     backgroundColor: wt.surface,
     borderWidth: 1,
@@ -297,22 +353,22 @@ const styles = StyleSheet.create({
   qtyBtnText: { fontSize: 20, fontWeight: '700', color: wt.accentLight, lineHeight: 22 },
   qtyBtnPlusText: { color: wt.bg },
   qtyBadge: {
-    minWidth: 56,
+    minWidth: 50,
     paddingHorizontal: 10,
-    height: 44,
+    height: 40,
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 999,
     backgroundColor: 'transparent',
   },
-  qty: { fontSize: 17, fontWeight: '800', minWidth: 24, textAlign: 'center', color: wt.text },
+  qty: { fontSize: 16, fontWeight: '800', minWidth: 24, textAlign: 'center', color: wt.text },
   checkoutDock: {
-    borderTopWidth: 2,
-    borderTopColor: wt.accent,
+    borderTopWidth: 1,
+    borderTopColor: wt.borderStrong,
     backgroundColor: wt.bgElevated,
     paddingHorizontal: 16,
-    paddingTop: 14,
-    gap: 12,
+    paddingTop: 12,
+    gap: 10,
     shadowColor: '#000',
     shadowOpacity: 0.25,
     shadowRadius: 10,
@@ -322,11 +378,54 @@ const styles = StyleSheet.create({
   totalRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'baseline',
+    alignItems: 'center',
+    marginTop: 2,
   },
-  totalLabel: { fontSize: 15, fontWeight: '600', color: wt.textMuted },
-  totalValue: { fontSize: 22, fontWeight: '800', color: wt.text },
-  dockHint: { fontSize: 12, color: wt.textSecondary, textAlign: 'center', lineHeight: 16 },
+  totalLabel: { fontSize: 14, fontWeight: '600', color: wt.textMuted },
+  totalValue: { fontSize: 24, fontWeight: '800', color: wt.text },
+  recapTopRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  recapTitle: { fontSize: 14, color: wt.text, fontWeight: '700' },
+  recapCount: { fontSize: 12, color: wt.textMuted, fontWeight: '600' },
+  recapThumbRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  recapThumb: { width: 34, height: 34, borderRadius: 8, backgroundColor: wt.surfaceMuted },
+  recapThumbPlaceholder: {
+    width: 34,
+    height: 34,
+    borderRadius: 8,
+    backgroundColor: wt.surfaceMuted,
+    borderWidth: 1,
+    borderColor: wt.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  recapThumbPlaceholderText: { fontSize: 7, color: wt.textMuted, fontWeight: '700' },
+  recapMoreBadge: {
+    minWidth: 34,
+    height: 34,
+    borderRadius: 8,
+    backgroundColor: wt.surface,
+    borderWidth: 1,
+    borderColor: wt.borderStrong,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 6,
+  },
+  recapMoreText: { fontSize: 12, color: wt.text, fontWeight: '700' },
+  recapList: {
+    borderWidth: 1,
+    borderColor: wt.border,
+    backgroundColor: wt.surface,
+    borderRadius: 12,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    gap: 6,
+  },
+  recapItemRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  recapItemName: { flex: 1, fontSize: 13, color: wt.text, fontWeight: '600' },
+  recapItemMeta: { fontSize: 12, color: wt.textMuted, minWidth: 28, textAlign: 'right' },
+  recapItemPrice: { fontSize: 13, color: wt.text, fontWeight: '700', minWidth: 74, textAlign: 'right' },
+  recapExtraLine: { fontSize: 12, color: wt.textSecondary },
+  dockHint: { fontSize: 11, color: wt.textSecondary, textAlign: 'center', lineHeight: 15 },
   emptyRoot: {
     flex: 1,
     justifyContent: 'center',
