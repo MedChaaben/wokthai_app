@@ -16,7 +16,6 @@ import {
   Dimensions,
   Easing,
 } from 'react-native';
-import { useRouter } from 'expo-router';
 import {
   useCategories,
   useProducts,
@@ -56,7 +55,6 @@ function MenuProductRow({
   canQuickAdd: boolean;
   onOpenCustomize: (product: ProductRow) => void;
 }) {
-  const router = useRouter();
   const { lines, addLine, setQuantity } = useCart();
   const lineKey = buildCartLineKey(p.id, []);
   const quickLine = lines.find((l) => l.lineKey === lineKey);
@@ -68,11 +66,7 @@ function MenuProductRow({
   const base = Number(p.price);
 
   function goDetail() {
-    if (!canQuickAdd) {
-      onOpenCustomize(p);
-      return;
-    }
-    router.push(`/product/${p.id}`);
+    onOpenCustomize(p);
   }
 
   function increment() {
@@ -93,7 +87,6 @@ function MenuProductRow({
 
   function decrement() {
     if (!canQuickAdd) {
-      if (totalInCart > 0) router.push('/(tabs)/cart');
       return;
     }
     if (quickQty <= 0) return;
