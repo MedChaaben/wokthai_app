@@ -1,0 +1,15 @@
+{
+  "expo": {
+    "extra": {
+      "eas": {
+        "projectId": "eeabf0c9-9147-41e5-a43d-d82443a4314e"
+      }
+    },
+    "ios": {
+      "bundleIdentifier": "com.mchaaben.wokthai",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    }
+  }
+}

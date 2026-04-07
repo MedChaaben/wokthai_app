@@ -3,7 +3,8 @@ import { Animated, Easing, ScrollView, StyleSheet, Text, View, type LayoutChange
 import type { OrderStatus, OrderType } from '@wokthai/shared';
 import { wt } from '../lib/theme';
 
-const STEPS: OrderStatus[] = [
+/** Livraison : étape « En route » entre prête et livrée. À emporter : pas d’étape intermédiaire (évite « Prête » + « Prête à être retirée »). */
+const STEPS_DELIVERY: OrderStatus[] = [
   'pending',
   'confirmed',
   'preparing',
@@ -12,7 +13,19 @@ const STEPS: OrderStatus[] = [
   'delivered',
 ];
 
-function labelForStep(status: OrderStatus, orderType: OrderType): string {
+const STEPS_PICKUP: OrderStatus[] = [
+  'pending',
+  'confirmed',
+  'preparing',
+  'ready',
+  'delivered',
+];
+
+function stepsForOrder(orderType: OrderType): OrderStatus[] {
+  return orderType === 'delivery' ? STEPS_DELIVERY : STEPS_PICKUP;
+}
+
+function labelForStep(status: OrderStatus): string {
   switch (status) {
     case 'pending':
       return 'Commande reçue';
@@ -23,7 +36,7 @@ function labelForStep(status: OrderStatus, orderType: OrderType): string {
     case 'ready':
       return 'Prête';
     case 'delivering':
-      return orderType === 'delivery' ? 'En route 🚴' : 'Prête à être retirée';
+      return 'En route 🚴';
     case 'delivered':
       return 'Livrée';
     case 'cancelled':
@@ -33,8 +46,12 @@ function labelForStep(status: OrderStatus, orderType: OrderType): string {
   }
 }
 
-function statusOrderIndex(status: OrderStatus): number {
-  const i = STEPS.indexOf(status);
+function statusOrderIndex(status: OrderStatus, orderType: OrderType): number {
+  const steps = stepsForOrder(orderType);
+  if (orderType === 'pickup' && status === 'delivering') {
+    return steps.indexOf('ready');
+  }
+  const i = steps.indexOf(status);
   return i >= 0 ? i : -1;
 }
 
@@ -87,7 +104,8 @@ export function OrderTrackingTimeline({
   scrollViewRef,
   timelineBlockY,
 }: Props) {
-  const activeIndex = statusOrderIndex(status);
+  const steps = stepsForOrder(orderType);
+  const activeIndex = statusOrderIndex(status, orderType);
   const stepYRef = useRef<number[]>([]);
   const cancelled = status === 'cancelled';
 
@@ -109,11 +127,11 @@ export function OrderTrackingTimeline({
 
   return (
     <View style={styles.timeline}>
-      {STEPS.map((step, i) => {
+      {steps.map((step, i) => {
         const stepIndex = i;
         const done = activeIndex > stepIndex;
         const active = activeIndex === stepIndex;
-        const isLast = i === STEPS.length - 1;
+        const isLast = i === steps.length - 1;
 
         return (
           <View
@@ -130,7 +148,7 @@ export function OrderTrackingTimeline({
             <View style={[styles.body, !isLast && styles.bodySpaced]}>
               <View style={styles.bodyText}>
                 <Text style={[styles.label, done && styles.labelDone, active && styles.labelActive]}>
-                  {labelForStep(step, orderType)}
+                  {labelForStep(step)}
                 </Text>
                 {active && status !== 'delivered' ? (
                   <Text style={styles.sub}>Étape en cours</Text>
