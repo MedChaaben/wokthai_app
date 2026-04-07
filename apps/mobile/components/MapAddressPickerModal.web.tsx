@@ -1,5 +1,6 @@
 import { useLayoutEffect, useState } from 'react';
-import { Modal, View, Text, StyleSheet, Alert } from 'react-native';
+import { Modal, View, Text, StyleSheet, Alert, Pressable, ScrollView } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import * as Location from 'expo-location';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { REGION_MODAL } from '../lib/mapRegion';
@@ -67,14 +68,36 @@ export function MapAddressPickerModal({
   return (
     <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
       <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
-        <View style={styles.grabber} />
-        <View style={styles.header}>
-          <Text style={styles.title}>Position pour la livraison</Text>
-          <Text style={styles.subtitle}>{hint}</Text>
-          <Text style={styles.subtitle2}>
-            L’adresse sera complétée automatiquement après validation si les services le permettent.
-          </Text>
-        </View>
+        <View style={styles.modalBody}>
+          <View style={styles.topBarRow}>
+            <View style={styles.topBarSide} />
+            <View style={styles.grabberCenter}>
+              <View style={styles.grabber} />
+            </View>
+            <View style={[styles.topBarSide, styles.topBarSideEnd]}>
+              <Pressable
+                onPress={onClose}
+                hitSlop={12}
+                style={({ pressed }) => [styles.closeBtn, pressed && styles.closeBtnPressed]}
+                accessibilityRole="button"
+                accessibilityLabel="Fermer"
+              >
+                <Ionicons name="close" size={26} color={wt.text} />
+              </Pressable>
+            </View>
+          </View>
+          <ScrollView
+            style={styles.headerScroll}
+            contentContainerStyle={styles.headerScrollContent}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+          >
+            <Text style={styles.title}>Position pour la livraison</Text>
+            <Text style={styles.subtitle}>{hint}</Text>
+            <Text style={styles.subtitle2}>
+              L’adresse sera complétée automatiquement après validation si les services le permettent.
+            </Text>
+          </ScrollView>
         <View style={styles.fallbackBody}>
           <View style={styles.fallbackSpacer} />
           <View style={styles.fallbackMaWrap}>
@@ -103,6 +126,7 @@ export function MapAddressPickerModal({
             </View>
           </View>
         </View>
+        </View>
       </SafeAreaView>
     </Modal>
   );
@@ -110,24 +134,61 @@ export function MapAddressPickerModal({
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: wt.bg },
+  modalBody: {
+    flex: 1,
+    minHeight: 0,
+  },
+  topBarRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 8,
+    paddingTop: 4,
+  },
+  topBarSide: {
+    width: 44,
+    minHeight: 36,
+    justifyContent: 'center',
+  },
+  topBarSideEnd: {
+    alignItems: 'flex-end',
+  },
+  grabberCenter: {
+    flex: 1,
+    alignItems: 'center',
+  },
   grabber: {
-    alignSelf: 'center',
     width: 44,
     height: 5,
     borderRadius: 999,
     backgroundColor: wt.borderStrong,
-    marginTop: 6,
     marginBottom: 8,
   },
-  header: { paddingHorizontal: 16, paddingBottom: 10, gap: 6 },
+  closeBtn: {
+    padding: 4,
+    borderRadius: 8,
+  },
+  closeBtnPressed: {
+    backgroundColor: wt.surfaceMuted,
+  },
+  headerScroll: {
+    flexGrow: 0,
+    flexShrink: 1,
+    maxHeight: 168,
+  },
+  headerScrollContent: {
+    paddingHorizontal: 16,
+    paddingBottom: 10,
+    gap: 6,
+  },
   title: { fontSize: 18, fontWeight: '800', color: wt.text },
   subtitle: { fontSize: 14, color: wt.textMuted, lineHeight: 20 },
   subtitle2: { fontSize: 13, color: wt.textSecondary, lineHeight: 18 },
-  fallbackBody: { flex: 1 },
+  fallbackBody: { flex: 1, minHeight: 0 },
   fallbackSpacer: { flex: 1, minHeight: 24 },
   fallbackMaWrap: { paddingHorizontal: 16, marginBottom: 10 },
   secondaryFull: { minHeight: 48, width: '100%' },
   footer: {
+    flexShrink: 0,
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: wt.border,
     backgroundColor: wt.bgElevated,

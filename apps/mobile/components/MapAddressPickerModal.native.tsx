@@ -1,5 +1,6 @@
 import { useLayoutEffect, useRef, useState } from 'react';
-import { Modal, View, Text, StyleSheet, Alert, Platform } from 'react-native';
+import { Modal, View, Text, StyleSheet, Alert, Platform, Pressable, ScrollView } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import MapView, { Marker } from 'react-native-maps';
 import * as Location from 'expo-location';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -86,13 +87,36 @@ export function MapAddressPickerModal({
     return (
       <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
         <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
-          <View style={styles.header}>
-            <Text style={styles.title}>Position pour la livraison</Text>
-            <Text style={styles.subtitle}>{hint}</Text>
-            <Text style={styles.subtitle2}>
-              L’adresse sera complétée automatiquement après validation si les services le permettent.
-            </Text>
-          </View>
+          <View style={styles.modalBody}>
+            <View style={styles.topBarRow}>
+              <View style={styles.topBarSide} />
+              <View style={styles.grabberCenter}>
+                <View style={styles.grabber} />
+              </View>
+              <View style={[styles.topBarSide, styles.topBarSideEnd]}>
+                <Pressable
+                  onPress={onClose}
+                  hitSlop={12}
+                  style={({ pressed }) => [styles.closeBtn, pressed && styles.closeBtnPressed]}
+                  accessibilityRole="button"
+                  accessibilityLabel="Fermer"
+                >
+                  <Ionicons name="close" size={26} color={wt.text} />
+                </Pressable>
+              </View>
+            </View>
+            <ScrollView
+              style={styles.headerScroll}
+              contentContainerStyle={styles.headerScrollContent}
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+            >
+              <Text style={styles.title}>Position pour la livraison</Text>
+              <Text style={styles.subtitle}>{hint}</Text>
+              <Text style={styles.subtitle2}>
+                L’adresse sera complétée automatiquement après validation si les services le permettent.
+              </Text>
+            </ScrollView>
           <View style={styles.fallbackBody}>
             <View style={styles.fallbackSpacer} />
             <View style={styles.fallbackMaWrap}>
@@ -121,6 +145,7 @@ export function MapAddressPickerModal({
               </View>
             </View>
           </View>
+          </View>
         </SafeAreaView>
       </Modal>
     );
@@ -129,17 +154,39 @@ export function MapAddressPickerModal({
   return (
     <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
       <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
-        <View style={styles.grabber} />
-        <View style={styles.header}>
-          <Text style={styles.title}>Position sur la carte</Text>
-          <Text style={styles.subtitle}>
-            Déplacez l’épingle pour indiquer l’entrée ou l’emplacement exact pour la livraison.
-          </Text>
-          <Text style={styles.subtitle2}>
-            L’adresse écrite et la ville seront remplies automatiquement ; vous pourrez les corriger
-            ensuite.
-          </Text>
-        </View>
+        <View style={styles.modalBody}>
+          <View style={styles.topBarRow}>
+            <View style={styles.topBarSide} />
+            <View style={styles.grabberCenter}>
+              <View style={styles.grabber} />
+            </View>
+            <View style={[styles.topBarSide, styles.topBarSideEnd]}>
+              <Pressable
+                onPress={onClose}
+                hitSlop={12}
+                style={({ pressed }) => [styles.closeBtn, pressed && styles.closeBtnPressed]}
+                accessibilityRole="button"
+                accessibilityLabel="Fermer"
+              >
+                <Ionicons name="close" size={26} color={wt.text} />
+              </Pressable>
+            </View>
+          </View>
+          <ScrollView
+            style={styles.headerScroll}
+            contentContainerStyle={styles.headerScrollContent}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+          >
+            <Text style={styles.title}>Position sur la carte</Text>
+            <Text style={styles.subtitle}>
+              Déplacez l’épingle pour indiquer l’entrée ou l’emplacement exact pour la livraison.
+            </Text>
+            <Text style={styles.subtitle2}>
+              L’adresse écrite et la ville seront remplies automatiquement ; vous pourrez les corriger
+              ensuite.
+            </Text>
+          </ScrollView>
         <View style={styles.mapStage}>
           <MapView
             key={mapKey}
@@ -150,6 +197,17 @@ export function MapAddressPickerModal({
               longitude: coord.longitude,
               latitudeDelta: REGION_MODAL.latitudeDelta,
               longitudeDelta: REGION_MODAL.longitudeDelta,
+            }}
+            onMapReady={() => {
+              mapRef.current?.animateToRegion(
+                {
+                  latitude: coord.latitude,
+                  longitude: coord.longitude,
+                  latitudeDelta: REGION_MODAL.latitudeDelta,
+                  longitudeDelta: REGION_MODAL.longitudeDelta,
+                },
+                0
+              );
             }}
             showsUserLocation
           >
@@ -189,6 +247,7 @@ export function MapAddressPickerModal({
             />
           </View>
         </View>
+        </View>
       </SafeAreaView>
     </Modal>
   );
@@ -196,27 +255,64 @@ export function MapAddressPickerModal({
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: wt.bg },
+  modalBody: {
+    flex: 1,
+    minHeight: 0,
+  },
+  topBarRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 8,
+    paddingTop: 4,
+  },
+  topBarSide: {
+    width: 44,
+    minHeight: 36,
+    justifyContent: 'center',
+  },
+  topBarSideEnd: {
+    alignItems: 'flex-end',
+  },
+  grabberCenter: {
+    flex: 1,
+    alignItems: 'center',
+  },
   grabber: {
-    alignSelf: 'center',
     width: 44,
     height: 5,
     borderRadius: 999,
     backgroundColor: wt.borderStrong,
-    marginTop: 6,
     marginBottom: 8,
   },
-  header: { paddingHorizontal: 16, paddingBottom: 10, gap: 6 },
+  closeBtn: {
+    padding: 4,
+    borderRadius: 8,
+  },
+  closeBtnPressed: {
+    backgroundColor: wt.surfaceMuted,
+  },
+  headerScroll: {
+    flexGrow: 0,
+    flexShrink: 1,
+    maxHeight: 168,
+  },
+  headerScrollContent: {
+    paddingHorizontal: 16,
+    paddingBottom: 10,
+    gap: 6,
+  },
   title: { fontSize: 18, fontWeight: '800', color: wt.text },
   subtitle: { fontSize: 14, color: wt.textMuted, lineHeight: 20 },
   subtitle2: { fontSize: 13, color: wt.textSecondary, lineHeight: 18 },
   mapStage: {
     flex: 1,
+    minHeight: 0,
     marginHorizontal: 12,
     borderRadius: 12,
     overflow: 'hidden',
     backgroundColor: wt.surfaceMuted,
   },
-  map: { flex: 1 },
+  map: { flex: 1, minHeight: 0 },
   mapFabWrap: {
     position: 'absolute',
     right: 10,
@@ -242,6 +338,7 @@ const styles = StyleSheet.create({
     }),
   },
   footer: {
+    flexShrink: 0,
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: wt.border,
     backgroundColor: wt.bgElevated,
