@@ -1,4 +1,4 @@
-import { useOrder, useOrderRealtime, getOrderTrackingProgress } from '@wokthai/shared';
+import { useOrder, useOrderRealtime, getOrderTrackingProgress, useProducts } from '@wokthai/shared';
 import * as Linking from 'expo-linking';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -7,6 +7,7 @@ import {
   Alert,
   Image,
   LayoutChangeEvent,
+  Modal,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -17,6 +18,7 @@ import { OrderProgress } from '../../components/OrderProgress';
 import { OrderTrackingEtaHeader } from '../../components/OrderTrackingEtaHeader';
 import { OrderTrackingTimeline } from '../../components/OrderTrackingTimeline';
 import { WtCard } from '../../components/WtCard';
+import { useCart } from '../../contexts/CartContext';
 import { wt } from '../../lib/theme';
 
 const TICK_MS = 30_000;
@@ -47,10 +49,17 @@ export default function OrderTrackingScreen() {
   const orderId = Array.isArray(id) ? id[0] : id;
   const { data, isLoading, error } = useOrder(orderId);
   useOrderRealtime(orderId);
+  const products = useProducts({ onlyAvailable: false });
+  const { clear, addLine } = useCart();
 
   const scrollRef = useRef<ScrollView>(null);
   const [nowMs, setNowMs] = useState(() => Date.now());
   const [timelineBlockY, setTimelineBlockY] = useState(0);
+  const [reorderReport, setReorderReport] = useState<{
+    replaced: Array<{ from: string; to: string }>;
+    missing: string[];
+    addedCount: number;
+  } | null>(null);
 
   useEffect(() => {
     const idTimer = setInterval(() => setNowMs(Date.now()), TICK_MS);
@@ -98,13 +107,79 @@ export default function OrderTrackingScreen() {
     );
   }
 
+  function handleReorder() {
+    if (!data) return;
+    if (products.isLoading) {
+      Alert.alert('Un instant', 'Chargement du catalogue en cours, réessayez dans un moment.');
+      return;
+    }
+    const allProducts = products.data ?? [];
+    const byId = new Map(allProducts.map((p) => [p.id, p]));
+    const availableByCategory = new Map<string, typeof allProducts>();
+    for (const p of allProducts) {
+      if (!p.is_available) continue;
+      const arr = availableByCategory.get(p.category_id) ?? [];
+      arr.push(p);
+      availableByCategory.set(p.category_id, arr);
+    }
+    for (const arr of availableByCategory.values()) {
+      arr.sort((a, b) => a.position - b.position);
+    }
+
+    const replaced: Array<{ from: string; to: string }> = [];
+    const missing: string[] = [];
+    let addedCount = 0;
+
+    clear();
+    for (const line of data.order_items ?? []) {
+      const original = byId.get(line.product_id);
+      const originalName = line.products?.name ?? original?.name ?? 'Article';
+      const qty = Math.max(1, line.quantity);
+      let target = original;
+
+      if (!target || !target.is_available) {
+        const sameCat = target ? availableByCategory.get(target.category_id) ?? [] : [];
+        target = sameCat[0];
+        if (target) {
+          replaced.push({ from: originalName, to: target.name });
+        } else {
+          missing.push(originalName);
+          continue;
+        }
+      }
+
+      const unitPrice = Number(target.price);
+      if (!Number.isFinite(unitPrice)) {
+        missing.push(originalName);
+        continue;
+      }
+
+      addLine({
+        productId: target.id,
+        name: target.name,
+        unitPrice,
+        quantity: qty,
+        selectedOptions: [],
+        optionSummary:
+          target.id === line.product_id
+            ? undefined
+            : [`Remplace depuis "${originalName}"`],
+        image_url: target.image_url,
+      });
+      addedCount += qty;
+    }
+
+    setReorderReport({ replaced, missing, addedCount });
+  }
+
   return (
-    <ScrollView
-      ref={scrollRef}
-      stickyHeaderIndices={[0]}
-      contentContainerStyle={styles.screen}
-      keyboardShouldPersistTaps="handled"
-    >
+    <>
+      <ScrollView
+        ref={scrollRef}
+        stickyHeaderIndices={[0]}
+        contentContainerStyle={styles.screen}
+        keyboardShouldPersistTaps="handled"
+      >
       <View style={styles.stickyHeader}>
         <OrderTrackingEtaHeader order={data} nowMs={nowMs} />
       </View>
@@ -135,7 +210,7 @@ export default function OrderTrackingScreen() {
         <View style={styles.ctaRow}>
           <Pressable
             style={({ pressed }) => [styles.ctaPrimary, pressed && styles.ctaPressed]}
-            onPress={() => router.push('/(tabs)')}
+            onPress={handleReorder}
           >
             <Text style={styles.ctaPrimaryText}>Commander à nouveau</Text>
           </Pressable>
@@ -260,10 +335,50 @@ export default function OrderTrackingScreen() {
         )}
       </WtCard>
 
-      {!isCancelled ? (
-        <Text style={styles.hint}>Mise à jour automatique lorsque le restaurant avance la commande.</Text>
-      ) : null}
-    </ScrollView>
+        {!isCancelled ? (
+          <Text style={styles.hint}>Mise à jour automatique lorsque le restaurant avance la commande.</Text>
+        ) : null}
+      </ScrollView>
+      <Modal
+        visible={reorderReport != null}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setReorderReport(null)}
+      >
+        <View style={styles.infoOverlay}>
+          <View style={styles.infoSheet}>
+            <Text style={styles.infoTitle}>Panier pre-rempli</Text>
+            <Text style={styles.infoSub}>
+              {reorderReport?.addedCount ?? 0} article{(reorderReport?.addedCount ?? 0) > 1 ? 's' : ''} ajoute
+              {reorderReport?.replaced.length || reorderReport?.missing.length ? 's' : ''}.
+            </Text>
+            {reorderReport && (reorderReport.replaced.length > 0 || reorderReport.missing.length > 0) ? (
+              <View style={styles.infoList}>
+                {reorderReport.replaced.map((r, i) => (
+                  <Text key={`rep-${i}`} style={styles.infoItem}>
+                    • {r.from} indisponible, remplace par {r.to}
+                  </Text>
+                ))}
+                {reorderReport.missing.map((name, i) => (
+                  <Text key={`mis-${i}`} style={styles.infoItem}>
+                    • {name} non disponible actuellement
+                  </Text>
+                ))}
+              </View>
+            ) : null}
+            <Pressable
+              onPress={() => {
+                setReorderReport(null);
+                router.push('/(tabs)/cart');
+              }}
+              style={({ pressed }) => [styles.infoBtn, pressed && styles.ctaPressed]}
+            >
+              <Text style={styles.infoBtnText}>Voir mon panier</Text>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
+    </>
   );
 }
 
@@ -300,7 +415,7 @@ const styles = StyleSheet.create({
   lineHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 },
   lineTitleWrap: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 10 },
   lineThumb: { width: 36, height: 36, borderRadius: 8, backgroundColor: wt.surface },
-  lineThumbPlaceholder: { width: 36, height: 36, borderRadius: 8, backgroundColor: wt.surfaceAlt },
+  lineThumbPlaceholder: { width: 36, height: 36, borderRadius: 8, backgroundColor: wt.surfaceMuted },
   lineName: { flex: 1, fontSize: 16, fontWeight: '700', color: wt.text },
   linePrice: { fontSize: 16, fontWeight: '800', color: wt.accentLight },
   lineQty: { marginTop: 4, fontSize: 13, color: wt.textMuted },
@@ -327,4 +442,30 @@ const styles = StyleSheet.create({
   },
   ctaSecondaryText: { color: wt.text, fontSize: 16, fontWeight: '700' },
   ctaPressed: { opacity: 0.88 },
+  infoOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.35)',
+    justifyContent: 'flex-end',
+  },
+  infoSheet: {
+    backgroundColor: wt.bgElevated,
+    borderTopLeftRadius: 18,
+    borderTopRightRadius: 18,
+    padding: 16,
+    borderTopWidth: 1,
+    borderTopColor: wt.border,
+  },
+  infoTitle: { fontSize: 18, fontWeight: '800', color: wt.text },
+  infoSub: { marginTop: 6, fontSize: 14, color: wt.textMuted, lineHeight: 20 },
+  infoList: { marginTop: 10, gap: 6 },
+  infoItem: { fontSize: 13, color: wt.textSecondary, lineHeight: 18 },
+  infoBtn: {
+    marginTop: 14,
+    minHeight: 50,
+    borderRadius: 12,
+    backgroundColor: wt.accent,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  infoBtnText: { color: wt.bg, fontWeight: '800', fontSize: 15 },
 });

@@ -40,6 +40,7 @@ export type OrderItemOptionInsert = Database['public']['Tables']['order_item_opt
 /** Ligne de commande avec produit et options (réponse Supabase détail). */
 export type OrderItemDetail = {
   id: string;
+  product_id: string;
   quantity: number;
   unit_price: string | number;
   products: Pick<ProductRow, 'name' | 'image_url' | 'description'> | null;

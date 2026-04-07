@@ -186,6 +186,7 @@ export async function fetchOrderById(
       addresses!orders_address_id_fkey ( label, address, city, instructions ),
       order_items (
         id,
+        product_id,
         quantity,
         unit_price,
         products!order_items_product_id_fkey ( name, image_url, description ),
