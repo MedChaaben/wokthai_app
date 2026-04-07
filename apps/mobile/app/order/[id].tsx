@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  Image,
   LayoutChangeEvent,
   Pressable,
   ScrollView,
@@ -108,23 +109,27 @@ export default function OrderTrackingScreen() {
         <OrderTrackingEtaHeader order={data} nowMs={nowMs} />
       </View>
 
-      {!isCancelled ? (
+      {!isCancelled && !isDelivered ? (
         <WtCard style={styles.progressCard}>
           <OrderProgress progress={progress} />
         </WtCard>
       ) : null}
 
-      <Text style={styles.sectionTitle}>Étapes</Text>
-      <View onLayout={onTimelineWrapperLayout}>
-        <WtCard>
-          <OrderTrackingTimeline
-            status={data.status}
-            orderType={data.type}
-            scrollViewRef={scrollRef}
-            timelineBlockY={timelineBlockY}
-          />
-        </WtCard>
-      </View>
+      {!isDelivered ? (
+        <>
+          <Text style={styles.sectionTitle}>Étapes</Text>
+          <View onLayout={onTimelineWrapperLayout}>
+            <WtCard>
+              <OrderTrackingTimeline
+                status={data.status}
+                orderType={data.type}
+                scrollViewRef={scrollRef}
+                timelineBlockY={timelineBlockY}
+              />
+            </WtCard>
+          </View>
+        </>
+      ) : null}
 
       {isDelivered ? (
         <View style={styles.ctaRow}>
@@ -218,7 +223,18 @@ export default function OrderTrackingScreen() {
           return (
             <WtCard key={line.id} style={styles.lineCard}>
               <View style={styles.lineHeader}>
-                <Text style={styles.lineName}>{name}</Text>
+                <View style={styles.lineTitleWrap}>
+                  {line.products?.image_url ? (
+                    <Image
+                      source={{ uri: line.products.image_url }}
+                      style={styles.lineThumb}
+                      resizeMode="cover"
+                    />
+                  ) : (
+                    <View style={styles.lineThumbPlaceholder} />
+                  )}
+                  <Text style={styles.lineName}>{name}</Text>
+                </View>
                 <Text style={styles.linePrice}>{fmtMoney(lineTotal)} TND</Text>
               </View>
               <Text style={styles.lineQty}>
@@ -282,6 +298,9 @@ const styles = StyleSheet.create({
   muted: { fontSize: 14, color: wt.textMuted },
   lineCard: { marginBottom: 8 },
   lineHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 },
+  lineTitleWrap: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 10 },
+  lineThumb: { width: 36, height: 36, borderRadius: 8, backgroundColor: wt.surface },
+  lineThumbPlaceholder: { width: 36, height: 36, borderRadius: 8, backgroundColor: wt.surfaceAlt },
   lineName: { flex: 1, fontSize: 16, fontWeight: '700', color: wt.text },
   linePrice: { fontSize: 16, fontWeight: '800', color: wt.accentLight },
   lineQty: { marginTop: 4, fontSize: 13, color: wt.textMuted },
