@@ -7,6 +7,7 @@ export * from './domain/store-opening-hours';
 export * from './domain/delivery';
 export * from './domain/order-line-options';
 export * from './domain/order-status';
+export { formatOrderStatusEventMessage } from './domain/order-status-feed';
 export {
   getEstimatedRemainingTime,
   getCurrentStatusEnteredAt,

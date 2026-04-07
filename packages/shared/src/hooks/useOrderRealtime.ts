@@ -10,6 +10,11 @@ export function useOrderRealtime(orderId: string | null | undefined) {
   useEffect(() => {
     if (!orderId) return;
 
+    const invalidateOrder = () => {
+      void queryClient.invalidateQueries({ queryKey: ['orders'] });
+      void queryClient.invalidateQueries({ queryKey: ['order', orderId] });
+    };
+
     const channel = client
       .channel(`order-${orderId}`)
       .on(
@@ -20,10 +25,17 @@ export function useOrderRealtime(orderId: string | null | undefined) {
           table: 'orders',
           filter: `id=eq.${orderId}`,
         },
-        () => {
-          void queryClient.invalidateQueries({ queryKey: ['orders'] });
-          void queryClient.invalidateQueries({ queryKey: ['order', orderId] });
-        }
+        invalidateOrder
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'order_status_events',
+          filter: `order_id=eq.${orderId}`,
+        },
+        invalidateOrder
       )
       .subscribe();
 

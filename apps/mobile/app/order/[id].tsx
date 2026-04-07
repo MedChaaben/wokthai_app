@@ -21,6 +21,7 @@ import {
   View,
 } from 'react-native';
 import { OrderProgress } from '../../components/OrderProgress';
+import { OrderStatusEventFeed } from '../../components/OrderStatusEventFeed';
 import { OrderTrackingEtaHeader } from '../../components/OrderTrackingEtaHeader';
 import { OrderTrackingTimeline } from '../../components/OrderTrackingTimeline';
 import { WtCard } from '../../components/WtCard';
@@ -223,6 +224,15 @@ export default function OrderTrackingScreen() {
         </WtCard>
       ) : null}
 
+      {(data.order_status_events?.length ?? 0) > 0 ? (
+        <>
+          <Text style={styles.sectionTitle}>Activité</Text>
+          <WtCard>
+            <OrderStatusEventFeed order={data} />
+          </WtCard>
+        </>
+      ) : null}
+
       {data.status === 'pending' ? (
         <WtCard>
           <Text style={styles.muted}>
@@ -390,7 +400,9 @@ export default function OrderTrackingScreen() {
       </WtCard>
 
         {!isCancelled ? (
-          <Text style={styles.hint}>Mise à jour automatique lorsque le restaurant avance la commande.</Text>
+          <Text style={styles.hint}>
+            Les heures s’affichent en temps réel lorsque le restaurant fait avancer la commande.
+          </Text>
         ) : null}
       </ScrollView>
       <Modal
