@@ -51,6 +51,18 @@ export default function CartTabScreen() {
     return out;
   }, [upsellConfig.data, products.data, lines]);
 
+  const upsellNames = useMemo(() => upsellCandidates.map((s) => s.product.name), [upsellCandidates]);
+  const upsellIntro = useMemo(() => {
+    if (upsellNames.length === 0) return '';
+    if (upsellNames.length === 1) {
+      return `Pour completer votre commande, envie d'ajouter ${upsellNames[0]} ?`;
+    }
+    if (upsellNames.length === 2) {
+      return `Pour completer votre commande, envie d'ajouter ${upsellNames[0]} ou ${upsellNames[1]} ?`;
+    }
+    return `Pour completer votre commande, envie d'ajouter ${upsellNames.slice(0, 2).join(', ')}... ?`;
+  }, [upsellNames]);
+
   function goCheckout() {
     if (upsellCandidates.length > 0 && lastUpsellCartKey !== cartFingerprint) {
       setLastUpsellCartKey(cartFingerprint);
@@ -152,14 +164,26 @@ export default function CartTabScreen() {
         <Text style={styles.dockHint}>Livraison ou retrait au choix à l’étape suivante.</Text>
       </View>
 
-      <Modal visible={upsellOpen} transparent animationType="fade" onRequestClose={() => setUpsellOpen(false)}>
+      <Modal visible={upsellOpen} transparent animationType="slide" onRequestClose={() => setUpsellOpen(false)}>
         <View style={styles.upsellOverlay}>
           <View style={styles.upsellSheet}>
-            <Text style={styles.upsellTitle}>Avant de valider</Text>
-            <Text style={styles.upsellSub}>Ajoutez une suggestion populaire pour compléter la commande.</Text>
+            <View style={styles.upsellHeader}>
+              <Text style={styles.upsellTitle}>Une petite suggestion</Text>
+              <Pressable onPress={() => setUpsellOpen(false)} hitSlop={10} style={styles.upsellCloseBtn}>
+                <Text style={styles.upsellCloseBtnText}>×</Text>
+              </Pressable>
+            </View>
+            <Text style={styles.upsellSub}>{upsellIntro}</Text>
             <View style={{ gap: 10, marginTop: 10 }}>
               {upsellCandidates.map((s) => (
                 <View key={s.id} style={styles.upsellItem}>
+                  {s.product.image_url ? (
+                    <Image source={{ uri: s.product.image_url }} style={styles.upsellThumb} resizeMode="cover" />
+                  ) : (
+                    <View style={styles.upsellThumbPlaceholder}>
+                      <Text style={styles.upsellThumbPlaceholderText}>Photo</Text>
+                    </View>
+                  )}
                   <View style={{ flex: 1 }}>
                     <Text style={styles.upsellName}>{s.product.name}</Text>
                     <Text style={styles.upsellPrice}>{Number(s.product.price).toFixed(2)} TND</Text>
@@ -185,21 +209,20 @@ export default function CartTabScreen() {
                     }}
                     style={styles.upsellAddBtn}
                   >
-                    <Text style={styles.upsellAddBtnText}>Ajouter</Text>
+                    <Text style={styles.upsellAddBtnText}>+ Ajouter</Text>
                   </Pressable>
                 </View>
               ))}
             </View>
             <View style={{ marginTop: 14, gap: 8 }}>
-              <WtButton
-                title="Continuer vers la validation"
+              <Pressable
                 onPress={() => {
                   setUpsellOpen(false);
                   router.push('/checkout');
                 }}
-              />
-              <Pressable onPress={() => setUpsellOpen(false)} style={styles.upsellSkipBtn}>
-                <Text style={styles.upsellSkipText}>Pas maintenant</Text>
+                style={({ pressed }) => [styles.upsellContinueBtn, pressed && styles.upsellContinueBtnPressed]}
+              >
+                <Text style={styles.upsellContinueBtnText}>Non merci, continuer</Text>
               </Pressable>
             </View>
           </View>
@@ -316,17 +339,31 @@ const styles = StyleSheet.create({
   emptySub: { fontSize: 15, color: wt.textMuted, textAlign: 'center', lineHeight: 22, marginBottom: 8 },
   upsellOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'center',
-    padding: 16,
+    backgroundColor: 'rgba(0,0,0,0.22)',
+    justifyContent: 'flex-end',
   },
   upsellSheet: {
-    borderRadius: 16,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
     backgroundColor: wt.bgElevated,
     padding: 16,
+    borderTopWidth: 1,
+    borderTopColor: wt.border,
   },
+  upsellHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
   upsellTitle: { fontSize: 20, fontWeight: '800', color: wt.text },
-  upsellSub: { marginTop: 4, fontSize: 13, color: wt.textMuted },
+  upsellSub: { marginTop: 6, fontSize: 14, color: wt.textMuted, lineHeight: 20 },
+  upsellCloseBtn: {
+    width: 34,
+    height: 34,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: wt.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: wt.surface,
+  },
+  upsellCloseBtnText: { fontSize: 24, lineHeight: 24, color: wt.textSecondary },
   upsellItem: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -337,15 +374,44 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 10,
   },
+  upsellThumb: {
+    width: 54,
+    height: 54,
+    borderRadius: 10,
+    backgroundColor: wt.surfaceMuted,
+  },
+  upsellThumbPlaceholder: {
+    width: 54,
+    height: 54,
+    borderRadius: 10,
+    backgroundColor: wt.surfaceMuted,
+    borderWidth: 1,
+    borderColor: wt.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  upsellThumbPlaceholderText: { fontSize: 10, color: wt.textMuted, fontWeight: '600' },
   upsellName: { fontSize: 15, fontWeight: '700', color: wt.text },
   upsellPrice: { marginTop: 2, fontSize: 13, color: wt.textMuted },
   upsellAddBtn: {
-    backgroundColor: wt.accent,
+    backgroundColor: wt.accentMuted,
+    borderWidth: 1,
+    borderColor: wt.accent,
     borderRadius: 999,
     paddingHorizontal: 12,
     paddingVertical: 8,
   },
-  upsellAddBtnText: { color: wt.bg, fontWeight: '700', fontSize: 13 },
-  upsellSkipBtn: { alignItems: 'center', paddingVertical: 6 },
-  upsellSkipText: { color: wt.textSecondary, fontSize: 13, fontWeight: '600' },
+  upsellAddBtnText: { color: wt.accentLight, fontWeight: '700', fontSize: 13 },
+  upsellContinueBtn: {
+    borderWidth: 1,
+    borderColor: wt.borderStrong,
+    backgroundColor: wt.surface,
+    borderRadius: 12,
+    minHeight: 48,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 14,
+  },
+  upsellContinueBtnPressed: { opacity: 0.85 },
+  upsellContinueBtnText: { color: wt.textSecondary, fontSize: 14, fontWeight: '700' },
 });
