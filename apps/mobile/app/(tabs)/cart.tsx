@@ -1,6 +1,8 @@
-import { View, Text, StyleSheet, Pressable, ScrollView, Image } from 'react-native';
+import { View, Text, StyleSheet, Pressable, ScrollView, Image, Modal } from 'react-native';
+import { useMemo, useState } from 'react';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useProducts, useUpsellConfig, type UpsellKind } from '@wokthai/shared';
 import { WtButton } from '../../components/WtButton';
 import { WtCard } from '../../components/WtCard';
 import { useCart } from '../../contexts/CartContext';
@@ -9,9 +11,52 @@ import { wt } from '../../lib/theme';
 export default function CartTabScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { lines, subtotal, setQuantity, removeLine } = useCart();
+  const { lines, subtotal, setQuantity, removeLine, addLine } = useCart();
+  const products = useProducts({ onlyAvailable: false });
+  const upsellConfig = useUpsellConfig();
+  const [upsellOpen, setUpsellOpen] = useState(false);
+  const [lastUpsellCartKey, setLastUpsellCartKey] = useState<string | null>(null);
+
+  const cartFingerprint = useMemo(
+    () =>
+      lines
+        .map((l) => `${l.lineKey}:${l.quantity}`)
+        .sort()
+        .join('|'),
+    [lines]
+  );
+
+  const upsellCandidates = useMemo(() => {
+    const categoriesByKind = upsellConfig.data?.categoriesByKind;
+    const suggestions = upsellConfig.data?.suggestions ?? [];
+    if (!categoriesByKind) return [];
+
+    const byProductId = new Map((products.data ?? []).map((p) => [p.id, p]));
+    const cartCategoryIds = new Set<string>();
+    for (const line of lines) {
+      const p = byProductId.get(line.productId);
+      if (p) cartCategoryIds.add(p.category_id);
+    }
+
+    const kinds: UpsellKind[] = ['drink', 'starter'];
+    const out: (typeof suggestions)[number][] = [];
+    for (const kind of kinds) {
+      const kindCategoryIds = categoriesByKind[kind] ?? [];
+      if (kindCategoryIds.length === 0) continue;
+      const hasKindInCart = kindCategoryIds.some((cid) => cartCategoryIds.has(cid));
+      if (hasKindInCart) continue;
+      const suggestion = suggestions.find((s) => s.kind === kind && s.is_active && s.product.is_available);
+      if (suggestion) out.push(suggestion);
+    }
+    return out;
+  }, [upsellConfig.data, products.data, lines]);
 
   function goCheckout() {
+    if (upsellCandidates.length > 0 && lastUpsellCartKey !== cartFingerprint) {
+      setLastUpsellCartKey(cartFingerprint);
+      setUpsellOpen(true);
+      return;
+    }
     router.push('/checkout');
   }
 
@@ -106,6 +151,60 @@ export default function CartTabScreen() {
         <WtButton title="Commander" onPress={() => void goCheckout()} />
         <Text style={styles.dockHint}>Livraison ou retrait au choix à l’étape suivante.</Text>
       </View>
+
+      <Modal visible={upsellOpen} transparent animationType="fade" onRequestClose={() => setUpsellOpen(false)}>
+        <View style={styles.upsellOverlay}>
+          <View style={styles.upsellSheet}>
+            <Text style={styles.upsellTitle}>Avant de valider</Text>
+            <Text style={styles.upsellSub}>Ajoutez une suggestion populaire pour compléter la commande.</Text>
+            <View style={{ gap: 10, marginTop: 10 }}>
+              {upsellCandidates.map((s) => (
+                <View key={s.id} style={styles.upsellItem}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.upsellName}>{s.product.name}</Text>
+                    <Text style={styles.upsellPrice}>{Number(s.product.price).toFixed(2)} TND</Text>
+                  </View>
+                  <Pressable
+                    onPress={() => {
+                      const unitPrice = Number(s.product.price);
+                      if (!Number.isFinite(unitPrice)) return;
+                      const optionSummary =
+                        s.kind === 'drink'
+                          ? ['Suggestion boisson']
+                          : ['Suggestion entree'];
+                      // Ajout rapide sans personnalisation: produit suggere uniquement.
+                      addLine({
+                        productId: s.product.id,
+                        name: s.product.name,
+                        unitPrice,
+                        quantity: 1,
+                        selectedOptions: [],
+                        optionSummary,
+                        image_url: s.product.image_url,
+                      });
+                    }}
+                    style={styles.upsellAddBtn}
+                  >
+                    <Text style={styles.upsellAddBtnText}>Ajouter</Text>
+                  </Pressable>
+                </View>
+              ))}
+            </View>
+            <View style={{ marginTop: 14, gap: 8 }}>
+              <WtButton
+                title="Continuer vers la validation"
+                onPress={() => {
+                  setUpsellOpen(false);
+                  router.push('/checkout');
+                }}
+              />
+              <Pressable onPress={() => setUpsellOpen(false)} style={styles.upsellSkipBtn}>
+                <Text style={styles.upsellSkipText}>Pas maintenant</Text>
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -215,4 +314,38 @@ const styles = StyleSheet.create({
   emptyEmoji: { fontSize: 56, textAlign: 'center', marginBottom: 8 },
   emptyTitle: { fontSize: 22, fontWeight: '800', textAlign: 'center', color: wt.text },
   emptySub: { fontSize: 15, color: wt.textMuted, textAlign: 'center', lineHeight: 22, marginBottom: 8 },
+  upsellOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    padding: 16,
+  },
+  upsellSheet: {
+    borderRadius: 16,
+    backgroundColor: wt.bgElevated,
+    padding: 16,
+  },
+  upsellTitle: { fontSize: 20, fontWeight: '800', color: wt.text },
+  upsellSub: { marginTop: 4, fontSize: 13, color: wt.textMuted },
+  upsellItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    backgroundColor: wt.surface,
+    borderWidth: 1,
+    borderColor: wt.border,
+    borderRadius: 12,
+    padding: 10,
+  },
+  upsellName: { fontSize: 15, fontWeight: '700', color: wt.text },
+  upsellPrice: { marginTop: 2, fontSize: 13, color: wt.textMuted },
+  upsellAddBtn: {
+    backgroundColor: wt.accent,
+    borderRadius: 999,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  upsellAddBtnText: { color: wt.bg, fontWeight: '700', fontSize: 13 },
+  upsellSkipBtn: { alignItems: 'center', paddingVertical: 6 },
+  upsellSkipText: { color: wt.textSecondary, fontSize: 13, fontWeight: '600' },
 });

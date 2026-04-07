@@ -15,6 +15,7 @@ import { CategoryMenuManager } from "../../../components/CategoryMenuManager";
 import { Modal } from "../../../components/Modal";
 import { ProductOptionsEditor } from "../../../components/ProductOptionsEditor";
 import { CustomizationPresetCatalogSection } from "../../../components/CustomizationPresetCatalogSection";
+import { UpsellSuggestionsSection } from "../../../components/UpsellSuggestionsSection";
 
 /** Alignée sur la page Commandes : compense le padding du <main>, z-20 au-dessus de la liste. */
 const CATEGORY_PILLS_STICKY =
@@ -29,6 +30,7 @@ export default function ProductsPage() {
   const [activeCategoryId, setActiveCategoryId] = useState<string | null>(null);
   const [menuTabsOpen, setMenuTabsOpen] = useState(false);
   const [presetsCatalogOpen, setPresetsCatalogOpen] = useState(false);
+  const [upsellOpen, setUpsellOpen] = useState(false);
   const [showCreateForm, setShowCreateForm] = useState(false);
 
   const [name, setName] = useState("");
@@ -184,6 +186,32 @@ export default function ProductsPage() {
         </summary>
         <div className="border-t border-stone-200/90 px-4 pb-5 pt-2 dark:border-zinc-800 sm:px-5">
           <CategoryMenuManager />
+        </div>
+      </details>
+
+      <details
+        id="upsell-suggestions"
+        open={upsellOpen}
+        onToggle={(e) => setUpsellOpen((e.target as HTMLDetailsElement).open)}
+        className="group mt-6 rounded-2xl border border-stone-200/90 bg-stone-50/80 dark:border-zinc-800 dark:bg-zinc-950/40"
+      >
+        <summary className="cursor-pointer list-none px-4 py-3 sm:px-5 [&::-webkit-details-marker]:hidden">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wider text-stone-500 dark:text-zinc-500">
+                Boost ventes
+              </p>
+              <p className="mt-0.5 text-base font-bold text-zinc-900 dark:text-zinc-100">
+                Suggestions avant validation (boissons / entrées)
+              </p>
+            </div>
+            <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-stone-600 shadow-sm ring-1 ring-stone-200/80 dark:bg-zinc-900 dark:text-zinc-400 dark:ring-zinc-700">
+              {upsellOpen ? "Masquer" : "Afficher"}
+            </span>
+          </div>
+        </summary>
+        <div className="border-t border-stone-200/90 px-4 pb-5 pt-2 dark:border-zinc-800 sm:px-5">
+          <UpsellSuggestionsSection />
         </div>
       </details>
 

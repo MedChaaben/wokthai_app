@@ -12,6 +12,7 @@ export type OrderStatusEnum =
 export type PaymentStatusEnum = 'unpaid' | 'paid_on_delivery';
 export type StaffRoleEnum = 'store' | 'platform_admin';
 export type AnnouncementTypeEnum = 'info' | 'warning' | 'promo' | 'important';
+export type UpsellKindEnum = 'drink' | 'starter';
 
 export type Database = {
   public: {
@@ -223,6 +224,24 @@ export type Database = {
         Update: { id?: string; name?: string; position?: number };
         Relationships: [];
       };
+      upsell_kind_categories: {
+        Row: {
+          kind: UpsellKindEnum;
+          category_id: string;
+          created_at: string;
+        };
+        Insert: {
+          kind: UpsellKindEnum;
+          category_id: string;
+          created_at?: string;
+        };
+        Update: {
+          kind?: UpsellKindEnum;
+          category_id?: string;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
       products: {
         Row: {
           id: string;
@@ -253,6 +272,33 @@ export type Database = {
           image_url?: string | null;
           is_available?: boolean;
           position?: number;
+        };
+        Relationships: [];
+      };
+      upsell_suggestions: {
+        Row: {
+          id: string;
+          kind: UpsellKindEnum;
+          product_id: string;
+          position: number;
+          is_active: boolean;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          kind: UpsellKindEnum;
+          product_id: string;
+          position?: number;
+          is_active?: boolean;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          kind?: UpsellKindEnum;
+          product_id?: string;
+          position?: number;
+          is_active?: boolean;
+          created_at?: string;
         };
         Relationships: [];
       };
@@ -612,6 +658,7 @@ export type Database = {
     };
     Enums: {
       announcement_type: AnnouncementTypeEnum;
+      upsell_kind: UpsellKindEnum;
       order_type: OrderTypeEnum;
       order_status: OrderStatusEnum;
       payment_status: PaymentStatusEnum;

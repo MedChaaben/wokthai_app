@@ -1,6 +1,6 @@
 import type { Database } from './database';
 
-export type { Database, StaffRoleEnum } from './database';
+export type { Database, StaffRoleEnum, UpsellKindEnum } from './database';
 
 export type UserRow = Database['public']['Tables']['users']['Row'];
 export type AddressRow = Database['public']['Tables']['addresses']['Row'];
@@ -23,8 +23,10 @@ export type AnnouncementUpdate = Database['public']['Tables']['announcements']['
 export type AnnouncementType = Database['public']['Enums']['announcement_type'];
 export type CategoryRow = Database['public']['Tables']['categories']['Row'];
 export type CategoryInsert = Database['public']['Tables']['categories']['Insert'];
+export type UpsellKindCategoryRow = Database['public']['Tables']['upsell_kind_categories']['Row'];
 export type ProductRow = Database['public']['Tables']['products']['Row'];
 export type ProductInsert = Database['public']['Tables']['products']['Insert'];
+export type UpsellSuggestionRow = Database['public']['Tables']['upsell_suggestions']['Row'];
 export type DeliveryZoneRow = Database['public']['Tables']['delivery_zones']['Row'];
 export type OrderRow = Database['public']['Tables']['orders']['Row'];
 export type OrderInsert = Database['public']['Tables']['orders']['Insert'];
@@ -74,6 +76,7 @@ export type OrderStatus = Database['public']['Enums']['order_status'];
 export type PaymentStatus = Database['public']['Enums']['payment_status'];
 
 export type AllowedCity = 'Tunis' | 'Ariana';
+export type UpsellKind = Database['public']['Enums']['upsell_kind'];
 
 /** Choix d’options pour une ligne (ids issus de la base au moment de la commande). */
 export type OrderLineOptionChoice = {
