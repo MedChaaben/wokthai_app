@@ -6,6 +6,8 @@ import {
   useState,
   type ReactNode,
 } from 'react';
+import { Platform } from 'react-native';
+import * as Haptics from 'expo-haptics';
 import type { CartLine } from '@wokthai/shared';
 import { buildCartLineKey } from '@wokthai/shared';
 
@@ -21,6 +23,19 @@ type CartContextValue = {
 };
 
 const CartContext = createContext<CartContextValue | null>(null);
+
+function triggerCartHaptic(kind: 'add' | 'remove') {
+  if (Platform.OS === 'web') return;
+  try {
+    if (kind === 'add') {
+      void Haptics.selectionAsync();
+      return;
+    }
+    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+  } catch {
+    // Ignore haptics failures to keep cart actions reliable.
+  }
+}
 
 export function CartProvider({ children }: { children: ReactNode }) {
   const [lines, setLines] = useState<CartLine[]>([]);
@@ -47,17 +62,32 @@ export function CartProvider({ children }: { children: ReactNode }) {
       next[i] = { ...cur, quantity: cur.quantity + q };
       return next;
     });
+    triggerCartHaptic('add');
   }, []);
 
   const setQuantity = useCallback((lineKey: string, quantity: number) => {
     setLines((prev) => {
-      if (quantity <= 0) return prev.filter((p) => p.lineKey !== lineKey);
+      const current = prev.find((p) => p.lineKey === lineKey);
+      if (!current) return prev;
+      if (quantity <= 0) {
+        triggerCartHaptic('remove');
+        return prev.filter((p) => p.lineKey !== lineKey);
+      }
+      if (quantity < current.quantity) {
+        triggerCartHaptic('remove');
+      } else if (quantity > current.quantity) {
+        triggerCartHaptic('add');
+      }
       return prev.map((p) => (p.lineKey === lineKey ? { ...p, quantity } : p));
     });
   }, []);
 
   const removeLine = useCallback((lineKey: string) => {
-    setLines((prev) => prev.filter((p) => p.lineKey !== lineKey));
+    setLines((prev) => {
+      const exists = prev.some((p) => p.lineKey === lineKey);
+      if (exists) triggerCartHaptic('remove');
+      return prev.filter((p) => p.lineKey !== lineKey);
+    });
   }, []);
 
   const clear = useCallback(() => setLines([]), []);
