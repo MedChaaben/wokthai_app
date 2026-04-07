@@ -8,9 +8,11 @@ import {
   Pressable,
   Alert,
   ActivityIndicator,
+  Image,
 } from 'react-native';
 import type { Session } from '@supabase/supabase-js';
 import { useRouter } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   useCreateOrder,
   useMyAddresses,
@@ -40,6 +42,7 @@ function digitsLen(s: string): number {
 
 export default function CheckoutScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const supabase = useSupabase();
   const { lines, subtotal, clear } = useCart();
   const addresses = useMyAddresses();
@@ -220,6 +223,8 @@ export default function CheckoutScreen() {
     hasSession && orderType === 'delivery' && (orderCount.data ?? 0) === 0 && deliveryEnabled;
   const deliveryFee = orderType === 'delivery' && isFirstOrderFree ? 0 : rawDeliveryFee;
   const grandTotal = subtotal + (orderType === 'delivery' ? deliveryFee : 0);
+  const itemCount = lines.reduce((sum, l) => sum + l.quantity, 0);
+  const recapThumbs = lines.slice(0, 4);
 
   if (session === undefined) {
     return (
@@ -235,7 +240,15 @@ export default function CheckoutScreen() {
   }
 
   return (
-    <ScrollView contentContainerStyle={styles.screen}>
+    <View style={styles.root}>
+      <ScrollView contentContainerStyle={styles.screen}>
+      <View style={styles.hero}>
+        <Text style={styles.heroEyebrow}>Validation de commande</Text>
+        <Text style={styles.heroTitle}>Paiement et livraison</Text>
+        <Text style={styles.heroSub}>
+          Vérifiez vos informations, choisissez le mode de réception, puis confirmez en toute confiance.
+        </Text>
+      </View>
       {!hasSession ? (
         <WtCard style={styles.promoCard}>
           <Text style={styles.promoTitle}>Créez un compte ou connectez-vous</Text>
@@ -271,7 +284,7 @@ export default function CheckoutScreen() {
         </>
       ) : null}
 
-      <Text style={styles.heading}>Point de vente</Text>
+      <Text style={styles.heading}>1. Point de vente</Text>
       {stores.isLoading ? (
         <ActivityIndicator color={wt.accent} />
       ) : (stores.data ?? []).length === 0 ? (
@@ -306,7 +319,7 @@ export default function CheckoutScreen() {
         })
       )}
 
-      <Text style={styles.heading}>Type</Text>
+      <Text style={styles.heading}>2. Mode de réception</Text>
       {!deliveryEnabled ? (
         <Text style={styles.deliveryOffHint}>
           Livraison momentanément indisponible pour ce point de vente — retrait sur place uniquement.
@@ -347,14 +360,14 @@ export default function CheckoutScreen() {
         </Pressable>
       </View>
 
-      <Text style={styles.heading}>Paiement</Text>
+      <Text style={styles.heading}>3. Paiement</Text>
       <Text style={styles.body}>
-        Paiement en espèces à la livraison ou sur place (à l’enlèvement).
+        Paiement en espèces à la livraison ou sur place. Le montant final est affiché dans le récapitulatif.
       </Text>
 
       {orderType === 'delivery' ? (
         <>
-          <Text style={styles.heading}>Adresse</Text>
+          <Text style={styles.heading}>4. Adresse de livraison</Text>
           {hasSession ? (
             <>
               {addresses.isLoading ? <ActivityIndicator color={wt.accent} /> : null}
@@ -481,7 +494,7 @@ export default function CheckoutScreen() {
         </WtCard>
       )}
 
-      <Text style={styles.heading}>Notes</Text>
+      <Text style={styles.heading}>5. Notes de commande</Text>
       <TextInput
         placeholder="Instructions pour le restaurant / livreur"
         placeholderTextColor={wt.placeholder}
@@ -491,31 +504,7 @@ export default function CheckoutScreen() {
         style={[styles.input, { minHeight: 80 }]}
       />
 
-      <WtCard>
-        <Text style={styles.total}>Articles : {subtotal.toFixed(2)} TND</Text>
-        {orderType === 'delivery' ? (
-          <>
-            {isFirstOrderFree && rawDeliveryFee > 0 ? (
-              <>
-                <Text style={styles.feeStruck}>Livraison : {rawDeliveryFee.toFixed(2)} TND</Text>
-                <Text style={styles.feePromo}>Livraison : 0,00 TND (offerte — 1re commande)</Text>
-              </>
-            ) : (
-              <Text style={styles.feeLine}>Livraison : {deliveryFee.toFixed(2)} TND</Text>
-            )}
-            <Text style={styles.total}>Total : {grandTotal.toFixed(2)} TND</Text>
-          </>
-        ) : null}
-        {orderType === 'pickup' ? (
-          <Text style={styles.hint}>Pas de frais de livraison (à emporter).</Text>
-        ) : null}
-      </WtCard>
-
-      <WtButton
-        title="Valider la commande"
-        loading={createOrder.isPending}
-        onPress={() => void submitOrder()}
-      />
+      <View style={styles.bottomSpacer} />
 
       <MapAddressPickerModal
         visible={mapPickerVisible}
@@ -541,13 +530,98 @@ export default function CheckoutScreen() {
           setMapPickerForGuest(false);
         }}
       />
-    </ScrollView>
+      </ScrollView>
+
+      <View style={[styles.checkoutDock, { paddingBottom: Math.max(insets.bottom, 14) }]}>
+        <View style={styles.recapHeader}>
+          <Text style={styles.recapTitle}>Récapitulatif</Text>
+          <Text style={styles.recapCount}>
+            {itemCount} article{itemCount > 1 ? 's' : ''}
+          </Text>
+        </View>
+        <View style={styles.recapThumbRow}>
+          {recapThumbs.map((item) =>
+            item.image_url ? (
+              <Image key={item.lineKey} source={{ uri: item.image_url }} style={styles.recapThumb} resizeMode="cover" />
+            ) : (
+              <View key={item.lineKey} style={styles.recapThumbPlaceholder}>
+                <Text style={styles.recapThumbPlaceholderText}>Photo</Text>
+              </View>
+            )
+          )}
+          {lines.length > 4 ? (
+            <View style={styles.recapMoreBadge}>
+              <Text style={styles.recapMoreText}>+{lines.length - 4}</Text>
+            </View>
+          ) : null}
+        </View>
+
+        <View style={styles.recapPanel}>
+          <View style={styles.recapLine}>
+            <Text style={styles.recapLabel}>Articles</Text>
+            <Text style={styles.recapValue}>{subtotal.toFixed(2)} TND</Text>
+          </View>
+          {orderType === 'delivery' ? (
+            isFirstOrderFree && rawDeliveryFee > 0 ? (
+              <>
+                <View style={styles.recapLine}>
+                  <Text style={[styles.recapLabel, styles.recapStruck]}>
+                    Livraison ({rawDeliveryFee.toFixed(2)} TND)
+                  </Text>
+                  <Text style={styles.recapPromo}>Offerte</Text>
+                </View>
+              </>
+            ) : (
+              <View style={styles.recapLine}>
+                <Text style={styles.recapLabel}>Livraison</Text>
+                <Text style={styles.recapValue}>{deliveryFee.toFixed(2)} TND</Text>
+              </View>
+            )
+          ) : (
+            <View style={styles.recapLine}>
+              <Text style={styles.recapLabel}>Livraison</Text>
+              <Text style={styles.recapValue}>0.00 TND</Text>
+            </View>
+          )}
+          <View style={styles.recapDivider} />
+          <View style={styles.recapLine}>
+            <Text style={styles.recapTotalLabel}>Total</Text>
+            <Text style={styles.recapTotalValue}>{grandTotal.toFixed(2)} TND</Text>
+          </View>
+        </View>
+
+        <WtButton
+          title="Valider la commande"
+          loading={createOrder.isPending}
+          onPress={() => void submitOrder()}
+        />
+        <Text style={styles.checkoutTrust}>Paiement sécurisé à la réception · Confirmation immédiate</Text>
+      </View>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  root: { flex: 1, backgroundColor: wt.bg },
   authWait: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: wt.bg },
-  screen: { padding: 16, paddingBottom: 40, gap: 12, backgroundColor: wt.bg },
+  screen: { padding: 16, paddingBottom: 300, gap: 12, backgroundColor: wt.bg },
+  hero: {
+    padding: 14,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: wt.border,
+    backgroundColor: wt.bgElevated,
+    gap: 4,
+  },
+  heroEyebrow: {
+    fontSize: 12,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    color: wt.accentLight,
+    fontWeight: '700',
+  },
+  heroTitle: { fontSize: 24, color: wt.text, fontWeight: '800' },
+  heroSub: { fontSize: 13, lineHeight: 18, color: wt.textMuted },
   heading: { fontSize: 16, fontWeight: '800', color: wt.text, marginTop: 8 },
   promoCard: { gap: 8, paddingVertical: 14 },
   promoTitle: { fontSize: 15, fontWeight: '800', color: wt.text },
@@ -657,4 +731,64 @@ const styles = StyleSheet.create({
     textDecorationLine: 'line-through',
   },
   feePromo: { marginTop: 4, fontSize: 15, fontWeight: '700', color: wt.accentLight },
+  bottomSpacer: { height: 8 },
+  checkoutDock: {
+    borderTopWidth: 1,
+    borderTopColor: wt.borderStrong,
+    backgroundColor: wt.bgElevated,
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    gap: 10,
+    shadowColor: '#000',
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: -4 },
+    elevation: 16,
+  },
+  recapHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  recapTitle: { fontSize: 14, color: wt.text, fontWeight: '700' },
+  recapCount: { fontSize: 12, color: wt.textMuted, fontWeight: '600' },
+  recapThumbRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  recapThumb: { width: 34, height: 34, borderRadius: 8, backgroundColor: wt.surfaceMuted },
+  recapThumbPlaceholder: {
+    width: 34,
+    height: 34,
+    borderRadius: 8,
+    backgroundColor: wt.surfaceMuted,
+    borderWidth: 1,
+    borderColor: wt.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  recapThumbPlaceholderText: { fontSize: 7, color: wt.textMuted, fontWeight: '700' },
+  recapMoreBadge: {
+    minWidth: 34,
+    height: 34,
+    borderRadius: 8,
+    backgroundColor: wt.surface,
+    borderWidth: 1,
+    borderColor: wt.borderStrong,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 6,
+  },
+  recapMoreText: { fontSize: 12, color: wt.text, fontWeight: '700' },
+  recapPanel: {
+    borderWidth: 1,
+    borderColor: wt.border,
+    backgroundColor: wt.surface,
+    borderRadius: 12,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    gap: 7,
+  },
+  recapLine: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 10 },
+  recapLabel: { fontSize: 13, color: wt.textMuted, fontWeight: '500' },
+  recapValue: { fontSize: 13, color: wt.text, fontWeight: '700' },
+  recapPromo: { fontSize: 13, color: wt.accentLight, fontWeight: '700' },
+  recapStruck: { textDecorationLine: 'line-through', color: wt.textSecondary },
+  recapDivider: { height: 1, backgroundColor: wt.border },
+  recapTotalLabel: { fontSize: 15, color: wt.text, fontWeight: '800' },
+  recapTotalValue: { fontSize: 18, color: wt.text, fontWeight: '800' },
+  checkoutTrust: { fontSize: 11, color: wt.textSecondary, textAlign: 'center', lineHeight: 15 },
 });

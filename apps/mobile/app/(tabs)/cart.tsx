@@ -73,8 +73,6 @@ export default function CartTabScreen() {
   }
 
   const articleCount = lines.reduce((s, l) => s + l.quantity, 0);
-  const totalBeforeDelivery = subtotal;
-  const recapThumbs = lines.slice(0, 4);
 
   if (lines.length === 0) {
     return (
@@ -163,48 +161,12 @@ export default function CartTabScreen() {
       </ScrollView>
 
       <View style={[styles.checkoutDock, { paddingBottom: Math.max(insets.bottom, 14) }]}>
-        <View style={styles.recapTopRow}>
-          <Text style={styles.recapTitle}>Récapitulatif</Text>
-          <Text style={styles.recapCount}>
-            {articleCount} article{articleCount > 1 ? 's' : ''}
-          </Text>
-        </View>
-        <View style={styles.recapThumbRow}>
-          {recapThumbs.map((item) =>
-            item.image_url ? (
-              <Image key={item.lineKey} source={{ uri: item.image_url }} style={styles.recapThumb} resizeMode="cover" />
-            ) : (
-              <View key={item.lineKey} style={styles.recapThumbPlaceholder}>
-                <Text style={styles.recapThumbPlaceholderText}>Photo</Text>
-              </View>
-            )
-          )}
-          {lines.length > 4 ? (
-            <View style={styles.recapMoreBadge}>
-              <Text style={styles.recapMoreText}>+{lines.length - 4}</Text>
-            </View>
-          ) : null}
-        </View>
-        <View style={styles.recapList}>
-          {lines.slice(0, 3).map((item) => (
-            <View key={item.lineKey} style={styles.recapItemRow}>
-              <Text numberOfLines={1} style={styles.recapItemName}>
-                {item.name}
-              </Text>
-              <Text style={styles.recapItemMeta}>x{item.quantity}</Text>
-              <Text style={styles.recapItemPrice}>{(item.unitPrice * item.quantity).toFixed(2)} TND</Text>
-            </View>
-          ))}
-          {lines.length > 3 ? (
-            <Text style={styles.recapExtraLine}>+ {lines.length - 3} autre{lines.length - 3 > 1 ? 's' : ''} article(s)</Text>
-          ) : null}
-        </View>
         <View style={styles.totalRow}>
-          <Text style={styles.totalLabel}>Total estimé</Text>
-          <Text style={styles.totalValue}>{totalBeforeDelivery.toFixed(2)} TND</Text>
+          <Text style={styles.totalLabel}>Sous-total</Text>
+          <Text style={styles.totalValue}>{subtotal.toFixed(2)} TND</Text>
         </View>
         <WtButton title="Commander" onPress={() => void goCheckout()} />
-        <Text style={styles.dockHint}>Paiement sécurisé · Livraison ou retrait à l’étape suivante.</Text>
+        <Text style={styles.dockHint}>Livraison ou retrait au choix à l’étape suivante.</Text>
       </View>
 
       <Modal visible={upsellOpen} transparent animationType="slide" onRequestClose={() => setUpsellOpen(false)}>
@@ -278,7 +240,7 @@ export default function CartTabScreen() {
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: wt.bg },
   scrollView: { flex: 1 },
-  scroll: { padding: 16, paddingBottom: 300, gap: 12 },
+  scroll: { padding: 16, paddingBottom: 12, gap: 12 },
   headerBlock: {
     padding: 14,
     borderWidth: 1,
@@ -363,12 +325,12 @@ const styles = StyleSheet.create({
   },
   qty: { fontSize: 16, fontWeight: '800', minWidth: 24, textAlign: 'center', color: wt.text },
   checkoutDock: {
-    borderTopWidth: 1,
-    borderTopColor: wt.borderStrong,
+    borderTopWidth: 2,
+    borderTopColor: wt.accent,
     backgroundColor: wt.bgElevated,
     paddingHorizontal: 16,
-    paddingTop: 12,
-    gap: 10,
+    paddingTop: 14,
+    gap: 12,
     shadowColor: '#000',
     shadowOpacity: 0.25,
     shadowRadius: 10,
@@ -378,54 +340,11 @@ const styles = StyleSheet.create({
   totalRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    marginTop: 2,
+    alignItems: 'baseline',
   },
-  totalLabel: { fontSize: 14, fontWeight: '600', color: wt.textMuted },
-  totalValue: { fontSize: 24, fontWeight: '800', color: wt.text },
-  recapTopRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  recapTitle: { fontSize: 14, color: wt.text, fontWeight: '700' },
-  recapCount: { fontSize: 12, color: wt.textMuted, fontWeight: '600' },
-  recapThumbRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  recapThumb: { width: 34, height: 34, borderRadius: 8, backgroundColor: wt.surfaceMuted },
-  recapThumbPlaceholder: {
-    width: 34,
-    height: 34,
-    borderRadius: 8,
-    backgroundColor: wt.surfaceMuted,
-    borderWidth: 1,
-    borderColor: wt.border,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  recapThumbPlaceholderText: { fontSize: 7, color: wt.textMuted, fontWeight: '700' },
-  recapMoreBadge: {
-    minWidth: 34,
-    height: 34,
-    borderRadius: 8,
-    backgroundColor: wt.surface,
-    borderWidth: 1,
-    borderColor: wt.borderStrong,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 6,
-  },
-  recapMoreText: { fontSize: 12, color: wt.text, fontWeight: '700' },
-  recapList: {
-    borderWidth: 1,
-    borderColor: wt.border,
-    backgroundColor: wt.surface,
-    borderRadius: 12,
-    paddingHorizontal: 10,
-    paddingVertical: 8,
-    gap: 6,
-  },
-  recapItemRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  recapItemName: { flex: 1, fontSize: 13, color: wt.text, fontWeight: '600' },
-  recapItemMeta: { fontSize: 12, color: wt.textMuted, minWidth: 28, textAlign: 'right' },
-  recapItemPrice: { fontSize: 13, color: wt.text, fontWeight: '700', minWidth: 74, textAlign: 'right' },
-  recapExtraLine: { fontSize: 12, color: wt.textSecondary },
-  dockHint: { fontSize: 11, color: wt.textSecondary, textAlign: 'center', lineHeight: 15 },
+  totalLabel: { fontSize: 15, fontWeight: '600', color: wt.textMuted },
+  totalValue: { fontSize: 22, fontWeight: '800', color: wt.text },
+  dockHint: { fontSize: 12, color: wt.textSecondary, textAlign: 'center', lineHeight: 16 },
   emptyRoot: {
     flex: 1,
     justifyContent: 'center',
