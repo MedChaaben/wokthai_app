@@ -94,9 +94,6 @@ export function MapAddressPickerModal({
             </Text>
           </View>
           <View style={styles.fallbackBody}>
-            <Text style={styles.coordsLine}>
-              {coord.latitude.toFixed(5)}, {coord.longitude.toFixed(5)}
-            </Text>
             <WtButton title="Utiliser ma position" onPress={() => void centerOnMyLocation()} />
             <WtButton
               title="Valider cette position"
@@ -145,11 +142,6 @@ export function MapAddressPickerModal({
             }}
           />
         </MapView>
-        <View style={styles.coordPill}>
-          <Text style={styles.coordPillText}>
-            {coord.latitude.toFixed(5)}, {coord.longitude.toFixed(5)}
-          </Text>
-        </View>
         <View style={styles.actions}>
           <WtButton title="Ma position" variant="ghost" style={styles.btnCompact} onPress={() => void centerOnMyLocation()} />
           <WtButton
@@ -181,19 +173,7 @@ const styles = StyleSheet.create({
   subtitle: { fontSize: 14, color: wt.textMuted, lineHeight: 20 },
   subtitle2: { fontSize: 13, color: wt.textSecondary, lineHeight: 18 },
   map: { flex: 1, marginHorizontal: 12, borderRadius: 12, overflow: 'hidden' },
-  coordPill: {
-    alignSelf: 'center',
-    marginTop: 10,
-    borderWidth: 1,
-    borderColor: wt.borderStrong,
-    backgroundColor: wt.surfaceMuted,
-    borderRadius: 999,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-  },
-  coordPillText: { fontSize: 12, color: wt.textSecondary, fontVariant: ['tabular-nums'] },
   actions: { padding: 16, gap: 8 },
   btnCompact: { minHeight: 42, paddingVertical: 10, borderRadius: 10 },
   fallbackBody: { flex: 1, padding: 16, gap: 12, justifyContent: 'center' },
-  coordsLine: { fontSize: 15, color: wt.text, textAlign: 'center', fontVariant: ['tabular-nums'] },
 });

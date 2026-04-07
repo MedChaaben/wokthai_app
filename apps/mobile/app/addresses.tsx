@@ -27,6 +27,7 @@ import { MapAddressPickerModal } from '../components/MapAddressPickerModal';
 import { WtButton } from '../components/WtButton';
 import { WtCard } from '../components/WtCard';
 import { useRequireSession } from '../hooks/useRequireSession';
+import { isValidMapCoords } from '../lib/mapRegion';
 import { wt } from '../lib/theme';
 
 const CITIES: AllowedCity[] = ['Tunis', 'Ariana'];
@@ -91,10 +92,12 @@ export default function AddressesScreen() {
       Alert.alert('Champs requis', 'Libellé et adresse sont obligatoires.');
       return;
     }
-    if (lat == null || lng == null) {
+    if (!isValidMapCoords(lat, lng)) {
       Alert.alert('Position', 'Appuyez sur « Choisir sur la carte » pour indiquer où livrer.');
       return;
     }
+    const latSave = lat as number;
+    const lngSave = lng as number;
     const instr = instructions.trim() ? instructions.trim() : null;
     setSavingAddress(true);
     try {
@@ -103,8 +106,8 @@ export default function AddressesScreen() {
           label: label.trim(),
           address: addressLine.trim(),
           city,
-          lat,
-          lng,
+          lat: latSave,
+          lng: lngSave,
           instructions: instr,
         });
         Alert.alert('Adresse mise à jour', 'Les modifications ont été enregistrées.');
@@ -113,8 +116,8 @@ export default function AddressesScreen() {
           label: label.trim(),
           address: addressLine.trim(),
           city,
-          lat,
-          lng,
+          lat: latSave,
+          lng: lngSave,
           instructions: instr,
         });
         Alert.alert('Adresse enregistrée', 'Vous pouvez l’utiliser lors de vos commandes.');
@@ -208,9 +211,6 @@ export default function AddressesScreen() {
                   <Text style={styles.cityPill}>{a.city}</Text>
                 </View>
                 <Text style={styles.addrMeta}>{a.address}</Text>
-                <Text style={styles.coordsMuted}>
-                  {a.lat.toFixed(5)}, {a.lng.toFixed(5)}
-                </Text>
                 {a.instructions ? <Text style={styles.instructions}>Note : {a.instructions}</Text> : null}
                 <AddressCardActions
                   onEdit={() => startEdit(a)}
@@ -294,9 +294,9 @@ export default function AddressesScreen() {
                 >
                   <Text style={styles.mapBtnText}>Choisir sur la carte</Text>
                 </Pressable>
-                <Text style={[styles.coords, lat != null && lng != null ? styles.coordsOk : null]}>
-                  {lat != null && lng != null
-                    ? `Point enregistré · ${lat.toFixed(5)}, ${lng.toFixed(5)}`
+                <Text style={[styles.coords, isValidMapCoords(lat, lng) ? styles.coordsOk : null]}>
+                  {isValidMapCoords(lat, lng)
+                    ? 'Position enregistrée sur la carte'
                     : 'À faire : ouvrir la carte et valider la position'}
                 </Text>
               </View>
@@ -492,7 +492,6 @@ const styles = StyleSheet.create({
   },
   addrMeta: { marginTop: 7, color: wt.textMuted, lineHeight: 21 },
   addrMiniMap: { marginTop: 0 },
-  coordsMuted: { marginTop: 4, fontSize: 12, color: wt.textSecondary },
   instructions: { marginTop: 7, fontSize: 13, color: wt.textSecondary, fontStyle: 'italic', lineHeight: 19 },
   input: {
     borderWidth: 1,

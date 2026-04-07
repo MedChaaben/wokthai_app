@@ -32,6 +32,7 @@ import { MapAddressPickerModal } from '../components/MapAddressPickerModal';
 import { WtButton } from '../components/WtButton';
 import { WtCard } from '../components/WtCard';
 import { useCart } from '../contexts/CartContext';
+import { isValidMapCoords } from '../lib/mapRegion';
 import { wt } from '../lib/theme';
 
 const CITIES: AllowedCity[] = ['Tunis', 'Ariana'];
@@ -108,18 +109,20 @@ export default function CheckoutScreen() {
       Alert.alert('Champs requis', 'Libellé et adresse sont obligatoires.');
       return;
     }
-    if (lat == null || lng == null) {
+    if (!isValidMapCoords(lat, lng)) {
       Alert.alert('Position', 'Appuyez sur « Choisir sur la carte » pour indiquer où livrer.');
       return;
     }
+    const latSave = lat as number;
+    const lngSave = lng as number;
     setSavingAddress(true);
     try {
       const row = await createAddress(supabase, {
         label: label.trim(),
         address: addressLine.trim(),
         city,
-        lat,
-        lng,
+        lat: latSave,
+        lng: lngSave,
         instructions: null,
       });
       setSelectedAddressId(row.id);
@@ -154,7 +157,7 @@ export default function CheckoutScreen() {
           Alert.alert('Adresse', 'Libellé et adresse écrite sont obligatoires.');
           return;
         }
-        if (guestLat == null || guestLng == null) {
+        if (!isValidMapCoords(guestLat, guestLng)) {
           Alert.alert('Position', 'Indiquez sur la carte où livrer.');
           return;
         }
@@ -231,8 +234,7 @@ export default function CheckoutScreen() {
   const guestDeliveryReady =
     guestLabel.trim().length > 0 &&
     guestAddressLine.trim().length > 0 &&
-    guestLat != null &&
-    guestLng != null;
+    isValidMapCoords(guestLat, guestLng);
   const customerDeliveryReady = Boolean(selectedAddressId);
   const deliveryReady =
     orderType === 'pickup' || (hasSession ? customerDeliveryReady : guestDeliveryReady);
@@ -462,9 +464,9 @@ export default function CheckoutScreen() {
                       onOpenPicker={() => openMap(false)}
                     />
                     <WtButton title="Choisir sur la carte" onPress={() => openMap(false)} />
-                    <Text style={[styles.coords, lat != null && lng != null ? styles.coordsOk : null]}>
-                      {lat != null && lng != null
-                        ? `Point enregistré · ${lat.toFixed(5)}, ${lng.toFixed(5)}`
+                    <Text style={[styles.coords, isValidMapCoords(lat, lng) ? styles.coordsOk : null]}>
+                      {isValidMapCoords(lat, lng)
+                        ? 'Position enregistrée sur la carte'
                         : 'Ouvrez la carte puis validez la position'}
                     </Text>
                   </View>
@@ -510,10 +512,10 @@ export default function CheckoutScreen() {
                 />
                 <WtButton title="Choisir sur la carte" onPress={() => openMap(true)} />
                 <Text
-                  style={[styles.coords, guestLat != null && guestLng != null ? styles.coordsOk : null]}
+                  style={[styles.coords, isValidMapCoords(guestLat, guestLng) ? styles.coordsOk : null]}
                 >
-                  {guestLat != null && guestLng != null
-                    ? `Point enregistré · ${guestLat.toFixed(5)}, ${guestLng.toFixed(5)}`
+                  {isValidMapCoords(guestLat, guestLng)
+                    ? 'Position enregistrée sur la carte'
                     : 'Ouvrez la carte puis validez la position'}
                 </Text>
               </View>

@@ -62,7 +62,7 @@ export function MapAddressPickerModal({
   }
 
   const hint =
-    'La carte n’est pas disponible dans le navigateur. Utilisez votre position ou validez les coordonnées affichées.';
+    'La carte n’est pas disponible dans le navigateur. Utilisez votre position ou validez pour enregistrer le point.';
 
   return (
     <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
@@ -76,11 +76,6 @@ export function MapAddressPickerModal({
           </Text>
         </View>
         <View style={styles.fallbackBody}>
-          <View style={styles.coordPill}>
-            <Text style={styles.coordPillText}>
-              {coord.latitude.toFixed(5)}, {coord.longitude.toFixed(5)}
-            </Text>
-          </View>
           <WtButton title="Ma position" style={styles.btnCompact} onPress={() => void centerOnMyLocation()} />
           <WtButton
             title="Valider"
@@ -111,16 +106,5 @@ const styles = StyleSheet.create({
   subtitle: { fontSize: 14, color: wt.textMuted, lineHeight: 20 },
   subtitle2: { fontSize: 13, color: wt.textSecondary, lineHeight: 18 },
   fallbackBody: { flex: 1, padding: 16, gap: 8, justifyContent: 'center' },
-  coordPill: {
-    alignSelf: 'center',
-    marginBottom: 8,
-    borderWidth: 1,
-    borderColor: wt.borderStrong,
-    backgroundColor: wt.surfaceMuted,
-    borderRadius: 999,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-  },
-  coordPillText: { fontSize: 12, color: wt.textSecondary, textAlign: 'center', fontVariant: ['tabular-nums'] },
   btnCompact: { minHeight: 42, paddingVertical: 10, borderRadius: 10 },
 });

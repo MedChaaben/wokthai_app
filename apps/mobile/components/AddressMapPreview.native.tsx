@@ -1,6 +1,6 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
-import { regionForPreview } from '../lib/mapRegion';
+import { isValidMapCoords, regionForPreview } from '../lib/mapRegion';
 import { isNativeMapsAvailable } from '../lib/nativeMapsAvailable';
 import { wt } from '../lib/theme';
 
@@ -23,7 +23,7 @@ export function AddressMapPreview({
   interactive = true,
   square = false,
 }: Props) {
-  const hasPoint = lat != null && lng != null;
+  const hasPoint = isValidMapCoords(lat, lng);
   const mapsOk = isNativeMapsAvailable();
   const region = regionForPreview(lat, lng);
   const mapKey = hasPoint ? `${lat}-${lng}` : 'empty';
@@ -53,7 +53,7 @@ export function AddressMapPreview({
             toolbarEnabled={false}
             initialRegion={region}
           >
-            {hasPoint ? <Marker coordinate={{ latitude: lat, longitude: lng }} /> : null}
+            {hasPoint ? <Marker coordinate={{ latitude: lat!, longitude: lng! }} /> : null}
           </MapView>
         </View>
         {interactive ? <Text style={styles.tapHint}>Toucher l’aperçu pour agrandir</Text> : null}
@@ -72,7 +72,7 @@ export function AddressMapPreview({
       <Text style={styles.fallbackEmoji}>🗺️</Text>
       <Text style={styles.fallbackText}>
         {hasPoint
-          ? `${lat.toFixed(5)}, ${lng.toFixed(5)}`
+          ? 'Position indiquée sur la carte'
           : interactive
           ? 'Aperçu carte indisponible (Expo Go). Touchez pour placer le point.'
           : 'Aperçu carte indisponible.'}

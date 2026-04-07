@@ -1,4 +1,5 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { isValidMapCoords } from '../lib/mapRegion';
 import { wt } from '../lib/theme';
 
 const PREVIEW_HEIGHT = 152;
@@ -21,7 +22,7 @@ export function AddressMapPreview({
   interactive = true,
   square = false,
 }: Props) {
-  const hasPoint = lat != null && lng != null;
+  const hasPoint = isValidMapCoords(lat, lng);
   const previewHeight = square ? 108 : compact ? 88 : PREVIEW_HEIGHT;
 
   return (
@@ -35,9 +36,9 @@ export function AddressMapPreview({
       <Text style={styles.fallbackEmoji}>🗺️</Text>
       <Text style={styles.fallbackText}>
         {hasPoint
-          ? `${lat!.toFixed(5)}, ${lng!.toFixed(5)}`
+          ? 'Position indiquée sur la carte'
           : interactive
-          ? 'La carte n’est pas disponible sur le web. Touchez pour définir la position (GPS).'
+          ? 'La carte n’est pas disponible sur le web. Touchez pour définir la position.'
           : 'La carte n’est pas disponible sur le web.'}
       </Text>
     </Pressable>
