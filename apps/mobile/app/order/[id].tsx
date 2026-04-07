@@ -23,6 +23,7 @@ import {
 import { OrderProgress } from '../../components/OrderProgress';
 import { OrderStatusEventFeed } from '../../components/OrderStatusEventFeed';
 import { OrderTrackingEtaHeader } from '../../components/OrderTrackingEtaHeader';
+import { useOrderDelayNotification } from '../../hooks/useOrderDelayNotification';
 import { OrderTrackingTimeline } from '../../components/OrderTrackingTimeline';
 import { WtCard } from '../../components/WtCard';
 import { useCart } from '../../contexts/CartContext';
@@ -62,6 +63,7 @@ export default function OrderTrackingScreen() {
 
   const scrollRef = useRef<ScrollView>(null);
   const [nowMs, setNowMs] = useState(() => Date.now());
+  useOrderDelayNotification(data ?? null, nowMs);
   const [timelineBlockY, setTimelineBlockY] = useState(0);
   const [reorderReport, setReorderReport] = useState<{
     replaced: Array<{ from: string; to: string }>;

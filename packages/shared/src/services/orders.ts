@@ -182,7 +182,7 @@ export async function fetchOrderById(
       `
       *,
       users!orders_user_id_fkey ( phone, email, first_name, last_name ),
-      stores!orders_store_id_fkey ( id, name, address, city ),
+      stores!orders_store_id_fkey ( id, name, address, city, prep_time_minutes, kitchen_load_extra_minutes ),
       addresses!orders_address_id_fkey ( label, address, city, instructions ),
       order_items (
         id,

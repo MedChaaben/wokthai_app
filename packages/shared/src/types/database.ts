@@ -141,6 +141,8 @@ export type Database = {
           lng: number;
           is_active: boolean;
           prep_time_minutes: number;
+          /** Minutes ajoutées à l’estimation (charge cuisine). */
+          kitchen_load_extra_minutes: number;
           delivery_enabled: boolean;
         };
         Insert: {
@@ -152,6 +154,7 @@ export type Database = {
           lng: number;
           is_active?: boolean;
           prep_time_minutes?: number;
+          kitchen_load_extra_minutes?: number;
           delivery_enabled?: boolean;
         };
         Update: {
@@ -163,6 +166,7 @@ export type Database = {
           lng?: number;
           is_active?: boolean;
           prep_time_minutes?: number;
+          kitchen_load_extra_minutes?: number;
           delivery_enabled?: boolean;
         };
         Relationships: [];

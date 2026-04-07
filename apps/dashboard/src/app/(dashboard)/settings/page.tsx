@@ -6,6 +6,7 @@ import {
   useSupabase,
   useStaffProfile,
   updateStoreDeliveryEnabled,
+  updateStore,
   fetchStoreOpeningHoursForStore,
   replaceStoreOpeningHoursForMyStore,
   STORE_OPENING_DAY_LABELS,
@@ -95,7 +96,7 @@ export default function StoreSettingsPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("stores")
-        .select("id, name, delivery_enabled")
+        .select("id, name, delivery_enabled, prep_time_minutes, kitchen_load_extra_minutes")
         .eq("id", storeId!)
         .single();
       if (error) throw error;
@@ -124,6 +125,23 @@ export default function StoreSettingsPage() {
       void qc.invalidateQueries({ queryKey: ["store", storeId, "delivery_enabled"] });
     },
   });
+
+  const saveKitchenMut = useMutation({
+    mutationFn: (patch: { prep_time_minutes: number; kitchen_load_extra_minutes: number }) =>
+      updateStore(supabase, storeId!, patch),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ["store", storeId, "delivery_enabled"] });
+    },
+  });
+
+  const [prepDraft, setPrepDraft] = useState("");
+  const [loadDraft, setLoadDraft] = useState("");
+
+  useEffect(() => {
+    if (!storeQuery.data) return;
+    setPrepDraft(String(storeQuery.data.prep_time_minutes ?? 30));
+    setLoadDraft(String(storeQuery.data.kitchen_load_extra_minutes ?? 0));
+  }, [storeQuery.data]);
 
   const saveHoursMut = useMutation({
     mutationFn: (slots: StoreOpeningHourSlotInput[]) =>
@@ -247,6 +265,83 @@ export default function StoreSettingsPage() {
             {toggleMut.error instanceof Error ? toggleMut.error.message : "Erreur lors de l’enregistrement."}
           </p>
         ) : null}
+      </div>
+
+      <div className="rounded-xl border border-stone-200 bg-white p-5 shadow-sm dark:border-zinc-700 dark:bg-zinc-900/40">
+        <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">Temps de préparation (app client)</h2>
+        <p className="mt-1 text-sm text-stone-600 dark:text-zinc-400">
+          Ces réglages alimentent l’estimation affichée aux clients après validation de la commande (suivi en direct).
+        </p>
+        {storeQuery.isLoading ? (
+          <p className="mt-4 text-sm text-stone-600 dark:text-zinc-400">Chargement…</p>
+        ) : storeQuery.isError ? (
+          <p className="mt-4 text-sm text-red-600 dark:text-red-400">Impossible de charger les durées.</p>
+        ) : (
+          <div className="mt-5 space-y-4">
+            <div>
+              <label htmlFor="prep-minutes" className="block text-sm font-medium text-zinc-800 dark:text-zinc-200">
+                Préparation cuisine (minutes)
+              </label>
+              <input
+                id="prep-minutes"
+                type="number"
+                min={5}
+                max={120}
+                value={prepDraft}
+                onChange={(e) => setPrepDraft(e.target.value)}
+                className="mt-1 w-full max-w-[12rem] rounded-lg border border-stone-200 bg-white px-3 py-2 text-sm dark:border-zinc-600 dark:bg-zinc-900"
+              />
+              <p className="mt-1 text-xs text-stone-500 dark:text-zinc-500">Base utilisée pour l’étape « en cuisine ».</p>
+            </div>
+            <div>
+              <label htmlFor="kitchen-load" className="block text-sm font-medium text-zinc-800 dark:text-zinc-200">
+                Charge cuisine (+ minutes)
+              </label>
+              <input
+                id="kitchen-load"
+                type="number"
+                min={0}
+                max={60}
+                value={loadDraft}
+                onChange={(e) => setLoadDraft(e.target.value)}
+                className="mt-1 w-full max-w-[12rem] rounded-lg border border-stone-200 bg-white px-3 py-2 text-sm dark:border-zinc-600 dark:bg-zinc-900"
+              />
+              <p className="mt-1 text-xs text-stone-500 dark:text-zinc-500">
+                Ajoutées au temps de préparation quand le service est chargé (rush, gros volume).
+              </p>
+            </div>
+            <button
+              type="button"
+              disabled={saveKitchenMut.isPending}
+              onClick={() => {
+                const prep = parseInt(prepDraft, 10);
+                const load = parseInt(loadDraft, 10);
+                if (Number.isNaN(prep) || prep < 5 || prep > 120) {
+                  window.alert("Préparation : nombre entre 5 et 120 minutes.");
+                  return;
+                }
+                if (Number.isNaN(load) || load < 0 || load > 60) {
+                  window.alert("Charge : nombre entre 0 et 60 minutes.");
+                  return;
+                }
+                saveKitchenMut.mutate({
+                  prep_time_minutes: prep,
+                  kitchen_load_extra_minutes: load,
+                });
+              }}
+              className="rounded-lg bg-wt-bordeaux px-4 py-2.5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {saveKitchenMut.isPending ? "Enregistrement…" : "Enregistrer les durées"}
+            </button>
+            {saveKitchenMut.isError ? (
+              <p className="text-sm text-red-600 dark:text-red-400">
+                {saveKitchenMut.error instanceof Error
+                  ? saveKitchenMut.error.message
+                  : "Erreur lors de l’enregistrement."}
+              </p>
+            ) : null}
+          </div>
+        )}
       </div>
 
       <div className="rounded-xl border border-stone-200 bg-white p-5 shadow-sm dark:border-zinc-700 dark:bg-zinc-900/40">

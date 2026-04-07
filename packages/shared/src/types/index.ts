@@ -55,7 +55,7 @@ export type OrderStatusEventRow = Pick<
 
 /** Commande avec magasin, adresse et lignes (fetchOrderById enrichi). */
 export type OrderDetailRow = OrderRow & {
-  stores: Pick<StoreRow, 'id' | 'name' | 'address' | 'city'> | null;
+  stores: Pick<StoreRow, 'id' | 'name' | 'address' | 'city' | 'prep_time_minutes' | 'kitchen_load_extra_minutes'> | null;
   addresses: Pick<AddressRow, 'label' | 'address' | 'city' | 'instructions'> | null;
   order_items: OrderItemDetail[] | null;
   order_status_events: OrderStatusEventRow[] | null;
