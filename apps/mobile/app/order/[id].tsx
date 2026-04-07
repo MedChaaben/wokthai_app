@@ -167,40 +167,6 @@ export default function OrderTrackingScreen() {
         </Text>
       </WtCard>
 
-      <Text style={styles.sectionTitle}>Lieu</Text>
-      <WtCard>
-        {data.type === 'pickup' ? (
-          data.stores ? (
-            <>
-              <Text style={styles.placeKind}>Retrait au magasin</Text>
-              <Text style={styles.placeName}>{data.stores.name}</Text>
-              <Text style={styles.placeAddr}>
-                {data.stores.address}
-                {'\n'}
-                {data.stores.city}
-              </Text>
-            </>
-          ) : (
-            <Text style={styles.muted}>Restaurant non renseigné</Text>
-          )
-        ) : data.addresses ? (
-          <>
-            <Text style={styles.placeKind}>Adresse de livraison</Text>
-            <Text style={styles.placeName}>{data.addresses.label}</Text>
-            <Text style={styles.placeAddr}>
-              {data.addresses.address}
-              {'\n'}
-              {data.addresses.city}
-            </Text>
-            {data.addresses.instructions ? (
-              <Text style={styles.instructions}>Note : {data.addresses.instructions}</Text>
-            ) : null}
-          </>
-        ) : (
-          <Text style={styles.muted}>Adresse non disponible</Text>
-        )}
-      </WtCard>
-
       {data.delivery_notes ? (
         <>
           <Text style={styles.sectionTitle}>Instructions</Text>
@@ -259,6 +225,40 @@ export default function OrderTrackingScreen() {
           );
         })
       )}
+
+      <Text style={styles.sectionTitle}>Lieu</Text>
+      <WtCard>
+        {data.type === 'pickup' ? (
+          data.stores ? (
+            <>
+              <Text style={styles.placeKind}>Retrait au magasin</Text>
+              <Text style={styles.placeName}>{data.stores.name}</Text>
+              <Text style={styles.placeAddr}>
+                {data.stores.address}
+                {'\n'}
+                {data.stores.city}
+              </Text>
+            </>
+          ) : (
+            <Text style={styles.muted}>Restaurant non renseigné</Text>
+          )
+        ) : data.addresses ? (
+          <>
+            <Text style={styles.placeKind}>Adresse de livraison</Text>
+            <Text style={styles.placeName}>{data.addresses.label}</Text>
+            <Text style={styles.placeAddr}>
+              {data.addresses.address}
+              {'\n'}
+              {data.addresses.city}
+            </Text>
+            {data.addresses.instructions ? (
+              <Text style={styles.instructions}>Note : {data.addresses.instructions}</Text>
+            ) : null}
+          </>
+        ) : (
+          <Text style={styles.muted}>Adresse non disponible</Text>
+        )}
+      </WtCard>
 
       {!isCancelled ? (
         <Text style={styles.hint}>Mise à jour automatique lorsque le restaurant avance la commande.</Text>
