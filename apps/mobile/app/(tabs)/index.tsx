@@ -28,6 +28,7 @@ import {
   type OptionGroupWithOptions,
   type OrderLineOptionChoice,
 } from '@wokthai/shared';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CartFloatingBar } from '../../components/CartFloatingBar';
 import { MenuCategoryPicker } from '../../components/MenuCategoryPicker';
 import { WtCard } from '../../components/WtCard';
@@ -163,6 +164,7 @@ function ProductCustomizeModal({
   onClose: () => void;
   onConfirm: (choices: OrderLineOptionChoice[], optionSummary: string[], unitPrice: number) => void;
 }) {
+  const insets = useSafeAreaInsets();
   const productId = product?.id ?? '';
   const { data: groups = [], isLoading } = useProductOptionGroups(productId);
   const [sel, setSel] = useState<Record<string, string[]>>({});
@@ -339,8 +341,8 @@ function ProductCustomizeModal({
             )}
           </ScrollView>
 
-          <View style={styles.modalFooter}>
-            <View style={styles.modalPriceWrap}>
+          <View style={[styles.modalFooter, { paddingBottom: Math.max(insets.bottom, 12) }]}>
+            <View style={styles.modalTotalRow}>
               <Text style={styles.modalPriceLabel}>Total</Text>
               <Text style={styles.modalPrice}>{previewUnit.toFixed(2)} TND</Text>
             </View>
@@ -615,22 +617,23 @@ const styles = StyleSheet.create({
   modalEmpty: { color: wt.textMuted, marginTop: 8 },
   modalFooter: {
     paddingHorizontal: 16,
-    paddingVertical: 10,
+    paddingTop: 10,
     borderTopWidth: 1,
     borderTopColor: wt.border,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 12,
+    gap: 10,
     backgroundColor: wt.bgElevated,
   },
-  modalPriceWrap: { flex: 1, minWidth: 0 },
-  modalPriceLabel: { fontSize: 11, color: wt.textSecondary, fontWeight: '700', marginBottom: 2 },
-  modalPrice: { fontSize: 20, fontWeight: '800', color: wt.accentLight },
+  modalTotalRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    justifyContent: 'space-between',
+  },
+  modalPriceLabel: { fontSize: 13, color: wt.textSecondary, fontWeight: '700' },
+  modalPrice: { fontSize: 22, fontWeight: '800', color: wt.accentLight },
   modalAddBtn: {
     backgroundColor: wt.accent,
     borderRadius: 14,
-    minHeight: 48,
+    minHeight: 52,
     paddingVertical: 12,
     paddingHorizontal: 18,
     alignItems: 'center',
