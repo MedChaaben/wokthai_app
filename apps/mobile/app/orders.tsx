@@ -71,7 +71,14 @@ export default function MyOrdersScreen() {
           <Text style={styles.status}>{STATUS_LABEL[item.status] ?? item.status}</Text>
           <Text style={styles.meta}>
             {item.type === 'delivery' ? 'Livraison' : 'À emporter'} ·{' '}
-            {new Date(item.created_at).toLocaleString('fr-TN')}
+            {new Date(item.created_at).toLocaleString('fr-FR', {
+              day: '2-digit',
+              month: '2-digit',
+              year: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit',
+              hour12: false,
+            })}
           </Text>
           <Text style={styles.total}>{Number(item.total_price).toFixed(2)} TND</Text>
         </WtCard>
