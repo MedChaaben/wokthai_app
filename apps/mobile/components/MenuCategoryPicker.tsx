@@ -53,20 +53,32 @@ export function MenuCategoryPicker({ items, activeId, onSelect }: MenuCategoryPi
       ? `${active.name}. Appuyez pour ouvrir la liste des catégories.`
       : `${active.name}.`;
 
+  const categoriesCountLabel =
+    items.length > 1 ? `${items.length} catégories disponibles` : '1 catégorie disponible';
+
   const barContent = (
     <>
       <View style={styles.barTextBlock}>
-        <Text style={styles.barTitle} numberOfLines={1}>
-          {active.name}
-        </Text>
+        <View style={styles.barTitleRow}>
+          <Text style={styles.barTitle} numberOfLines={1}>
+            {active.name}
+          </Text>
+          {items.length > 1 ? (
+            <View style={styles.countPill}>
+              <Text style={styles.countPillText}>{items.length}</Text>
+            </View>
+          ) : null}
+        </View>
         {items.length > 1 ? (
-          <Text style={styles.barHint} numberOfLines={1}>
-            Changer de catégorie
+          <Text style={styles.barHint} numberOfLines={2}>
+            Touchez pour voir les autres catégories du menu
           </Text>
         ) : null}
       </View>
       {items.length > 1 ? (
-        <Ionicons name="chevron-down" size={22} color={wt.accentLight} accessibilityElementsHidden />
+        <View style={styles.barChevronWrap}>
+          <Ionicons name="chevron-down" size={22} color={wt.accentLight} accessibilityElementsHidden />
+        </View>
       ) : null}
     </>
   );
@@ -81,6 +93,7 @@ export function MenuCategoryPicker({ items, activeId, onSelect }: MenuCategoryPi
             accessibilityRole="button"
             accessibilityLabel={openerLabel}
             accessibilityHint="Ouvre la liste complète des catégories"
+            accessibilityValue={{ text: categoriesCountLabel }}
           >
             {barContent}
           </Pressable>
@@ -189,17 +202,49 @@ const styles = StyleSheet.create({
     flex: 1,
     minWidth: 0,
   },
+  barTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
   barTitle: {
+    flexShrink: 1,
     fontSize: 17,
     fontWeight: '800',
     color: wt.text,
     letterSpacing: -0.2,
   },
+  countPill: {
+    minWidth: 24,
+    height: 24,
+    paddingHorizontal: 7,
+    borderRadius: 999,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: wt.accentMuted,
+    borderWidth: 1,
+    borderColor: wt.accentBorder,
+  },
+  countPillText: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: wt.accentLight,
+  },
   barHint: {
-    marginTop: 2,
+    marginTop: 3,
     fontSize: 13,
-    fontWeight: '500',
+    fontWeight: '600',
     color: wt.textMuted,
+  },
+  barChevronWrap: {
+    width: 30,
+    height: 30,
+    borderRadius: 999,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: wt.surface,
+    borderWidth: 1,
+    borderColor: wt.accentBorder,
   },
   modalRoot: {
     flex: 1,
