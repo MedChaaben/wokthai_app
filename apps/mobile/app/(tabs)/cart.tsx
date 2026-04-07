@@ -1,5 +1,5 @@
 import { View, Text, StyleSheet, Pressable, ScrollView, Image, Modal } from 'react-native';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useProducts, useUpsellConfig, type UpsellKind } from '@wokthai/shared';
@@ -62,6 +62,12 @@ export default function CartTabScreen() {
     }
     return `Pour completer votre commande, envie d'ajouter ${upsellNames.slice(0, 2).join(', ')}... ?`;
   }, [upsellNames]);
+
+  useEffect(() => {
+    if (upsellOpen && upsellCandidates.length === 0) {
+      setUpsellOpen(false);
+    }
+  }, [upsellOpen, upsellCandidates.length]);
 
   function goCheckout() {
     if (upsellCandidates.length > 0 && lastUpsellCartKey !== cartFingerprint) {
