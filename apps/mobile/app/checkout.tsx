@@ -226,6 +226,18 @@ export default function CheckoutScreen() {
   const itemCount = lines.reduce((sum, l) => sum + l.quantity, 0);
   const recapThumbs = lines.slice(0, 4);
   const hasAddresses = (addresses.data?.length ?? 0) > 0;
+  const hasStoreSelected = Boolean(selectedStoreId);
+  const guestPhoneValid = digitsLen(phoneDisplayToStorage(guestPhone.trim()) ?? guestPhone.trim()) >= 8;
+  const guestDeliveryReady =
+    guestLabel.trim().length > 0 &&
+    guestAddressLine.trim().length > 0 &&
+    guestLat != null &&
+    guestLng != null;
+  const customerDeliveryReady = Boolean(selectedAddressId);
+  const deliveryReady =
+    orderType === 'pickup' || (hasSession ? customerDeliveryReady : guestDeliveryReady);
+  const contactReady = hasSession || guestPhoneValid;
+  const canSubmit = lines.length > 0 && hasStoreSelected && contactReady && deliveryReady;
 
   if (session === undefined) {
     return (
@@ -249,14 +261,6 @@ export default function CheckoutScreen() {
         <Text style={styles.heroSub}>
           Parcours rapide et clair pour confirmer votre commande en toute confiance.
         </Text>
-      </View>
-      <View style={styles.trustRow}>
-        <View style={styles.trustBadge}>
-          <Text style={styles.trustBadgeText}>Paiement à la réception</Text>
-        </View>
-        <View style={styles.trustBadge}>
-          <Text style={styles.trustBadgeText}>Tarifs transparents</Text>
-        </View>
       </View>
       {!hasSession ? (
         <WtCard style={styles.promoCard}>
@@ -301,15 +305,35 @@ export default function CheckoutScreen() {
           const { lines: hourLines, isEmpty } = formatStoreOpeningHoursLines(
             s.store_opening_hours ?? undefined
           );
+          const isSelected = selectedStoreId === s.id;
           return (
             <Pressable key={s.id} onPress={() => setSelectedStoreId(s.id)}>
               <WtCard
                 style={[
                   styles.storeCard,
-                  selectedStoreId === s.id ? styles.addrSelected : undefined,
+                  isSelected ? styles.storeCardSelected : undefined,
                 ]}
               >
-                <Text style={styles.storeName}>{s.name}</Text>
+                <View style={styles.storeTopRow}>
+                  <View style={styles.storeTitleWrap}>
+                    <View style={[styles.storeRadio, isSelected ? styles.storeRadioSelected : null]}>
+                      {isSelected ? <View style={styles.storeRadioDot} /> : null}
+                    </View>
+                    <Text style={styles.storeName}>{s.name}</Text>
+                  </View>
+                  {isSelected ? <Text style={styles.storeSelectedText}>Sélectionné</Text> : null}
+                </View>
+                <View style={styles.storeBadgeRow}>
+                  {s.delivery_enabled !== false ? (
+                    <View style={styles.storeBadge}>
+                      <Text style={styles.storeBadgeText}>Livraison</Text>
+                    </View>
+                  ) : (
+                    <View style={[styles.storeBadge, styles.storeBadgeMuted]}>
+                      <Text style={[styles.storeBadgeText, styles.storeBadgeTextMuted]}>Retrait uniquement</Text>
+                    </View>
+                  )}
+                </View>
                 <View style={styles.storeSecondary}>
                   <Text style={styles.storeAddressLine} numberOfLines={2}>
                     {s.address} · {s.city}
@@ -497,14 +521,12 @@ export default function CheckoutScreen() {
           )}
         </>
       ) : (
-        <WtCard>
-          <Text style={styles.body}>
-            Vous récupérez la commande au point de vente choisi ci-dessus.
-          </Text>
-        </WtCard>
+        <View style={styles.pickupHintRow}>
+          <Text style={styles.pickupHintText}>Retrait au point de vente sélectionné.</Text>
+        </View>
       )}
 
-      <Text style={styles.heading}>Notes de commande (optionnel)</Text>
+      <Text style={styles.heading}>Notes (optionnel)</Text>
       <TextInput
         placeholder="Instructions pour le restaurant / livreur"
         placeholderTextColor={wt.placeholder}
@@ -566,6 +588,21 @@ export default function CheckoutScreen() {
           ) : null}
         </View>
 
+        <View style={styles.recapItemsList}>
+          {lines.slice(0, 3).map((item) => (
+            <View key={item.lineKey} style={styles.recapItemRow}>
+              <Text numberOfLines={1} style={styles.recapItemName}>
+                {item.name}
+              </Text>
+              <Text style={styles.recapItemQty}>x{item.quantity}</Text>
+              <Text style={styles.recapItemAmount}>{(item.unitPrice * item.quantity).toFixed(2)} TND</Text>
+            </View>
+          ))}
+          {lines.length > 3 ? (
+            <Text style={styles.recapItemsMore}>+ {lines.length - 3} autre(s) article(s)</Text>
+          ) : null}
+        </View>
+
         <View style={styles.recapPanel}>
           <View style={styles.recapLine}>
             <Text style={styles.recapLabel}>Articles</Text>
@@ -603,9 +640,10 @@ export default function CheckoutScreen() {
         <WtButton
           title="Valider la commande"
           loading={createOrder.isPending}
+          disabled={!canSubmit}
           onPress={() => void submitOrder()}
         />
-        <Text style={styles.checkoutTrust}>Paiement sécurisé à la réception · Confirmation immédiate</Text>
+        <Text style={styles.checkoutTrust}>Paiement à la reception</Text>
       </View>
     </View>
   );
@@ -616,35 +654,23 @@ const styles = StyleSheet.create({
   authWait: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: wt.bg },
   screen: { padding: 16, paddingBottom: 300, gap: 12, backgroundColor: wt.bg },
   hero: {
-    padding: 14,
-    borderRadius: 14,
+    padding: 12,
+    borderRadius: 12,
     borderWidth: 1,
     borderColor: wt.border,
-    backgroundColor: wt.bgElevated,
-    gap: 4,
+    backgroundColor: wt.surface,
+    gap: 3,
   },
   heroEyebrow: {
-    fontSize: 12,
+    fontSize: 11,
     textTransform: 'uppercase',
-    letterSpacing: 0.5,
-    color: wt.accentLight,
+    letterSpacing: 0.3,
+    color: wt.textSecondary,
     fontWeight: '700',
   },
-  heroTitle: { fontSize: 24, color: wt.text, fontWeight: '800' },
-  heroSub: { fontSize: 13, lineHeight: 18, color: wt.textMuted },
-  trustRow: { flexDirection: 'row', gap: 8 },
-  trustBadge: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: wt.borderStrong,
-    backgroundColor: wt.surface,
-    borderRadius: 999,
-    paddingVertical: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  trustBadgeText: { fontSize: 12, color: wt.textMuted, fontWeight: '600' },
-  heading: { fontSize: 17, fontWeight: '800', color: wt.text, marginTop: 10 },
+  heroTitle: { fontSize: 21, color: wt.text, fontWeight: '700' },
+  heroSub: { fontSize: 13, lineHeight: 18, color: wt.textSecondary },
+  heading: { fontSize: 15, fontWeight: '700', color: wt.text, marginTop: 8 },
   promoCard: { gap: 8, paddingVertical: 14 },
   promoTitle: { fontSize: 15, fontWeight: '800', color: wt.text },
   promoBullet: { fontSize: 13, color: wt.textMuted, lineHeight: 19 },
@@ -677,8 +703,24 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   storeCard: { marginBottom: 8, paddingVertical: 14, paddingHorizontal: 14 },
+  storeCardSelected: { borderColor: wt.accent, borderWidth: 1.5, backgroundColor: wt.bgElevated },
   addrCard: { marginBottom: 8 },
   addrSelected: { borderColor: wt.accent, borderWidth: 2 },
+  storeTopRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 10 },
+  storeTitleWrap: { flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 },
+  storeRadio: {
+    width: 18,
+    height: 18,
+    borderRadius: 999,
+    borderWidth: 1.5,
+    borderColor: wt.borderStrong,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: wt.surface,
+  },
+  storeRadioSelected: { borderColor: wt.accent },
+  storeRadioDot: { width: 8, height: 8, borderRadius: 999, backgroundColor: wt.accentLight },
+  storeSelectedText: { fontSize: 11, color: wt.accentLight, fontWeight: '700' },
   addrTitle: { fontWeight: '700', fontSize: 16, color: wt.text },
   addrMeta: { marginTop: 4, color: wt.textMuted },
   storeName: {
@@ -686,6 +728,28 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: wt.text,
     letterSpacing: -0.2,
+    flex: 1,
+  },
+  storeBadgeRow: { marginTop: 8, flexDirection: 'row', alignItems: 'center', gap: 6 },
+  storeBadge: {
+    borderWidth: 1,
+    borderColor: wt.borderStrong,
+    backgroundColor: wt.surface,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 999,
+  },
+  storeBadgeMuted: {
+    borderColor: wt.border,
+    backgroundColor: wt.bg,
+  },
+  storeBadgeText: {
+    fontSize: 11,
+    color: wt.textMuted,
+    fontWeight: '600',
+  },
+  storeBadgeTextMuted: {
+    color: wt.textSecondary,
   },
   storeSecondary: {
     marginTop: 8,
@@ -742,6 +806,8 @@ const styles = StyleSheet.create({
   coords: { fontSize: 13, color: wt.textMuted, lineHeight: 18 },
   coordsOk: { color: wt.accentLight },
   body: { fontSize: 14, color: wt.textMuted, lineHeight: 20 },
+  pickupHintRow: { paddingHorizontal: 4, paddingVertical: 2 },
+  pickupHintText: { fontSize: 13, color: wt.textSecondary, lineHeight: 18 },
   total: { fontSize: 18, fontWeight: '800', color: wt.text },
   hint: { marginTop: 6, fontSize: 13, color: wt.textSecondary },
   feeLine: { marginTop: 8, fontSize: 15, fontWeight: '600', color: wt.textMuted },
@@ -756,16 +822,16 @@ const styles = StyleSheet.create({
   bottomSpacer: { height: 8 },
   checkoutDock: {
     borderTopWidth: 1,
-    borderTopColor: wt.borderStrong,
+    borderTopColor: wt.border,
     backgroundColor: wt.bgElevated,
     paddingHorizontal: 16,
     paddingTop: 12,
-    gap: 10,
+    gap: 8,
     shadowColor: '#000',
-    shadowOpacity: 0.32,
-    shadowRadius: 10,
+    shadowOpacity: 0.18,
+    shadowRadius: 8,
     shadowOffset: { width: 0, height: -4 },
-    elevation: 16,
+    elevation: 10,
   },
   recapHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   recapTitle: { fontSize: 14, color: wt.text, fontWeight: '700' },
@@ -795,6 +861,20 @@ const styles = StyleSheet.create({
     paddingHorizontal: 6,
   },
   recapMoreText: { fontSize: 12, color: wt.text, fontWeight: '700' },
+  recapItemsList: {
+    borderWidth: 1,
+    borderColor: wt.border,
+    backgroundColor: wt.surface,
+    borderRadius: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    gap: 6,
+  },
+  recapItemRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  recapItemName: { flex: 1, fontSize: 12, color: wt.text, fontWeight: '600' },
+  recapItemQty: { fontSize: 12, color: wt.textMuted, minWidth: 26, textAlign: 'right' },
+  recapItemAmount: { fontSize: 12, color: wt.text, fontWeight: '700', minWidth: 72, textAlign: 'right' },
+  recapItemsMore: { fontSize: 11, color: wt.textSecondary },
   recapPanel: {
     borderWidth: 1,
     borderColor: wt.border,
@@ -812,5 +892,5 @@ const styles = StyleSheet.create({
   recapDivider: { height: 1, backgroundColor: wt.border },
   recapTotalLabel: { fontSize: 15, color: wt.text, fontWeight: '800' },
   recapTotalValue: { fontSize: 18, color: wt.text, fontWeight: '800' },
-  checkoutTrust: { fontSize: 11, color: wt.textSecondary, textAlign: 'center', lineHeight: 15 },
+  checkoutTrust: { fontSize: 10, color: wt.textSecondary, textAlign: 'center', lineHeight: 14 },
 });
