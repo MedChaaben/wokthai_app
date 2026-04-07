@@ -99,14 +99,32 @@ function MenuProductRow({
           <Pressable
             onPress={decrement}
             disabled={minusDisabled}
-            style={[styles.stepBtn, minusDisabled && styles.stepBtnDisabled]}
-            hitSlop={8}
+            style={({ pressed }) => [
+              styles.stepBtn,
+              pressed && !minusDisabled && styles.stepBtnPressed,
+              minusDisabled && styles.stepBtnDisabled,
+            ]}
+            hitSlop={10}
+            accessibilityRole="button"
+            accessibilityLabel={`Retirer un ${p.name}`}
           >
             <Text style={styles.stepBtnText}>−</Text>
           </Pressable>
-          <Text style={styles.stepQty}>{displayQty}</Text>
-          <Pressable onPress={increment} style={styles.stepBtn} hitSlop={8}>
-            <Text style={styles.stepBtnText}>+</Text>
+          <View style={styles.stepQtyBadge}>
+            <Text style={styles.stepQty}>{displayQty}</Text>
+          </View>
+          <Pressable
+            onPress={increment}
+            style={({ pressed }) => [
+              styles.stepBtn,
+              styles.stepBtnPlus,
+              pressed && styles.stepBtnPlusPressed,
+            ]}
+            hitSlop={10}
+            accessibilityRole="button"
+            accessibilityLabel={`Ajouter un ${p.name}`}
+          >
+            <Text style={[styles.stepBtnText, styles.stepBtnPlusText]}>+</Text>
           </Pressable>
         </View>
       </View>
@@ -247,25 +265,44 @@ const styles = StyleSheet.create({
   stepper: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: wt.border,
+    borderWidth: 0,
     borderRadius: 999,
-    backgroundColor: wt.surface,
+    backgroundColor: wt.surfaceMuted,
+    padding: 4,
+    gap: 6,
   },
   stepBtn: {
-    minWidth: 44,
-    minHeight: 44,
-    paddingHorizontal: 8,
-    paddingVertical: 10,
+    width: 44,
+    height: 44,
+    borderRadius: 999,
+    backgroundColor: wt.surface,
+    borderWidth: 1,
+    borderColor: wt.border,
     alignItems: 'center',
     justifyContent: 'center',
   },
+  stepBtnPlus: {
+    backgroundColor: wt.accent,
+    borderColor: wt.accent,
+  },
+  stepBtnPressed: { opacity: 0.8, transform: [{ scale: 0.97 }] },
+  stepBtnPlusPressed: { opacity: 0.9, transform: [{ scale: 0.97 }] },
   stepBtnDisabled: { opacity: 0.35 },
-  stepBtnText: { fontSize: 18, fontWeight: '700', color: wt.accentLight, lineHeight: 20 },
+  stepBtnText: { fontSize: 20, fontWeight: '700', color: wt.accentLight, lineHeight: 22 },
+  stepBtnPlusText: { color: wt.bg },
+  stepQtyBadge: {
+    minWidth: 56,
+    paddingHorizontal: 10,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 999,
+    backgroundColor: wt.surface,
+  },
   stepQty: {
-    minWidth: 32,
+    minWidth: 24,
     textAlign: 'center',
-    fontSize: 15,
+    fontSize: 17,
     fontWeight: '800',
     color: wt.text,
   },
