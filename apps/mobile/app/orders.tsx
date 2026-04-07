@@ -1,8 +1,8 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo } from 'react';
 import {
   View,
   Text,
-  FlatList,
+  ScrollView,
   Pressable,
   StyleSheet,
   ActivityIndicator,
@@ -24,8 +24,6 @@ const STATUS_LABEL: Record<string, string> = {
   cancelled: 'Annulée',
 };
 
-type Tab = 'ongoing' | 'history';
-
 function fmtDateTime24(iso: string): string {
   return new Date(iso).toLocaleString('fr-FR', {
     day: '2-digit',
@@ -45,8 +43,6 @@ export default function MyOrdersScreen() {
   const sessionOk = useRequireSession('/orders');
   const router = useRouter();
   const orders = useOrders({ mode: 'customer', enabled: sessionOk });
-  const [tab, setTab] = useState<Tab>('ongoing');
-
   const refetchOrders = orders.refetch;
   useFocusEffect(
     useCallback(() => {
@@ -68,8 +64,6 @@ export default function MyOrdersScreen() {
     historyList.sort(byDate);
     return { ongoing: ongoingList, history: historyList };
   }, [orders.data]);
-
-  const list = tab === 'ongoing' ? ongoing : history;
 
   if (!sessionOk) {
     return (
@@ -110,30 +104,6 @@ export default function MyOrdersScreen() {
 
   return (
     <View style={styles.screen}>
-      <View style={styles.segment}>
-        <Pressable
-          onPress={() => setTab('ongoing')}
-          style={[styles.segBtn, tab === 'ongoing' && styles.segActive]}
-        >
-          <Text style={[styles.segText, tab === 'ongoing' && styles.segTextActive]}>
-            En cours ({ongoing.length})
-          </Text>
-        </Pressable>
-        <Pressable
-          onPress={() => setTab('history')}
-          style={[styles.segBtn, tab === 'history' && styles.segActive]}
-        >
-          <Text style={[styles.segText, tab === 'history' && styles.segTextActive]}>
-            Historique ({history.length})
-          </Text>
-        </Pressable>
-      </View>
-      {tab === 'history' ? (
-        <Text style={styles.historyIntro}>
-          Vos commandes passées, classées de la plus récente à la plus ancienne.
-        </Text>
-      ) : null}
-
       {orders.isLoading ? (
         <ActivityIndicator style={{ marginTop: 32 }} color={wt.accent} size="large" />
       ) : orders.error ? (
@@ -141,9 +111,7 @@ export default function MyOrdersScreen() {
           {orders.error instanceof Error ? orders.error.message : 'Erreur de chargement'}
         </Text>
       ) : (
-        <FlatList
-          data={list}
-          keyExtractor={(o) => o.id}
+        <ScrollView
           contentContainerStyle={styles.list}
           refreshControl={
             <RefreshControl
@@ -153,15 +121,30 @@ export default function MyOrdersScreen() {
               colors={[wt.accent]}
             />
           }
-          ListEmptyComponent={
+        >
+          {ongoing.length > 0 ? (
+            <>
+              <Text style={styles.sectionTitle}>Commandes en cours ({ongoing.length})</Text>
+              {ongoing.map((item) => (
+                <View key={item.id}>{renderItem({ item })}</View>
+              ))}
+            </>
+          ) : null}
+
+          <Text style={styles.sectionTitle}>
+            {ongoing.length > 0 ? 'Historique des commandes' : 'Mes commandes'}
+            {history.length > 0 ? ` (${history.length})` : ''}
+          </Text>
+          {history.length > 0 ? (
+            history.map((item) => <View key={item.id}>{renderItem({ item })}</View>)
+          ) : (
             <Text style={styles.empty}>
-              {tab === 'ongoing'
-                ? 'Aucune commande en cours. Passez une commande depuis le menu.'
-                : 'Aucune commande passée pour le moment.'}
+              {ongoing.length > 0
+                ? 'Aucune commande dans l’historique pour le moment.'
+                : 'Aucune commande pour le moment. Passez votre premiere commande depuis le menu.'}
             </Text>
-          }
-          renderItem={renderItem}
-        />
+          )}
+        </ScrollView>
       )}
     </View>
   );
@@ -170,20 +153,8 @@ export default function MyOrdersScreen() {
 const styles = StyleSheet.create({
   authWait: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: wt.bg },
   screen: { flex: 1, backgroundColor: wt.bg },
-  segment: { flexDirection: 'row', gap: 8, padding: 16, paddingBottom: 8 },
-  segBtn: {
-    flex: 1,
-    paddingVertical: 12,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: wt.border,
-    alignItems: 'center',
-    backgroundColor: wt.surface,
-  },
-  segActive: { borderColor: wt.accent, backgroundColor: wt.accentMuted },
-  segText: { fontWeight: '600', color: wt.textMuted, fontSize: 13, textAlign: 'center' },
-  segTextActive: { color: wt.accentLight },
-  list: { padding: 16, paddingTop: 8, paddingBottom: 40, gap: 10 },
+  list: { padding: 16, paddingBottom: 40, gap: 10 },
+  sectionTitle: { marginTop: 4, marginBottom: 8, fontSize: 16, fontWeight: '800', color: wt.text },
   card: { marginBottom: 4 },
   cardPressed: { opacity: 0.9, transform: [{ scale: 0.995 }] },
   rowTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 10 },
@@ -207,6 +178,5 @@ const styles = StyleSheet.create({
   total: { fontSize: 17, fontWeight: '800', color: wt.text },
   ctaHint: { fontSize: 13, color: wt.accentLight, fontWeight: '700' },
   error: { padding: 24, color: wt.errorStrong },
-  historyIntro: { paddingHorizontal: 16, paddingBottom: 2, color: wt.textSecondary, fontSize: 13 },
   empty: { textAlign: 'center', color: wt.textMuted, paddingVertical: 32, paddingHorizontal: 16, fontSize: 15 },
 });
