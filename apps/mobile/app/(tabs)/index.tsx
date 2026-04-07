@@ -161,8 +161,13 @@ export default function HomeMenuScreen() {
     activeCategoryId != null ? (byCategory.get(activeCategoryId) ?? []) : [];
 
   const categoryPickerItems = useMemo(
-    () => categoriesWithProducts.map((c) => ({ id: c.id, name: c.name })),
-    [categoriesWithProducts]
+    () =>
+      categoriesWithProducts.map((c) => ({
+        id: c.id,
+        name: c.name,
+        itemCount: byCategory.get(c.id)?.length ?? 0,
+      })),
+    [categoriesWithProducts, byCategory]
   );
 
   return (

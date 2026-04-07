@@ -16,6 +16,7 @@ import { wt } from '../lib/theme';
 export type MenuCategoryPickerItem = {
   id: string;
   name: string;
+  itemCount: number;
 };
 
 type MenuCategoryPickerProps = {
@@ -56,10 +57,13 @@ export function MenuCategoryPicker({ items, activeId, onSelect }: MenuCategoryPi
 
   const categoriesCountLabel =
     items.length > 1 ? `${items.length} catégories disponibles` : '1 catégorie disponible';
-  const otherCategories = items.filter((c) => c.id !== active?.id);
-  const otherCategoriesCount = otherCategories.length;
-  const quickChips = otherCategories.slice(0, 3);
-  const hiddenChipsCount = Math.max(otherCategoriesCount - quickChips.length, 0);
+  const activeIndex = Math.max(
+    0,
+    items.findIndex((c) => c.id === active.id)
+  );
+  const otherCategoriesCount = Math.max(items.length - 1, 0);
+  const quickChips = items.slice(0, 6);
+  const hiddenChipsCount = Math.max(items.length - quickChips.length, 0);
 
   const barContent = (
     <>
@@ -69,16 +73,16 @@ export function MenuCategoryPicker({ items, activeId, onSelect }: MenuCategoryPi
           <Text style={styles.barTitle} numberOfLines={1}>
             {active.name}
           </Text>
-          {items.length > 1 ? (
+          {items.length > 0 ? (
             <View style={styles.countPill}>
-              <Text style={styles.countPillText}>{items.length}</Text>
+              <Text style={styles.countPillText}>{active.itemCount}</Text>
             </View>
           ) : null}
         </View>
         {items.length > 1 ? (
           <Text style={styles.barHint} numberOfLines={2}>
             {otherCategoriesCount} autre{otherCategoriesCount > 1 ? 's' : ''} disponible
-            {otherCategoriesCount > 1 ? 's' : ''} • Touchez pour explorer
+            {otherCategoriesCount > 1 ? 's' : ''} • Catégorie {activeIndex + 1}/{items.length}
           </Text>
         ) : null}
       </View>
@@ -116,11 +120,16 @@ export function MenuCategoryPicker({ items, activeId, onSelect }: MenuCategoryPi
                 <Pressable
                   key={c.id}
                   onPress={() => onSelect(c.id)}
-                  style={({ pressed }) => [styles.quickChip, pressed && styles.quickChipPressed]}
+                  style={({ pressed }) => [
+                    styles.quickChip,
+                    c.id === active.id && styles.quickChipActive,
+                    pressed && styles.quickChipPressed,
+                  ]}
                   accessibilityRole="button"
                   accessibilityLabel={`Aller à ${c.name}`}
+                  accessibilityState={{ selected: c.id === active.id }}
                 >
-                  <Text style={styles.quickChipText} numberOfLines={1}>
+                  <Text style={[styles.quickChipText, c.id === active.id && styles.quickChipTextActive]} numberOfLines={1}>
                     {c.name}
                   </Text>
                 </Pressable>
@@ -135,6 +144,14 @@ export function MenuCategoryPicker({ items, activeId, onSelect }: MenuCategoryPi
                   <Text style={styles.quickChipMoreText}>+{hiddenChipsCount}</Text>
                 </Pressable>
               ) : null}
+              <Pressable
+                onPress={() => setOpen(true)}
+                style={({ pressed }) => [styles.quickChipMore, styles.quickChipSeeAll, pressed && styles.quickChipPressed]}
+                accessibilityRole="button"
+                accessibilityLabel="Voir toutes les catégories"
+              >
+                <Text style={styles.quickChipMoreText}>Voir tout</Text>
+              </Pressable>
             </ScrollView>
           </>
         ) : (
@@ -319,6 +336,10 @@ const styles = StyleSheet.create({
     borderColor: wt.border,
     backgroundColor: wt.surface,
   },
+  quickChipActive: {
+    backgroundColor: wt.accentMuted,
+    borderColor: wt.accentBorder,
+  },
   quickChipMore: {
     minWidth: 42,
     paddingHorizontal: 12,
@@ -329,6 +350,9 @@ const styles = StyleSheet.create({
     borderColor: wt.accentBorder,
     backgroundColor: wt.accentMuted,
   },
+  quickChipSeeAll: {
+    paddingHorizontal: 14,
+  },
   quickChipPressed: {
     opacity: 0.9,
   },
@@ -336,6 +360,10 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '600',
     color: wt.textSecondary,
+  },
+  quickChipTextActive: {
+    color: wt.accentLight,
+    fontWeight: '800',
   },
   quickChipMoreText: {
     fontSize: 13,
