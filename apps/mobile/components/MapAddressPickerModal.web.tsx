@@ -76,14 +76,32 @@ export function MapAddressPickerModal({
           </Text>
         </View>
         <View style={styles.fallbackBody}>
-          <WtButton title="Ma position" style={styles.btnCompact} onPress={() => void centerOnMyLocation()} />
-          <WtButton
-            title="Valider"
-            loading={resolving}
-            style={styles.btnCompact}
-            onPress={() => void handleConfirm()}
-          />
-          <WtButton title="Annuler" variant="ghost" style={styles.btnCompact} onPress={onClose} />
+          <View style={styles.fallbackSpacer} />
+          <View style={styles.fallbackMaWrap}>
+            <WtButton
+              title="Ma position"
+              variant="ghost"
+              style={styles.secondaryFull}
+              onPress={() => void centerOnMyLocation()}
+            />
+          </View>
+          <View style={styles.footer}>
+            <View style={styles.footerBtnRow}>
+              <WtButton
+                title="Annuler"
+                variant="ghost"
+                style={styles.footerBtn}
+                onPress={onClose}
+                disabled={resolving}
+              />
+              <WtButton
+                title="Valider"
+                loading={resolving}
+                style={styles.footerBtnPrimary}
+                onPress={() => void handleConfirm()}
+              />
+            </View>
+          </View>
         </View>
       </SafeAreaView>
     </Modal>
@@ -105,6 +123,19 @@ const styles = StyleSheet.create({
   title: { fontSize: 18, fontWeight: '800', color: wt.text },
   subtitle: { fontSize: 14, color: wt.textMuted, lineHeight: 20 },
   subtitle2: { fontSize: 13, color: wt.textSecondary, lineHeight: 18 },
-  fallbackBody: { flex: 1, padding: 16, gap: 8, justifyContent: 'center' },
-  btnCompact: { minHeight: 42, paddingVertical: 10, borderRadius: 10 },
+  fallbackBody: { flex: 1 },
+  fallbackSpacer: { flex: 1, minHeight: 24 },
+  fallbackMaWrap: { paddingHorizontal: 16, marginBottom: 10 },
+  secondaryFull: { minHeight: 48, width: '100%' },
+  footer: {
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: wt.border,
+    backgroundColor: wt.bgElevated,
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    paddingBottom: 10,
+  },
+  footerBtnRow: { flexDirection: 'row', gap: 10, alignItems: 'stretch' },
+  footerBtn: { flex: 1, minHeight: 48 },
+  footerBtnPrimary: { flex: 1, minHeight: 48 },
 });
