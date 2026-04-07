@@ -9,6 +9,7 @@ import {
   useSupabase,
   type OrderRow,
 } from '@wokthai/shared';
+import { useAppTopBanner } from '../contexts/AppTopBannerContext';
 import { wt } from '../lib/theme';
 
 const STATUS_LABEL: Record<string, string> = {
@@ -56,19 +57,26 @@ export function OngoingOrderBanner() {
   const orders = useOrders({ mode: 'customer', enabled: Boolean(session) });
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { announcementVisible, setOngoingOrderVisible } = useAppTopBanner();
 
   const order = useMemo(() => pickLatestOngoing(orders.data), [orders.data]);
+
+  useEffect(() => {
+    setOngoingOrderVisible(Boolean(order));
+  }, [order, setOngoingOrderVisible]);
 
   if (!order) return null;
 
   const statusLabel = STATUS_LABEL[order.status] ?? order.status;
+
+  const paddingTop = announcementVisible ? 0 : Math.max(insets.top, 6);
 
   return (
     <View
       style={[
         styles.outer,
         {
-          paddingTop: Math.max(insets.top, 6),
+          paddingTop,
         },
       ]}
     >
@@ -102,7 +110,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    paddingBottom: 10,
+    paddingBottom: 6,
     gap: 12,
   },
   pressed: {
@@ -131,9 +139,9 @@ const styles = StyleSheet.create({
     color: wt.textMuted,
   },
   chevron: {
-    fontSize: 28,
+    fontSize: 26,
     fontWeight: '300',
     color: wt.accentLight,
-    lineHeight: 32,
+    lineHeight: 28,
   },
 });

@@ -8,9 +8,11 @@ import { wt } from '../lib/theme';
 import { SupabaseProvider } from '@wokthai/shared';
 import { AuthDeepLinkHandler } from '../components/AuthDeepLinkHandler';
 import { OngoingOrderBanner } from '../components/OngoingOrderBanner';
+import { StackWithInsetOverride } from '../components/StackWithInsetOverride';
 import { OrderNotificationsHost } from '../components/OrderNotificationsHost';
 import { GlobalAnnouncementBanner } from '../components/GlobalAnnouncementBanner';
 import { ExpoPushTokenRegistrar } from '../components/ExpoPushTokenRegistrar';
+import { AppTopBannerProvider } from '../contexts/AppTopBannerContext';
 import { CartProvider } from '../contexts/CartContext';
 import { getSupabase, supabaseReady } from '../lib/supabase';
 
@@ -39,41 +41,43 @@ export default function RootLayout() {
       <SupabaseProvider client={supabaseClient}>
         <SafeAreaProvider>
           <CartProvider>
-            <StatusBar style="light" />
-            <OrderNotificationsHost />
-            <ExpoPushTokenRegistrar />
-            <AuthDeepLinkHandler />
-            <View style={styles.root}>
-              <GlobalAnnouncementBanner />
-              <OngoingOrderBanner />
-              <View style={styles.stackWrap}>
-                <Stack
-                  screenOptions={{
-                    headerStyle: { backgroundColor: wt.bgElevated },
-                    headerTintColor: wt.accentLight,
-                    headerTitleStyle: { fontWeight: '700', color: wt.text },
-                    headerShadowVisible: false,
-                    contentStyle: { backgroundColor: wt.bg },
-                  }}
-                >
-                  <Stack.Screen name="index" options={{ headerShown: false }} />
-                  <Stack.Screen name="(tabs)" options={{ headerShown: false, title: 'Retour' }} />
-                  <Stack.Screen name="login" options={{ title: 'Connexion' }} />
-                  <Stack.Screen name="forgot-password" options={{ title: 'Mot de passe oublié' }} />
-                  <Stack.Screen name="reset-password" options={{ title: 'Nouveau mot de passe' }} />
-                  <Stack.Screen name="orders" options={{ title: 'Mes commandes' }} />
-                  <Stack.Screen name="addresses" options={{ title: 'Mes adresses' }} />
-                  <Stack.Screen name="profile" options={{ title: 'Mon profil' }} />
-                  <Stack.Screen name="cgu" options={{ title: 'Conditions générales' }} />
-                  <Stack.Screen name="privacy" options={{ title: 'Confidentialité' }} />
-                  <Stack.Screen name="mentions" options={{ title: 'Mentions légales' }} />
-                  <Stack.Screen name="delete-account" options={{ title: 'Supprimer le compte' }} />
-                  <Stack.Screen name="product/[id]" options={{ title: 'Produit' }} />
-                  <Stack.Screen name="checkout" options={{ title: 'Commande' }} />
-                  <Stack.Screen name="order/[id]" options={{ title: 'Suivi' }} />
-                </Stack>
+            <AppTopBannerProvider>
+              <StatusBar style="light" />
+              <OrderNotificationsHost />
+              <ExpoPushTokenRegistrar />
+              <AuthDeepLinkHandler />
+              <View style={styles.root}>
+                <GlobalAnnouncementBanner />
+                <OngoingOrderBanner />
+                <StackWithInsetOverride>
+                  <Stack
+                    screenOptions={{
+                      headerStyle: { backgroundColor: wt.bgElevated },
+                      headerTintColor: wt.accentLight,
+                      headerTitleStyle: { fontWeight: '700', color: wt.text },
+                      headerShadowVisible: false,
+                      contentStyle: { backgroundColor: wt.bg },
+                    }}
+                  >
+                    <Stack.Screen name="index" options={{ headerShown: false }} />
+                    <Stack.Screen name="(tabs)" options={{ headerShown: false, title: 'Retour' }} />
+                    <Stack.Screen name="login" options={{ title: 'Connexion' }} />
+                    <Stack.Screen name="forgot-password" options={{ title: 'Mot de passe oublié' }} />
+                    <Stack.Screen name="reset-password" options={{ title: 'Nouveau mot de passe' }} />
+                    <Stack.Screen name="orders" options={{ title: 'Mes commandes' }} />
+                    <Stack.Screen name="addresses" options={{ title: 'Mes adresses' }} />
+                    <Stack.Screen name="profile" options={{ title: 'Mon profil' }} />
+                    <Stack.Screen name="cgu" options={{ title: 'Conditions générales' }} />
+                    <Stack.Screen name="privacy" options={{ title: 'Confidentialité' }} />
+                    <Stack.Screen name="mentions" options={{ title: 'Mentions légales' }} />
+                    <Stack.Screen name="delete-account" options={{ title: 'Supprimer le compte' }} />
+                    <Stack.Screen name="product/[id]" options={{ title: 'Produit' }} />
+                    <Stack.Screen name="checkout" options={{ title: 'Commande' }} />
+                    <Stack.Screen name="order/[id]" options={{ title: 'Suivi' }} />
+                  </Stack>
+                </StackWithInsetOverride>
               </View>
-            </View>
+            </AppTopBannerProvider>
           </CartProvider>
         </SafeAreaProvider>
       </SupabaseProvider>
@@ -86,5 +90,4 @@ const styles = StyleSheet.create({
   title: { fontSize: 20, fontWeight: '700', marginBottom: 8, color: wt.text },
   body: { fontSize: 15, color: wt.textMuted, lineHeight: 22 },
   root: { flex: 1, backgroundColor: wt.bg },
-  stackWrap: { flex: 1, minHeight: 0 },
 });

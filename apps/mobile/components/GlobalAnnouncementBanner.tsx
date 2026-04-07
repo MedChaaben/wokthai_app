@@ -17,6 +17,7 @@ import {
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useAppTopBanner } from '../contexts/AppTopBannerContext';
 import { getDismissedAnnouncementId, setDismissedAnnouncementId } from '../lib/announcementDismiss';
 
 const SLIDE_MS = 280;
@@ -41,6 +42,7 @@ function bannerColors(type: AnnouncementRow['type']): {
 
 export function GlobalAnnouncementBanner() {
   const supabase = useSupabase();
+  const { setAnnouncementVisible } = useAppTopBanner();
   const insets = useSafeAreaInsets();
   const translateY = useRef(new Animated.Value(-120)).current;
   const [dismissedId, setDismissedId] = useState<string | null>(null);
@@ -74,6 +76,14 @@ export function GlobalAnnouncementBanner() {
   const showBanner = Boolean(
     hydrated && announcement && !query.isError && (announcement.id !== dismissedId || closing)
   );
+
+  useEffect(() => {
+    if (Platform.OS === 'web') {
+      setAnnouncementVisible(false);
+      return;
+    }
+    setAnnouncementVisible(showBanner);
+  }, [showBanner, setAnnouncementVisible]);
 
   useEffect(() => {
     if (!showBanner || closing) return;
