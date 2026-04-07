@@ -198,22 +198,27 @@ export default function AddressesScreen() {
       ) : (
         list.map((a) => (
           <WtCard key={a.id} style={styles.addrCard}>
-            <View style={styles.addrHeader}>
-              <Text style={styles.addrTitle}>{a.label}</Text>
-              <Text style={styles.cityPill}>{a.city}</Text>
+            <View style={styles.addrTopRow}>
+              <View style={styles.addrMiniMap}>
+                <AddressMapPreview lat={a.lat} lng={a.lng} onOpenPicker={() => {}} square interactive={false} />
+              </View>
+              <View style={styles.addrInfoCol}>
+                <View style={styles.addrHeader}>
+                  <Text style={styles.addrTitle}>{a.label}</Text>
+                  <Text style={styles.cityPill}>{a.city}</Text>
+                </View>
+                <Text style={styles.addrMeta}>{a.address}</Text>
+                <Text style={styles.coordsMuted}>
+                  {a.lat.toFixed(5)}, {a.lng.toFixed(5)}
+                </Text>
+                {a.instructions ? <Text style={styles.instructions}>Note : {a.instructions}</Text> : null}
+                <AddressCardActions
+                  onEdit={() => startEdit(a)}
+                  onDelete={() => confirmDelete(a)}
+                  deleteLoading={deletingId === a.id}
+                />
+              </View>
             </View>
-            <Text style={styles.addrMeta}>
-              {a.address}
-            </Text>
-            <Text style={styles.coordsMuted}>
-              {a.lat.toFixed(5)}, {a.lng.toFixed(5)}
-            </Text>
-            {a.instructions ? <Text style={styles.instructions}>Note : {a.instructions}</Text> : null}
-            <AddressCardActions
-              onEdit={() => startEdit(a)}
-              onDelete={() => confirmDelete(a)}
-              deleteLoading={deletingId === a.id}
-            />
           </WtCard>
         ))
       )}
@@ -466,7 +471,9 @@ const styles = StyleSheet.create({
     backgroundColor: wt.surface,
     gap: 8,
   },
-  addrCard: { marginBottom: 4 },
+  addrCard: { marginBottom: 4, padding: 10 },
+  addrTopRow: { flexDirection: 'row', gap: 8, alignItems: 'flex-start' },
+  addrInfoCol: { flex: 1, minWidth: 0 },
   addrHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 10 },
   addrTitle: { fontWeight: '700', fontSize: 16, color: wt.text },
   cityPill: {
@@ -483,9 +490,10 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     overflow: 'hidden',
   },
-  addrMeta: { marginTop: 8, color: wt.textMuted, lineHeight: 22 },
-  coordsMuted: { marginTop: 2, fontSize: 12, color: wt.textSecondary },
-  instructions: { marginTop: 8, fontSize: 14, color: wt.textSecondary, fontStyle: 'italic' },
+  addrMeta: { marginTop: 7, color: wt.textMuted, lineHeight: 21 },
+  addrMiniMap: { marginTop: 0 },
+  coordsMuted: { marginTop: 4, fontSize: 12, color: wt.textSecondary },
+  instructions: { marginTop: 7, fontSize: 13, color: wt.textSecondary, fontStyle: 'italic', lineHeight: 19 },
   input: {
     borderWidth: 1,
     borderColor: wt.border,

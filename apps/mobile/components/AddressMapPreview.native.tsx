@@ -10,23 +10,38 @@ type Props = {
   lat: number | null;
   lng: number | null;
   onOpenPicker: () => void;
+  compact?: boolean;
+  interactive?: boolean;
+  square?: boolean;
 };
 
-export function AddressMapPreview({ lat, lng, onOpenPicker }: Props) {
+export function AddressMapPreview({
+  lat,
+  lng,
+  onOpenPicker,
+  compact = false,
+  interactive = true,
+  square = false,
+}: Props) {
   const hasPoint = lat != null && lng != null;
   const mapsOk = isNativeMapsAvailable();
   const region = regionForPreview(lat, lng);
   const mapKey = hasPoint ? `${lat}-${lng}` : 'empty';
+  const previewHeight = square ? 108 : compact ? 88 : PREVIEW_HEIGHT;
+  const pressableLabel = interactive
+    ? 'Ouvrir la carte pour choisir la position'
+    : 'Aperçu de la position de livraison';
 
   if (mapsOk) {
     return (
       <Pressable
-        onPress={onOpenPicker}
+        onPress={interactive ? onOpenPicker : undefined}
         accessibilityRole="button"
-        accessibilityLabel="Ouvrir la carte pour choisir la position"
-        style={styles.pressable}
+        accessibilityLabel={pressableLabel}
+        disabled={!interactive}
+        style={[styles.pressable, square ? styles.squareBox : null]}
       >
-        <View style={styles.mapClip}>
+        <View style={[styles.mapClip, { height: previewHeight }]}>
           <MapView
             key={mapKey}
             style={styles.map}
@@ -41,23 +56,26 @@ export function AddressMapPreview({ lat, lng, onOpenPicker }: Props) {
             {hasPoint ? <Marker coordinate={{ latitude: lat, longitude: lng }} /> : null}
           </MapView>
         </View>
-        <Text style={styles.tapHint}>Toucher l’aperçu pour agrandir</Text>
+        {interactive ? <Text style={styles.tapHint}>Toucher l’aperçu pour agrandir</Text> : null}
       </Pressable>
     );
   }
 
   return (
     <Pressable
-      onPress={onOpenPicker}
+      onPress={interactive ? onOpenPicker : undefined}
       accessibilityRole="button"
-      accessibilityLabel="Définir la position"
-      style={[styles.fallback, { height: PREVIEW_HEIGHT }]}
+      accessibilityLabel={pressableLabel}
+      disabled={!interactive}
+      style={[styles.fallback, { height: previewHeight }, square ? styles.squareBox : null]}
     >
       <Text style={styles.fallbackEmoji}>🗺️</Text>
       <Text style={styles.fallbackText}>
         {hasPoint
           ? `${lat.toFixed(5)}, ${lng.toFixed(5)}`
-          : 'Aperçu carte indisponible (Expo Go). Touchez pour placer le point.'}
+          : interactive
+          ? 'Aperçu carte indisponible (Expo Go). Touchez pour placer le point.'
+          : 'Aperçu carte indisponible.'}
       </Text>
     </Pressable>
   );
@@ -65,6 +83,7 @@ export function AddressMapPreview({ lat, lng, onOpenPicker }: Props) {
 
 const styles = StyleSheet.create({
   pressable: { gap: 6 },
+  squareBox: { width: 108, alignSelf: 'flex-start' },
   mapClip: {
     height: PREVIEW_HEIGHT,
     borderRadius: 10,

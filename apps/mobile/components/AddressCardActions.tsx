@@ -23,16 +23,14 @@ export function AddressCardActions({ onEdit, onDelete, deleteLoading }: Props) {
           disabled={busy}
           style={({ pressed }) => [
             styles.btn,
-            styles.btnEdit,
             pressed && styles.pressed,
             busy && styles.btnDisabled,
           ]}
         >
-          <Text style={styles.glyphEdit} accessibilityElementsHidden>
-            ✎
-          </Text>
           <Text style={styles.labelEdit}>Modifier</Text>
         </Pressable>
+
+        <Text style={styles.separator}>•</Text>
 
         <Pressable
           accessibilityRole="button"
@@ -41,7 +39,6 @@ export function AddressCardActions({ onEdit, onDelete, deleteLoading }: Props) {
           disabled={busy}
           style={({ pressed }) => [
             styles.btn,
-            styles.btnDelete,
             pressed && styles.pressed,
             busy && styles.btnDisabled,
           ]}
@@ -49,12 +46,7 @@ export function AddressCardActions({ onEdit, onDelete, deleteLoading }: Props) {
           {busy ? (
             <ActivityIndicator color={wt.error} size="small" />
           ) : (
-            <>
-              <Text style={styles.glyphDelete} accessibilityElementsHidden>
-                ✕
-              </Text>
-              <Text style={styles.labelDelete}>Supprimer</Text>
-            </>
+            <Text style={styles.labelDelete}>Supprimer</Text>
           )}
         </Pressable>
       </View>
@@ -64,64 +56,42 @@ export function AddressCardActions({ onEdit, onDelete, deleteLoading }: Props) {
 
 const styles = StyleSheet.create({
   wrap: {
-    marginTop: 14,
-    paddingTop: 14,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: wt.border,
+    marginTop: 4,
+    paddingTop: 2,
   },
   row: {
     flexDirection: 'row',
-    gap: 10,
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+    gap: 6,
   },
   btn: {
-    flex: 1,
-    minHeight: 44,
+    minHeight: 22,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 7,
-    paddingVertical: 11,
-    paddingHorizontal: 12,
-    borderRadius: 12,
-    borderWidth: 1,
-  },
-  btnEdit: {
-    backgroundColor: wt.surfaceMuted,
-    borderColor: wt.borderStrong,
-  },
-  btnDelete: {
-    backgroundColor: 'rgba(239, 68, 68, 0.08)',
-    borderColor: 'rgba(248, 113, 113, 0.28)',
+    paddingVertical: 1,
+    paddingHorizontal: 1,
   },
   pressed: {
-    opacity: 0.78,
+    opacity: 0.84,
   },
   btnDisabled: {
     opacity: 0.55,
   },
-  glyphEdit: {
-    fontSize: 15,
-    color: wt.accentLight,
+  labelEdit: {
+    fontSize: 12,
     fontWeight: '600',
+    color: wt.accentLight,
+  },
+  separator: {
+    fontSize: 10,
+    color: wt.textSecondary,
     marginTop: -1,
   },
-  labelEdit: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: wt.text,
-    letterSpacing: 0.2,
-  },
-  glyphDelete: {
-    fontSize: 13,
-    fontWeight: '500',
-    color: wt.error,
-    opacity: 0.95,
-    marginTop: 0,
-  },
   labelDelete: {
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: '600',
-    color: wt.error,
-    letterSpacing: 0.2,
+    color: '#fda4af',
   },
 });
