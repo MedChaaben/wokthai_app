@@ -1,5 +1,24 @@
 "use client";
 
+import {
+  DndContext,
+  DragOverlay,
+  KeyboardSensor,
+  PointerSensor,
+  closestCenter,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+  type DragStartEvent,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  arrayMove,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
@@ -14,8 +33,17 @@ import {
 } from "@wokthai/shared";
 import type { ProductRow as ProductRowType } from "@wokthai/shared";
 import Link from "next/link";
+import type { CSSProperties } from "react";
 import { Modal } from "../../../components/Modal";
 import { ProductOptionsEditor } from "../../../components/ProductOptionsEditor";
+
+function IconGrip() {
+  return (
+    <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+      <path d="M9 5a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm4 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0zM9 9a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm4 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0zM9 13a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm4 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0zM9 17a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm4 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0z" />
+    </svg>
+  );
+}
 
 /** Alignée sur la page Commandes : compense le padding du <main>, z-20 au-dessus de la liste. */
 const CATEGORY_PILLS_STICKY =
@@ -80,6 +108,20 @@ export default function ProductsPage() {
     onSuccess: () => void qc.invalidateQueries({ queryKey: ["products"] }),
   });
 
+  const reorderProductsMut = useMutation({
+    mutationFn: async (orderedIds: string[]) => {
+      await Promise.all(orderedIds.map((id, index) => updateProduct(supabase, id, { position: index })));
+    },
+    onSuccess: () => void qc.invalidateQueries({ queryKey: ["products"] }),
+  });
+
+  const [activeDragProductId, setActiveDragProductId] = useState<string | null>(null);
+
+  const reorderSensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  );
+
   const cats = categories.data ?? [];
   const allProducts = products.data ?? [];
 
@@ -142,8 +184,9 @@ export default function ProductsPage() {
           <p className="mt-2 max-w-2xl text-sm text-stone-600 dark:text-zinc-400">
             {canEditCatalog ? (
               <>
-                Grille des plats ci-dessous. Options du plat : <span className="font-medium text-zinc-800 dark:text-zinc-200">Modifier</span> sur chaque fiche.
-                Ordre dans la catégorie : champ <span className="font-medium">Position</span> (plus petit = plus haut).
+                Grille des plats ci-dessous. <span className="font-medium text-zinc-800 dark:text-zinc-200">Glissez les lignes</span> via la poignée pour l’ordre
+                dans la catégorie ; vous pouvez aussi régler la <span className="font-medium">Position</span> en éditant la fiche. Options du plat :{" "}
+                <span className="font-medium text-zinc-800 dark:text-zinc-200">Modifier</span> sur chaque fiche.
                 {!staff.isLoading && isPlatformAdmin ? (
                   <>
                     {" "}
@@ -259,6 +302,71 @@ export default function ProductsPage() {
                 <>Aucun produit dans cette catégorie.</>
               )}
             </p>
+          ) : canEditCatalog ? (
+            <>
+              {reorderProductsMut.isError ? (
+                <p className="mt-4 text-sm text-red-600 dark:text-red-400" role="alert">
+                  {reorderProductsMut.error instanceof Error
+                    ? reorderProductsMut.error.message
+                    : "Erreur lors de l’enregistrement de l’ordre des plats."}
+                </p>
+              ) : null}
+              {reorderProductsMut.isPending ? (
+                <p className="mt-4 flex items-center gap-2 text-xs font-medium text-wt-bordeaux dark:text-zinc-400">
+                  <span
+                    className="inline-block h-3.5 w-3.5 animate-spin rounded-full border-2 border-wt-bordeaux border-t-transparent dark:border-zinc-400 dark:border-t-transparent"
+                    aria-hidden
+                  />
+                  Enregistrement de l’ordre…
+                </p>
+              ) : null}
+              <DndContext
+                sensors={reorderSensors}
+                collisionDetection={closestCenter}
+                onDragStart={(e: DragStartEvent) => setActiveDragProductId(String(e.active.id))}
+                onDragCancel={() => setActiveDragProductId(null)}
+                onDragEnd={(event: DragEndEvent) => {
+                  setActiveDragProductId(null);
+                  const { active, over } = event;
+                  if (!over || active.id === over.id) return;
+                  const list = visibleProducts;
+                  const oldIndex = list.findIndex((p) => p.id === active.id);
+                  const newIndex = list.findIndex((p) => p.id === over.id);
+                  if (oldIndex === -1 || newIndex === -1) return;
+                  const reordered = arrayMove(list, oldIndex, newIndex);
+                  reorderProductsMut.mutate(reordered.map((p) => p.id));
+                }}
+              >
+                <SortableContext
+                  items={visibleProducts.map((p) => p.id)}
+                  strategy={verticalListSortingStrategy}
+                >
+                  <ul className="relative z-0 mt-6 space-y-3">
+                    {visibleProducts.map((p) => (
+                      <SortableProductListRow
+                        key={p.id}
+                        product={p}
+                        categories={cats}
+                        reorderDisabled={reorderProductsMut.isPending}
+                        onDelete={() => deleteMut.mutate(p.id)}
+                      />
+                    ))}
+                  </ul>
+                </SortableContext>
+                <DragOverlay dropAnimation={null}>
+                  {activeDragProductId ? (
+                    <div className="wt-card flex cursor-grabbing items-center gap-3 p-4 shadow-lg ring-2 ring-wt-bordeaux/25 dark:ring-wt-bordeaux/40">
+                      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-wt-bordeaux-muted text-wt-bordeaux dark:bg-wt-bordeaux-muted/50">
+                        <IconGrip />
+                      </span>
+                      <span className="font-semibold text-zinc-900 dark:text-zinc-100">
+                        {visibleProducts.find((x) => x.id === activeDragProductId)?.name ?? ""}
+                      </span>
+                    </div>
+                  ) : null}
+                </DragOverlay>
+              </DndContext>
+            </>
           ) : (
             <ul className="relative z-0 mt-6 space-y-3">
               {visibleProducts.map((p) => (
@@ -266,7 +374,7 @@ export default function ProductsPage() {
                   key={p.id}
                   product={p}
                   categories={cats}
-                  readOnly={!canEditCatalog}
+                  readOnly
                   onDelete={() => deleteMut.mutate(p.id)}
                 />
               ))}
@@ -424,16 +532,73 @@ function ProductOptionsViewer({ productId }: { productId: string }) {
   );
 }
 
+function SortableProductListRow({
+  product,
+  categories,
+  reorderDisabled,
+  onDelete,
+}: {
+  product: ProductRowType;
+  categories: { id: string; name: string }[];
+  reorderDisabled: boolean;
+  onDelete: () => void;
+}) {
+  const [editing, setEditing] = useState(false);
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: product.id,
+    disabled: reorderDisabled || editing,
+  });
+
+  const sortableStyle: CSSProperties = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
+  return (
+    <ProductListRow
+      product={product}
+      categories={categories}
+      readOnly={false}
+      onDelete={onDelete}
+      onEditingChange={setEditing}
+      sortable={{ setNodeRef, style: sortableStyle, isDragging }}
+      dragHandle={
+        editing ? null : (
+          <button
+            type="button"
+            className="flex h-10 w-10 shrink-0 cursor-grab touch-none items-center justify-center rounded-xl border border-zinc-200 bg-white text-zinc-500 shadow-sm transition hover:border-zinc-300 hover:bg-zinc-50 hover:text-zinc-700 active:cursor-grabbing dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-400 dark:hover:border-zinc-600 dark:hover:bg-zinc-800"
+            {...attributes}
+            {...listeners}
+            aria-label={`Déplacer : ${product.name}`}
+          >
+            <IconGrip />
+          </button>
+        )
+      }
+    />
+  );
+}
+
 function ProductListRow({
   product,
   categories,
   readOnly = false,
   onDelete,
+  onEditingChange,
+  sortable,
+  dragHandle,
 }: {
   product: ProductRowType;
   categories: { id: string; name: string }[];
   readOnly?: boolean;
   onDelete: () => void;
+  onEditingChange?: (editing: boolean) => void;
+  sortable?: {
+    setNodeRef: (node: HTMLElement | null) => void;
+    style: CSSProperties;
+    isDragging: boolean;
+  };
+  dragHandle?: React.ReactNode;
 }) {
   const supabase = useSupabase();
   const qc = useQueryClient();
@@ -465,6 +630,10 @@ function ProductListRow({
   useEffect(() => {
     if (readOnly) setIsEditing(false);
   }, [readOnly]);
+
+  useEffect(() => {
+    onEditingChange?.(isEditing);
+  }, [isEditing, onEditingChange]);
 
   useEffect(() => {
     if (isEditing) return;
@@ -531,28 +700,15 @@ function ProductListRow({
   const displayImage = imagePreview ?? product.image_url;
   const categoryLabel = categories.find((c) => c.id === product.category_id)?.name ?? "—";
 
-  return (
-    <li
-      className={`wt-card p-4 ${
-        !readOnly && isEditing
-          ? "border-wt-bordeaux ring-2 ring-wt-bordeaux/35 dark:border-wt-bordeaux dark:ring-wt-bordeaux/40"
-          : ""
-      }`}
-    >
-      <div className="flex flex-col gap-3 md:flex-row">
-        {displayImage ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={displayImage}
-            alt=""
-            className="h-28 w-28 shrink-0 rounded-lg object-cover"
-          />
-        ) : (
-          <div className="flex h-28 w-28 shrink-0 items-center justify-center rounded-lg wt-inset text-xs">
-            Pas d’image
-          </div>
-        )}
-        <div className="flex min-w-0 flex-1 flex-col gap-3">
+  const imageEl = displayImage ? (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img src={displayImage} alt="" className="h-28 w-28 shrink-0 rounded-lg object-cover" />
+  ) : (
+    <div className="flex h-28 w-28 shrink-0 items-center justify-center rounded-lg wt-inset text-xs">Pas d’image</div>
+  );
+
+  const bodyEl = (
+    <div className="flex min-w-0 flex-1 flex-col gap-3">
           {readOnly || !isEditing ? (
             <>
               <div>
@@ -715,8 +871,35 @@ function ProductListRow({
               ) : null}
             </>
           )}
+    </div>
+  );
+
+  return (
+    <li
+      ref={sortable?.setNodeRef}
+      style={sortable?.style}
+      className={`wt-card p-4 ${
+        sortable?.isDragging ? "opacity-35" : ""
+      } ${
+        !readOnly && isEditing
+          ? "border-wt-bordeaux ring-2 ring-wt-bordeaux/35 dark:border-wt-bordeaux dark:ring-wt-bordeaux/40"
+          : ""
+      }`}
+    >
+      {dragHandle ? (
+        <div className="flex gap-2 md:gap-3 md:items-start">
+          <div className="shrink-0 pt-1 md:pt-0.5">{dragHandle}</div>
+          <div className="flex min-w-0 flex-1 flex-col gap-3 md:flex-row">
+            {imageEl}
+            {bodyEl}
+          </div>
         </div>
-      </div>
+      ) : (
+        <div className="flex flex-col gap-3 md:flex-row">
+          {imageEl}
+          {bodyEl}
+        </div>
+      )}
     </li>
   );
 }

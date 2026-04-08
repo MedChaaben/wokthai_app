@@ -149,9 +149,6 @@ export default function AdminStaffPage() {
         <h2 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">Créer un accès restaurant</h2>
         <p className="mt-2 text-sm text-stone-600 dark:text-zinc-400">
           Crée un compte Supabase Auth (e-mail / mot de passe) et rattache la ligne <code className="rounded bg-stone-100 px-1 dark:bg-zinc-800">staff</code> au magasin choisi.
-          Création, modification et suppression d’accès nécessitent{" "}
-          <code className="rounded bg-stone-100 px-1 dark:bg-zinc-800">SUPABASE_SERVICE_ROLE_KEY</code> côté serveur (
-          voir <code className="rounded bg-stone-100 px-1 dark:bg-zinc-800">.env.example</code>).
         </p>
         <form
           className="mt-4 space-y-4 rounded-xl border border-stone-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900/40"
