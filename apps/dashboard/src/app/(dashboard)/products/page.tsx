@@ -5,6 +5,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import {
   useCategories,
   useProducts,
+  useProductOptionGroups,
+  useStaffProfile,
   useSupabase,
   createProduct,
   updateProduct,
@@ -22,6 +24,10 @@ const CATEGORY_PILLS_STICKY =
 export default function ProductsPage() {
   const supabase = useSupabase();
   const qc = useQueryClient();
+  const staff = useStaffProfile();
+  const isPlatformAdmin = staff.data?.role === "platform_admin";
+  /** Seul le siège modifie le catalogue ; le magasin consulte les plats et gère les commandes ailleurs. */
+  const canEditCatalog = staff.data?.role === "platform_admin";
   const products = useProducts({ onlyAvailable: false });
   const categories = useCategories();
 
@@ -114,6 +120,7 @@ export default function ProductsPage() {
   }
 
   function openCreateForm() {
+    if (!canEditCatalog) return;
     if (activeCategoryId) setCategoryId(activeCategoryId);
     setShowCreateForm(true);
   }
@@ -133,32 +140,57 @@ export default function ProductsPage() {
         <div>
           <h1 className="text-2xl font-extrabold text-zinc-900 dark:text-zinc-100">Produits</h1>
           <p className="mt-2 max-w-2xl text-sm text-stone-600 dark:text-zinc-400">
-            Grille des plats ci-dessous. Options du plat : <span className="font-medium text-zinc-800 dark:text-zinc-200">Modifier</span> sur chaque fiche.
-            Ordre dans la catégorie : champ <span className="font-medium">Position</span> (plus petit = plus haut). Catégories, relances et préréglages : raccourcis
-            au-dessus du contenu.
+            {canEditCatalog ? (
+              <>
+                Grille des plats ci-dessous. Options du plat : <span className="font-medium text-zinc-800 dark:text-zinc-200">Modifier</span> sur chaque fiche.
+                Ordre dans la catégorie : champ <span className="font-medium">Position</span> (plus petit = plus haut).
+                {!staff.isLoading && isPlatformAdmin ? (
+                  <>
+                    {" "}
+                    Catégories, relances et préréglages : menu latéral <span className="font-medium">Produits</span>.
+                  </>
+                ) : null}
+              </>
+            ) : (
+              <>
+                Consultation du menu du restaurant. Les plats et leurs personnalisations sont gérés par le <span className="font-semibold">siège</span>. Pour les
+                commandes, utilisez la section <span className="font-semibold">Commandes</span>.
+              </>
+            )}
           </p>
         </div>
-        <button
-          type="button"
-          onClick={openCreateForm}
-          className="shrink-0 rounded-xl bg-wt-bordeaux px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-wt-bordeaux-hover"
-        >
-          Nouveau produit
-        </button>
+        {canEditCatalog ? (
+          <button
+            type="button"
+            onClick={openCreateForm}
+            className="shrink-0 rounded-xl bg-wt-bordeaux px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-wt-bordeaux-hover"
+          >
+            Nouveau produit
+          </button>
+        ) : null}
       </div>
 
       <h2 className="mt-8 text-lg font-bold text-zinc-900 dark:text-zinc-100">Menu</h2>
 
       {cats.length === 0 ? (
         <p className="mt-6 wt-dashed-empty text-stone-600 dark:text-zinc-500">
-          Créez d’abord une <span className="font-semibold">catégorie</span> dans{" "}
-          <Link
-            href="/products/onglets"
-            className="font-semibold text-wt-bordeaux underline decoration-wt-bordeaux/40 underline-offset-2 hover:decoration-wt-bordeaux dark:text-wt-accent"
-          >
-            Catégories du menu
-          </Link>
-          , puis revenez ici pour ajouter des produits.
+          {isPlatformAdmin ? (
+            <>
+              Créez d’abord une <span className="font-semibold">catégorie</span> dans{" "}
+              <Link
+                href="/products/onglets"
+                className="font-semibold text-wt-bordeaux underline decoration-wt-bordeaux/40 underline-offset-2 hover:decoration-wt-bordeaux dark:text-wt-accent"
+              >
+                Catégories du menu
+              </Link>{" "}
+              (barre latérale), puis revenez ici pour ajouter des produits.
+            </>
+          ) : (
+            <>
+              Aucune catégorie pour ce restaurant : le catalogue des onglets est géré par le <span className="font-semibold">siège</span>. Contactez
+              Wok Thaï pour créer des catégories, puis vous pourrez ajouter des plats ici.
+            </>
+          )}
         </p>
       ) : allProducts.length === 0 ? (
         <>
@@ -182,8 +214,14 @@ export default function ProductsPage() {
             </div>
           </div>
           <p className="mt-6 wt-dashed-empty text-stone-600 dark:text-zinc-500">
-            Aucun produit pour le moment. Cliquez sur <span className="font-semibold">Nouveau produit</span> pour en
-            ajouter un dans la catégorie sélectionnée.
+            {canEditCatalog ? (
+              <>
+                Aucun produit pour le moment. Cliquez sur <span className="font-semibold">Nouveau produit</span> pour en
+                ajouter un dans la catégorie sélectionnée.
+              </>
+            ) : (
+              <>Aucun produit dans cette catégorie pour le moment.</>
+            )}
           </p>
         </>
       ) : (
@@ -212,19 +250,32 @@ export default function ProductsPage() {
 
           {visibleProducts.length === 0 ? (
             <p className="mt-6 wt-dashed-empty text-stone-600 dark:text-zinc-500">
-              Aucun produit dans cette catégorie. Utilisez <span className="font-semibold">Nouveau produit</span> pour en
-              ajouter un.
+              {canEditCatalog ? (
+                <>
+                  Aucun produit dans cette catégorie. Utilisez <span className="font-semibold">Nouveau produit</span> pour en
+                  ajouter un.
+                </>
+              ) : (
+                <>Aucun produit dans cette catégorie.</>
+              )}
             </p>
           ) : (
             <ul className="relative z-0 mt-6 space-y-3">
               {visibleProducts.map((p) => (
-                <ProductListRow key={p.id} product={p} categories={cats} onDelete={() => deleteMut.mutate(p.id)} />
+                <ProductListRow
+                  key={p.id}
+                  product={p}
+                  categories={cats}
+                  readOnly={!canEditCatalog}
+                  onDelete={() => deleteMut.mutate(p.id)}
+                />
               ))}
             </ul>
           )}
         </>
       )}
 
+      {canEditCatalog ? (
       <Modal
         open={showCreateForm}
         onClose={cancelCreateForm}
@@ -322,6 +373,53 @@ export default function ProductsPage() {
           </div>
         </form>
       </Modal>
+      ) : null}
+    </div>
+  );
+}
+
+function ProductOptionsViewer({ productId }: { productId: string }) {
+  const tree = useProductOptionGroups(productId);
+  if (tree.isLoading) {
+    return <p className="mt-4 text-sm text-stone-600 dark:text-zinc-500">Chargement des personnalisations…</p>;
+  }
+  if (tree.error) {
+    return null;
+  }
+  const groups = tree.data ?? [];
+  if (groups.length === 0) {
+    return null;
+  }
+  return (
+    <div className="mt-4 border-t border-stone-200 pt-4 dark:border-zinc-800">
+      <p className="text-xs font-semibold uppercase tracking-wide text-wt-bordeaux dark:text-wt-accent">Personnalisations</p>
+      <ul className="mt-2 space-y-3">
+        {groups.map((g) => (
+          <li key={g.id} className="rounded-lg border border-stone-200/90 bg-stone-50/60 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-900/40">
+            <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+              {g.name}
+              <span className="ml-2 font-normal text-stone-600 dark:text-zinc-400">
+                · {g.required ? "Obligatoire" : "Facultatif"} ·{" "}
+                {g.max_select === 1 ? "un seul choix" : `jusqu’à ${g.max_select} choix`}
+              </span>
+            </p>
+            <ul className="mt-1.5 space-y-0.5 pl-2 text-sm text-stone-700 dark:text-zinc-300">
+              {g.product_options.map((o) => (
+                <li key={o.id}>
+                  {o.name}
+                  {o.is_chargeable && Number(o.price_modifier) !== 0 ? (
+                    <span className="text-stone-500 dark:text-zinc-500">
+                      {" "}
+                      ({Number(o.price_modifier) > 0 ? "+" : ""}
+                      {Number(o.price_modifier).toFixed(2)} TND)
+                    </span>
+                  ) : null}
+                </li>
+              ))}
+            </ul>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
@@ -329,10 +427,12 @@ export default function ProductsPage() {
 function ProductListRow({
   product,
   categories,
+  readOnly = false,
   onDelete,
 }: {
   product: ProductRowType;
   categories: { id: string; name: string }[];
+  readOnly?: boolean;
   onDelete: () => void;
 }) {
   const supabase = useSupabase();
@@ -361,6 +461,10 @@ function ProductListRow({
     });
     if (fileRef.current) fileRef.current.value = "";
   }
+
+  useEffect(() => {
+    if (readOnly) setIsEditing(false);
+  }, [readOnly]);
 
   useEffect(() => {
     if (isEditing) return;
@@ -430,7 +534,7 @@ function ProductListRow({
   return (
     <li
       className={`wt-card p-4 ${
-        isEditing
+        !readOnly && isEditing
           ? "border-wt-bordeaux ring-2 ring-wt-bordeaux/35 dark:border-wt-bordeaux dark:ring-wt-bordeaux/40"
           : ""
       }`}
@@ -449,7 +553,7 @@ function ProductListRow({
           </div>
         )}
         <div className="flex min-w-0 flex-1 flex-col gap-3">
-          {!isEditing ? (
+          {readOnly || !isEditing ? (
             <>
               <div>
                 <p className="text-lg font-bold text-zinc-900 dark:text-zinc-100">{product.name}</p>
@@ -481,24 +585,28 @@ function ProductListRow({
                   )}
                 </p>
               </div>
-              <div className="flex flex-wrap gap-2 pt-1">
-                <button
-                  type="button"
-                  onClick={beginEdit}
-                  className="rounded-xl bg-wt-bordeaux px-4 py-2 text-sm font-semibold text-white hover:bg-wt-bordeaux-hover"
-                >
-                  Modifier
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (confirm("Supprimer ce produit ?")) onDelete();
-                  }}
-                  className="rounded-xl border border-red-200 px-4 py-2 text-sm font-semibold text-red-600 dark:border-red-900/60 dark:text-red-400"
-                >
-                  Supprimer
-                </button>
-              </div>
+              {readOnly ? (
+                <ProductOptionsViewer productId={product.id} />
+              ) : (
+                <div className="flex flex-wrap gap-2 pt-1">
+                  <button
+                    type="button"
+                    onClick={beginEdit}
+                    className="rounded-xl bg-wt-bordeaux px-4 py-2 text-sm font-semibold text-white hover:bg-wt-bordeaux-hover"
+                  >
+                    Modifier
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (confirm("Supprimer ce produit ?")) onDelete();
+                    }}
+                    className="rounded-xl border border-red-200 px-4 py-2 text-sm font-semibold text-red-600 dark:border-red-900/60 dark:text-red-400"
+                  >
+                    Supprimer
+                  </button>
+                </div>
+              )}
             </>
           ) : (
             <>
@@ -612,3 +720,4 @@ function ProductListRow({
     </li>
   );
 }
+

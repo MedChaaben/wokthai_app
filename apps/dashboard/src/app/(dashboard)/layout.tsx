@@ -20,9 +20,16 @@ const storeStaffNav = [
   { href: "/settings", label: "Restaurant" },
 ] as const;
 
-const platformAdminNav = [
-  { href: "/products", label: "Produits" },
-  { href: "/admin", label: "Administration" },
+/** Sous-menu Produits (siège uniquement) : Plats + réglages catalogue. */
+const platformAdminProductsSubLinks = [
+  { href: "/products", label: "Plats", match: (p: string) => p === "/products" },
+  { href: "/products/onglets", label: "Catégories", match: (p: string) => p === "/products/onglets" || p.startsWith("/products/onglets/") },
+  { href: "/products/relances", label: "Relances", match: (p: string) => p === "/products/relances" || p.startsWith("/products/relances/") },
+  {
+    href: "/products/prereglages",
+    label: "Préréglages",
+    match: (p: string) => p === "/products/prereglages" || p.startsWith("/products/prereglages/"),
+  },
 ] as const;
 
 function formatQueryError(err: unknown): string {
@@ -179,17 +186,69 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     );
   }
 
-  const sidebarNavItems = isPlatformAdmin ? platformAdminNav : storeStaffNav;
-
-  const navLinks = (
+  const navLinks = isPlatformAdmin ? (
+    <nav className="mt-4 flex flex-col gap-3" aria-label="Navigation principale">
+      <div>
+        <p className="px-3 text-[10px] font-semibold uppercase tracking-wide text-stone-500 dark:text-zinc-500">
+          Produits
+        </p>
+        <ul
+          className="mt-1.5 flex flex-col gap-0.5 border-l border-stone-200/90 pl-2 ml-3 dark:border-zinc-700"
+          role="list"
+        >
+          {platformAdminProductsSubLinks.map(({ href, label, match }) => {
+            const active = match(pathname);
+            return (
+              <li key={href}>
+                <Link
+                  href={href}
+                  onClick={() => setMobileNavOpen(false)}
+                  className={`block rounded-lg px-3 py-1.5 text-sm font-medium ${
+                    active
+                      ? "bg-wt-bordeaux-muted text-wt-bordeaux dark:bg-wt-bordeaux/25 dark:text-wt-white"
+                      : "text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800"
+                  }`}
+                  aria-current={active ? "page" : undefined}
+                >
+                  {label}
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
+      </div>
+      <div>
+        <Link
+          href="/admin"
+          onClick={() => setMobileNavOpen(false)}
+          aria-label={
+            pendingOrdersCount > 0
+              ? `Administration, ${pendingOrdersCount} commande${pendingOrdersCount > 1 ? "s" : ""} en attente`
+              : undefined
+          }
+          className={`flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium ${
+            pathname === "/admin" || pathname.startsWith("/admin/")
+              ? "bg-wt-bordeaux-muted text-wt-bordeaux dark:bg-wt-bordeaux/25 dark:text-wt-white"
+              : "text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800"
+          }`}
+        >
+          <span className="min-w-0 flex-1">Administration</span>
+          {pendingOrdersCount > 0 ? (
+            <span className="inline-flex min-h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-wt-bordeaux px-1.5 text-[10px] font-bold leading-none text-white tabular-nums">
+              {pendingOrdersCount > 99 ? "99+" : pendingOrdersCount}
+            </span>
+          ) : null}
+        </Link>
+      </div>
+    </nav>
+  ) : (
     <nav className="mt-4 flex flex-col gap-1" aria-label="Navigation principale">
-      {sidebarNavItems.map((item) => {
+      {storeStaffNav.map((item) => {
         const active =
           pathname === item.href ||
           pathname.startsWith(`${item.href}/`) ||
-          (item.href === "/products" && pathname === "/categories") ||
-          (item.href === "/admin" && pathname.startsWith("/admin"));
-        const showPendingBadge = item.href === "/admin" && pendingOrdersCount > 0;
+          (item.href === "/products" && pathname === "/categories");
+        const showPendingBadge = false;
         return (
           <Link
             key={item.href}
