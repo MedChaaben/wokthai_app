@@ -193,7 +193,7 @@ export function CategoryMenuManager({ className = "" }: CategoryMenuManagerProps
     <div className={`mx-auto max-w-3xl space-y-4 ${className}`}>
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-xs text-stone-600 dark:text-zinc-500">
-          Glisser-déposer pour l’ordre des onglets dans l’app mobile. Le nom est éditable sur chaque ligne.
+          Glisser-déposer pour l’ordre des catégories dans l’app mobile. Le nom est éditable sur chaque ligne.
         </p>
         <button
           type="button"
@@ -328,7 +328,7 @@ export function CategoryMenuManager({ className = "" }: CategoryMenuManagerProps
               className="mt-1.5 w-full rounded-xl border border-stone-300 px-3 py-2.5 text-base shadow-sm transition focus:border-wt-bordeaux focus:outline-none focus:ring-2 focus:ring-wt-bordeaux/25 dark:border-zinc-700"
             />
             <p className="mt-2 text-xs text-stone-500 dark:text-zinc-500">
-              Ce nom apparaît comme libellé d’onglet dans l’application mobile.
+              Ce nom apparaît comme libellé de catégorie dans l’application mobile.
             </p>
           </div>
           <div className="flex flex-wrap gap-2 pt-1">

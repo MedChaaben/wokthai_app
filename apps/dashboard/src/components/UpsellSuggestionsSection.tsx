@@ -110,7 +110,7 @@ export function UpsellSuggestionsSection() {
     <div className="space-y-4">
       <p className="text-sm text-stone-600 dark:text-zinc-400">
         Avant paiement, l’app propose une fois un produit si le panier n’a pas encore de boisson ou d’entrée — selon
-        l’onglet choisi.
+        la catégorie choisie (boisson ou entrée).
       </p>
 
       <div
@@ -164,8 +164,8 @@ export function UpsellSuggestionsSection() {
 
             <div className="space-y-4">
               <div className="rounded-lg border border-stone-100 bg-stone-50/90 px-4 py-3 dark:border-zinc-800 dark:bg-zinc-900/40">
-                <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Quels onglets = des {typePlural} ?</p>
-                <p className="mt-1 text-sm text-stone-600 dark:text-zinc-400">Cochez les catégories concernées.</p>
+                <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Quelles catégories comptent comme des {typePlural} ?</p>
+                <p className="mt-1 text-sm text-stone-600 dark:text-zinc-400">Cochez les catégories du menu concernées.</p>
                 <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2">
                   {catsList.map((c) => {
                     const checked = selectedCats.includes(c.id);

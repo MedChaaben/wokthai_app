@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 export default function CategoriesRedirectPage() {
   const router = useRouter();
   useEffect(() => {
-    router.replace("/products#menu-tabs");
+    router.replace("/products/onglets");
   }, [router]);
   return <p className="text-stone-600 dark:text-zinc-400">Redirection vers Produits…</p>;
 }

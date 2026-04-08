@@ -11,11 +11,9 @@ import {
   deleteProduct,
 } from "@wokthai/shared";
 import type { ProductRow as ProductRowType } from "@wokthai/shared";
-import { CategoryMenuManager } from "../../../components/CategoryMenuManager";
+import Link from "next/link";
 import { Modal } from "../../../components/Modal";
 import { ProductOptionsEditor } from "../../../components/ProductOptionsEditor";
-import { CustomizationPresetCatalogSection } from "../../../components/CustomizationPresetCatalogSection";
-import { UpsellSuggestionsSection } from "../../../components/UpsellSuggestionsSection";
 
 /** Alignée sur la page Commandes : compense le padding du <main>, z-20 au-dessus de la liste. */
 const CATEGORY_PILLS_STICKY =
@@ -28,9 +26,6 @@ export default function ProductsPage() {
   const categories = useCategories();
 
   const [activeCategoryId, setActiveCategoryId] = useState<string | null>(null);
-  const [menuTabsOpen, setMenuTabsOpen] = useState(false);
-  const [presetsCatalogOpen, setPresetsCatalogOpen] = useState(false);
-  const [upsellOpen, setUpsellOpen] = useState(false);
   const [showCreateForm, setShowCreateForm] = useState(false);
 
   const [name, setName] = useState("");
@@ -106,31 +101,6 @@ export default function ProductsPage() {
     });
   }, [cats, activeCategoryId]);
 
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const hash = window.location.hash.replace(/^#/, "");
-    queueMicrotask(() => {
-      if (hash === "menu-tabs") {
-        setMenuTabsOpen(true);
-        requestAnimationFrame(() => {
-          document.getElementById("menu-tabs")?.scrollIntoView({ behavior: "smooth", block: "start" });
-        });
-      }
-      if (hash === "upsell-suggestions") {
-        setUpsellOpen(true);
-        requestAnimationFrame(() => {
-          document.getElementById("upsell-suggestions")?.scrollIntoView({ behavior: "smooth", block: "start" });
-        });
-      }
-      if (hash === "presets-catalog") {
-        setPresetsCatalogOpen(true);
-        requestAnimationFrame(() => {
-          document.getElementById("presets-catalog")?.scrollIntoView({ behavior: "smooth", block: "start" });
-        });
-      }
-    });
-  }, []);
-
   const visibleProducts =
     activeCategoryId != null ? (productsByCategory.get(activeCategoryId) ?? []) : [];
 
@@ -163,58 +133,10 @@ export default function ProductsPage() {
         <div>
           <h1 className="text-2xl font-extrabold text-zinc-900 dark:text-zinc-100">Produits</h1>
           <p className="mt-2 max-w-2xl text-sm text-stone-600 dark:text-zinc-400">
-            La grille des plats est juste en dessous. Options du plat : <span className="font-medium text-zinc-800 dark:text-zinc-200">Modifier</span> sur
-            chaque fiche. Ordre dans une catégorie : champ <span className="font-medium">Position</span> (plus petit = plus haut).
+            Grille des plats ci-dessous. Options du plat : <span className="font-medium text-zinc-800 dark:text-zinc-200">Modifier</span> sur chaque fiche.
+            Ordre dans la catégorie : champ <span className="font-medium">Position</span> (plus petit = plus haut). Catégories, relances et préréglages : raccourcis
+            au-dessus du contenu.
           </p>
-          <nav
-            className="mt-4 rounded-xl border border-stone-200/90 bg-stone-50/90 px-3 py-3 dark:border-zinc-800 dark:bg-zinc-950/50"
-            aria-label="Raccourcis de page"
-          >
-            <p className="text-xs font-semibold uppercase tracking-wide text-stone-500 dark:text-zinc-500">Aller à</p>
-            <ul className="mt-2 flex flex-wrap gap-x-1 gap-y-2 text-sm">
-              <li className="contents">
-                <a
-                  href="#menu"
-                  className="rounded-lg bg-white px-2.5 py-1.5 font-medium text-wt-bordeaux ring-1 ring-stone-200/90 hover:bg-stone-50 dark:bg-zinc-900 dark:text-wt-accent dark:ring-zinc-700"
-                >
-                  Plats
-                </a>
-              </li>
-              <li className="text-stone-400 dark:text-zinc-600" aria-hidden>
-                ·
-              </li>
-              <li className="contents">
-                <a
-                  href="#menu-tabs"
-                  className="rounded-lg px-2.5 py-1.5 text-stone-700 ring-1 ring-transparent hover:bg-white hover:ring-stone-200 dark:text-zinc-300 dark:hover:bg-zinc-900 dark:hover:ring-zinc-700"
-                >
-                  Onglets
-                </a>
-              </li>
-              <li className="text-stone-400 dark:text-zinc-600" aria-hidden>
-                ·
-              </li>
-              <li className="contents">
-                <a
-                  href="#upsell-suggestions"
-                  className="rounded-lg px-2.5 py-1.5 text-stone-700 ring-1 ring-transparent hover:bg-white hover:ring-stone-200 dark:text-zinc-300 dark:hover:bg-zinc-900 dark:hover:ring-zinc-700"
-                >
-                  Relances panier
-                </a>
-              </li>
-              <li className="text-stone-400 dark:text-zinc-600" aria-hidden>
-                ·
-              </li>
-              <li className="contents">
-                <a
-                  href="#presets-catalog"
-                  className="rounded-lg px-2.5 py-1.5 text-stone-700 ring-1 ring-transparent hover:bg-white hover:ring-stone-200 dark:text-zinc-300 dark:hover:bg-zinc-900 dark:hover:ring-zinc-700"
-                >
-                  Préréglages
-                </a>
-              </li>
-            </ul>
-          </nav>
         </div>
         <button
           type="button"
@@ -225,20 +147,18 @@ export default function ProductsPage() {
         </button>
       </div>
 
-      <h2 id="menu" className="scroll-mt-20 mt-8 text-lg font-bold text-zinc-900 dark:text-zinc-100">
-        Menu
-      </h2>
+      <h2 className="mt-8 text-lg font-bold text-zinc-900 dark:text-zinc-100">Menu</h2>
 
       {cats.length === 0 ? (
         <p className="mt-6 wt-dashed-empty text-stone-600 dark:text-zinc-500">
-          Créez d’abord une <span className="font-semibold">catégorie</span> dans la section{" "}
-          <a
-            href="#menu-tabs"
+          Créez d’abord une <span className="font-semibold">catégorie</span> dans{" "}
+          <Link
+            href="/products/onglets"
             className="font-semibold text-wt-bordeaux underline decoration-wt-bordeaux/40 underline-offset-2 hover:decoration-wt-bordeaux dark:text-wt-accent"
           >
-            Onglets
-          </a>{" "}
-          (plus bas sur la page), puis revenez ici pour ajouter des produits.
+            Catégories du menu
+          </Link>
+          , puis revenez ici pour ajouter des produits.
         </p>
       ) : allProducts.length === 0 ? (
         <>
@@ -304,85 +224,6 @@ export default function ProductsPage() {
           )}
         </>
       )}
-
-      <h2 className="mt-14 scroll-mt-20 text-base font-bold text-zinc-900 dark:text-zinc-100">
-        Réglages optionnels
-      </h2>
-      <p className="mt-1 max-w-2xl text-sm text-stone-600 dark:text-zinc-400">
-        Ouvrez une section à la fois : onglets du menu, relances avant paiement, modèles d’options réutilisables.
-      </p>
-
-      <details
-        id="menu-tabs"
-        open={menuTabsOpen}
-        onToggle={(e) => setMenuTabsOpen((e.target as HTMLDetailsElement).open)}
-        className="group scroll-mt-20 mt-6 rounded-2xl border border-stone-200/90 bg-stone-50/80 dark:border-zinc-800 dark:bg-zinc-950/40"
-      >
-        <summary className="cursor-pointer list-none px-4 py-3 sm:px-5 [&::-webkit-details-marker]:hidden">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="min-w-0">
-              <p className="text-xs font-semibold uppercase tracking-wider text-stone-500 dark:text-zinc-500">
-                Onglets
-              </p>
-              <p className="mt-0.5 text-base font-bold text-zinc-900 dark:text-zinc-100">Noms et ordre dans l’app</p>
-            </div>
-            <span className="shrink-0 rounded-full bg-white px-3 py-1 text-xs font-semibold text-stone-600 shadow-sm ring-1 ring-stone-200/80 dark:bg-zinc-900 dark:text-zinc-400 dark:ring-zinc-700">
-              {menuTabsOpen ? "Masquer" : "Afficher"}
-            </span>
-          </div>
-        </summary>
-        <div className="border-t border-stone-200/90 px-4 pb-5 pt-2 dark:border-zinc-800 sm:px-5">
-          <CategoryMenuManager />
-        </div>
-      </details>
-
-      <details
-        id="upsell-suggestions"
-        open={upsellOpen}
-        onToggle={(e) => setUpsellOpen((e.target as HTMLDetailsElement).open)}
-        className="group scroll-mt-20 mt-6 rounded-2xl border border-stone-200/90 bg-stone-50/80 dark:border-zinc-800 dark:bg-zinc-950/40"
-      >
-        <summary className="cursor-pointer list-none px-4 py-3 sm:px-5 [&::-webkit-details-marker]:hidden">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="min-w-0">
-              <p className="text-xs font-semibold uppercase tracking-wider text-stone-500 dark:text-zinc-500">
-                Relances
-              </p>
-              <p className="mt-0.5 text-base font-bold text-zinc-900 dark:text-zinc-100">Boisson ou entrée manquante</p>
-            </div>
-            <span className="shrink-0 rounded-full bg-white px-3 py-1 text-xs font-semibold text-stone-600 shadow-sm ring-1 ring-stone-200/80 dark:bg-zinc-900 dark:text-zinc-400 dark:ring-zinc-700">
-              {upsellOpen ? "Masquer" : "Afficher"}
-            </span>
-          </div>
-        </summary>
-        <div className="border-t border-stone-200/90 px-4 pb-5 pt-2 dark:border-zinc-800 sm:px-5">
-          <UpsellSuggestionsSection />
-        </div>
-      </details>
-
-      <details
-        id="presets-catalog"
-        open={presetsCatalogOpen}
-        onToggle={(e) => setPresetsCatalogOpen((e.target as HTMLDetailsElement).open)}
-        className="group scroll-mt-20 mt-6 rounded-2xl border border-stone-200/90 bg-stone-50/80 dark:border-zinc-800 dark:bg-zinc-950/40"
-      >
-        <summary className="cursor-pointer list-none px-4 py-3 sm:px-5 [&::-webkit-details-marker]:hidden">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="min-w-0">
-              <p className="text-xs font-semibold uppercase tracking-wider text-stone-500 dark:text-zinc-500">
-                Préréglages
-              </p>
-              <p className="mt-0.5 text-base font-bold text-zinc-900 dark:text-zinc-100">Modèles d’options (groupes + choix)</p>
-            </div>
-            <span className="shrink-0 rounded-full bg-white px-3 py-1 text-xs font-semibold text-stone-600 shadow-sm ring-1 ring-stone-200/80 dark:bg-zinc-900 dark:text-zinc-400 dark:ring-zinc-700">
-              {presetsCatalogOpen ? "Masquer" : "Afficher"}
-            </span>
-          </div>
-        </summary>
-        <div className="border-t border-stone-200/90 px-4 pb-5 pt-2 dark:border-zinc-800 sm:px-5">
-          <CustomizationPresetCatalogSection />
-        </div>
-      </details>
 
       <Modal
         open={showCreateForm}
