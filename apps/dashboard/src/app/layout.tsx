@@ -26,13 +26,15 @@ export default function RootLayout({
   return (
     <html
       lang="fr"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} h-full overflow-hidden antialiased`}
       suppressHydrationWarning
     >
       <body
-        className={`flex min-h-full flex-col bg-background text-foreground antialiased ${geistSans.className}`}
+        className={`flex h-full min-h-0 flex-col overflow-hidden bg-background text-foreground antialiased ${geistSans.className}`}
       >
-        <Providers>{children}</Providers>
+        <Providers>
+          <div className="h-full min-h-0">{children}</div>
+        </Providers>
       </body>
     </html>
   );

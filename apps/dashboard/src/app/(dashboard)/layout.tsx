@@ -145,7 +145,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   if (staff.isLoading) {
     return (
-      <div className="flex h-dvh min-h-0 items-center justify-center text-stone-600 dark:text-zinc-400">
+      <div className="flex h-full min-h-0 items-center justify-center text-stone-600 dark:text-zinc-400">
         Chargement du profil…
       </div>
     );
@@ -282,7 +282,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   );
 
   return (
-    <div className="flex h-dvh min-h-0 flex-col overflow-hidden md:flex-row">
+    <div className="flex h-full min-h-0 flex-col overflow-hidden md:flex-row">
       {mobileNavOpen ? (
         <button
           type="button"
@@ -363,7 +363,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </div>
           </div>
         ) : null}
-        <main className="min-h-0 flex-1 overflow-y-auto overflow-x-clip bg-background p-4 md:p-8">
+        <main className="min-h-0 flex-1 overflow-y-auto overflow-x-clip overscroll-y-contain bg-background p-4 pb-8 md:p-8">
           {children}
         </main>
       </div>

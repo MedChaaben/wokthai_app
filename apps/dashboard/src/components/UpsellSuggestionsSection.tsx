@@ -108,13 +108,13 @@ export function UpsellSuggestionsSection() {
 
   return (
     <div className="space-y-4">
-      <p className="text-sm leading-relaxed text-stone-600 dark:text-zinc-400">
-        Une suggestion s’affiche juste avant la validation si le panier ne contient pas encore ce type d’article. Une
-        seule relance à la fois pour éviter le spam.
+      <p className="text-sm text-stone-600 dark:text-zinc-400">
+        Avant paiement, l’app propose une fois un produit si le panier n’a pas encore de boisson ou d’entrée — selon
+        l’onglet choisi.
       </p>
 
       <div
-        className="flex flex-wrap gap-2 rounded-xl border border-stone-200/90 bg-stone-100/80 p-1.5 dark:border-zinc-700 dark:bg-zinc-900/50"
+        className="flex max-w-md gap-0.5 rounded-xl border border-stone-200/90 bg-stone-100/80 p-1 dark:border-zinc-700 dark:bg-zinc-900/50"
         role="tablist"
         aria-label="Type de relance"
       >
@@ -125,18 +125,18 @@ export function UpsellSuggestionsSection() {
               key={kind}
               type="button"
               role="tab"
+              title={hint}
               aria-selected={selected}
               id={`upsell-tab-${kind}`}
               aria-controls={`upsell-panel-${kind}`}
               onClick={() => setActiveKind(kind)}
-              className={`min-w-0 flex-1 rounded-lg px-3 py-2.5 text-left transition sm:min-w-[10rem] sm:flex-none ${
+              className={`min-w-0 flex-1 rounded-lg px-3 py-2 text-center text-sm font-semibold transition ${
                 selected
-                  ? "bg-white font-semibold text-zinc-900 shadow-sm ring-1 ring-stone-200/90 dark:bg-zinc-800 dark:text-zinc-100 dark:ring-zinc-600"
+                  ? "bg-white text-zinc-900 shadow-sm ring-1 ring-stone-200/90 dark:bg-zinc-800 dark:text-zinc-100 dark:ring-zinc-600"
                   : "text-stone-600 hover:bg-white/60 dark:text-zinc-400 dark:hover:bg-zinc-800/80"
               }`}
             >
-              <span className="block text-sm">{label}</span>
-              <span className="mt-0.5 block text-xs font-normal text-stone-500 dark:text-zinc-500">{hint}</span>
+              {label}
             </button>
           );
         })}
@@ -164,12 +164,8 @@ export function UpsellSuggestionsSection() {
 
             <div className="space-y-4">
               <div className="rounded-lg border border-stone-100 bg-stone-50/90 px-4 py-3 dark:border-zinc-800 dark:bg-zinc-900/40">
-                <p className="text-xs font-bold uppercase tracking-wide text-wt-bordeaux dark:text-wt-accent">
-                  Étape 1 — Repérer les {typePlural} dans le menu
-                </p>
-                <p className="mt-1 text-sm text-stone-600 dark:text-zinc-400">
-                  Cochez les onglets dont les plats comptent comme {typePlural} pour cette relance.
-                </p>
+                <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Quels onglets = des {typePlural} ?</p>
+                <p className="mt-1 text-sm text-stone-600 dark:text-zinc-400">Cochez les catégories concernées.</p>
                 <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2">
                   {catsList.map((c) => {
                     const checked = selectedCats.includes(c.id);
@@ -197,16 +193,14 @@ export function UpsellSuggestionsSection() {
               </div>
 
               <div className="rounded-lg border border-stone-100 bg-white px-4 py-3 dark:border-zinc-800 dark:bg-zinc-950/30">
-                <p className="text-xs font-bold uppercase tracking-wide text-wt-bordeaux dark:text-wt-accent">
-                  Étape 2 — Produits proposés au client
-                </p>
-                <p className="mt-1 text-sm text-stone-600 dark:text-zinc-400">
-                  Ordre = priorité d’affichage (plus petit en premier). Désactivez sans retirer pour tester.
+                <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Quels plats proposer ?</p>
+                <p className="mt-1 text-xs text-stone-500 dark:text-zinc-500">
+                  Ordre = priorité (plus petit en premier). Décochez « Actif » pour masquer sans supprimer.
                 </p>
 
                 {kindSuggestions.length === 0 ? (
-                  <p className="mt-3 text-sm italic text-stone-500 dark:text-zinc-500">
-                    Aucun produit : ajoutez-en un ci-dessous.
+                  <p className="mt-3 text-sm text-stone-500 dark:text-zinc-500">
+                    Liste vide — choisissez un plat dans le menu ci-dessous.
                   </p>
                 ) : (
                   <ul className="mt-3 space-y-2">
