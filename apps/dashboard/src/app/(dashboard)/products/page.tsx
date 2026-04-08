@@ -96,22 +96,39 @@ export default function ProductsPage() {
   }, [allProducts]);
 
   useEffect(() => {
-    if (cats.length === 0) {
-      setActiveCategoryId(null);
-      return;
-    }
-    const ok = activeCategoryId && cats.some((c) => c.id === activeCategoryId);
-    if (!ok) setActiveCategoryId(cats[0].id);
+    queueMicrotask(() => {
+      if (cats.length === 0) {
+        setActiveCategoryId(null);
+        return;
+      }
+      const ok = activeCategoryId && cats.some((c) => c.id === activeCategoryId);
+      if (!ok) setActiveCategoryId(cats[0].id);
+    });
   }, [cats, activeCategoryId]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    if (window.location.hash === "#menu-tabs") {
-      setMenuTabsOpen(true);
-      requestAnimationFrame(() => {
-        document.getElementById("menu-tabs")?.scrollIntoView({ behavior: "smooth", block: "start" });
-      });
-    }
+    const hash = window.location.hash.replace(/^#/, "");
+    queueMicrotask(() => {
+      if (hash === "menu-tabs") {
+        setMenuTabsOpen(true);
+        requestAnimationFrame(() => {
+          document.getElementById("menu-tabs")?.scrollIntoView({ behavior: "smooth", block: "start" });
+        });
+      }
+      if (hash === "upsell-suggestions") {
+        setUpsellOpen(true);
+        requestAnimationFrame(() => {
+          document.getElementById("upsell-suggestions")?.scrollIntoView({ behavior: "smooth", block: "start" });
+        });
+      }
+      if (hash === "presets-catalog") {
+        setPresetsCatalogOpen(true);
+        requestAnimationFrame(() => {
+          document.getElementById("presets-catalog")?.scrollIntoView({ behavior: "smooth", block: "start" });
+        });
+      }
+    });
   }, []);
 
   const visibleProducts =
@@ -146,12 +163,18 @@ export default function ProductsPage() {
         <div>
           <h1 className="text-2xl font-extrabold text-zinc-900 dark:text-zinc-100">Produits</h1>
           <p className="mt-2 max-w-2xl text-sm text-stone-600 dark:text-zinc-400">
-            L’ordre d’affichage dans l’app mobile suit le champ <span className="font-medium">Position</span> (plus
-            petit en premier) par catégorie. L’ordre des onglets et les noms de catégories se gèrent dans la section
-            repliable ci-dessous. Les personnalisations du plat (piquant, avec/sans, suppléments, etc.) se configurent
-            dans <span className="font-medium">Modifier</span>, en bas du formulaire d’édition. Les{' '}
-            <span className="font-medium">préréglages</span> se définissent dans la section catalogue ci-dessous, puis
-            s’importent sur chaque plat.
+            <span className="font-medium text-zinc-800 dark:text-zinc-200">Menu :</span> l’ordre suit le champ{" "}
+            <span className="font-medium">Position</span> (plus petit en premier) par catégorie. Les onglets et noms se
+            règlent dans <span className="font-medium">Navigation app</span>. Les options du plat (piquant, suppléments…)
+            se gèrent via <span className="font-medium">Modifier</span> sur chaque fiche. Les{" "}
+            <span className="font-medium">préréglages</span> viennent de la bibliothèque, puis s’importent par plat. Le{" "}
+            <a
+              href="#upsell-suggestions"
+              className="font-medium text-wt-bordeaux underline decoration-wt-bordeaux/40 underline-offset-2 hover:decoration-wt-bordeaux dark:text-wt-accent"
+            >
+              boost ventes
+            </a>{" "}
+            (relances panier) est à part : deux étapes, boisson puis entrée.
           </p>
         </div>
         <button
@@ -167,7 +190,7 @@ export default function ProductsPage() {
         id="menu-tabs"
         open={menuTabsOpen}
         onToggle={(e) => setMenuTabsOpen((e.target as HTMLDetailsElement).open)}
-        className="group mt-8 rounded-2xl border border-stone-200/90 bg-stone-50/80 dark:border-zinc-800 dark:bg-zinc-950/40"
+        className="group scroll-mt-20 mt-8 rounded-2xl border border-stone-200/90 bg-stone-50/80 dark:border-zinc-800 dark:bg-zinc-950/40"
       >
         <summary className="cursor-pointer list-none px-4 py-3 sm:px-5 [&::-webkit-details-marker]:hidden">
           <div className="flex flex-wrap items-center justify-between gap-3">
@@ -193,19 +216,22 @@ export default function ProductsPage() {
         id="upsell-suggestions"
         open={upsellOpen}
         onToggle={(e) => setUpsellOpen((e.target as HTMLDetailsElement).open)}
-        className="group mt-6 rounded-2xl border border-stone-200/90 bg-stone-50/80 dark:border-zinc-800 dark:bg-zinc-950/40"
+        className="group scroll-mt-20 mt-6 rounded-2xl border border-stone-200/90 bg-stone-50/80 dark:border-zinc-800 dark:bg-zinc-950/40"
       >
         <summary className="cursor-pointer list-none px-4 py-3 sm:px-5 [&::-webkit-details-marker]:hidden">
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <div>
+            <div className="min-w-0">
               <p className="text-xs font-semibold uppercase tracking-wider text-stone-500 dark:text-zinc-500">
                 Boost ventes
               </p>
               <p className="mt-0.5 text-base font-bold text-zinc-900 dark:text-zinc-100">
-                Suggestions avant validation (boissons / entrées)
+                Relances panier (boisson · entrée)
+              </p>
+              <p className="mt-1 max-w-xl text-sm font-normal text-stone-600 dark:text-zinc-400">
+                Indépendant du catalogue : onglet par type, puis étape catégories → liste de produits.
               </p>
             </div>
-            <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-stone-600 shadow-sm ring-1 ring-stone-200/80 dark:bg-zinc-900 dark:text-zinc-400 dark:ring-zinc-700">
+            <span className="shrink-0 rounded-full bg-white px-3 py-1 text-xs font-semibold text-stone-600 shadow-sm ring-1 ring-stone-200/80 dark:bg-zinc-900 dark:text-zinc-400 dark:ring-zinc-700">
               {upsellOpen ? "Masquer" : "Afficher"}
             </span>
           </div>
@@ -219,7 +245,7 @@ export default function ProductsPage() {
         id="presets-catalog"
         open={presetsCatalogOpen}
         onToggle={(e) => setPresetsCatalogOpen((e.target as HTMLDetailsElement).open)}
-        className="group mt-6 rounded-2xl border border-stone-200/90 bg-stone-50/80 dark:border-zinc-800 dark:bg-zinc-950/40"
+        className="group scroll-mt-20 mt-6 rounded-2xl border border-stone-200/90 bg-stone-50/80 dark:border-zinc-800 dark:bg-zinc-950/40"
       >
         <summary className="cursor-pointer list-none px-4 py-3 sm:px-5 [&::-webkit-details-marker]:hidden">
           <div className="flex flex-wrap items-center justify-between gap-3">
@@ -452,17 +478,19 @@ function ProductListRow({
 
   useEffect(() => {
     if (isEditing) return;
-    setName(product.name);
-    setDescription(product.description ?? "");
-    setPrice(Number(product.price).toFixed(2));
-    setCategoryId(product.category_id);
-    setPosition(String(product.position));
-    setIsAvailable(product.is_available);
-    setImagePreview((prev) => {
-      if (prev) URL.revokeObjectURL(prev);
-      return null;
+    queueMicrotask(() => {
+      setName(product.name);
+      setDescription(product.description ?? "");
+      setPrice(Number(product.price).toFixed(2));
+      setCategoryId(product.category_id);
+      setPosition(String(product.position));
+      setIsAvailable(product.is_available);
+      setImagePreview((prev) => {
+        if (prev) URL.revokeObjectURL(prev);
+        return null;
+      });
+      if (fileRef.current) fileRef.current.value = "";
     });
-    if (fileRef.current) fileRef.current.value = "";
   }, [product, isEditing]);
 
   useEffect(() => {

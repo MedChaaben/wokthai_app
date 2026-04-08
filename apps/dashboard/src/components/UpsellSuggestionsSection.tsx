@@ -14,10 +14,35 @@ import {
   type UpsellKind,
 } from "@wokthai/shared";
 
-const KINDS: { kind: UpsellKind; label: string }[] = [
-  { kind: "drink", label: "Boisson" },
-  { kind: "starter", label: "Entrée" },
+const KINDS: { kind: UpsellKind; label: string; hint: string; typePlural: string }[] = [
+  {
+    kind: "drink",
+    label: "Boisson",
+    hint: "Relance si le panier ne contient pas encore de boisson.",
+    typePlural: "boissons",
+  },
+  {
+    kind: "starter",
+    label: "Entrée",
+    hint: "Relance si le panier ne contient pas encore d’entrée.",
+    typePlural: "entrées",
+  },
 ];
+
+function groupAvailableByCategory<T extends { category_id: string; position: number; name: string }>(
+  items: T[]
+): Map<string, T[]> {
+  const map = new Map<string, T[]>();
+  for (const p of items) {
+    const arr = map.get(p.category_id) ?? [];
+    arr.push(p);
+    map.set(p.category_id, arr);
+  }
+  for (const arr of map.values()) {
+    arr.sort((a, b) => a.position - b.position || a.name.localeCompare(b.name, "fr"));
+  }
+  return map;
+}
 
 export function UpsellSuggestionsSection() {
   const supabase = useSupabase();
@@ -25,6 +50,7 @@ export function UpsellSuggestionsSection() {
   const categories = useCategories();
   const products = useProducts({ onlyAvailable: false });
   const config = useUpsellConfig();
+  const [activeKind, setActiveKind] = useState<UpsellKind>("drink");
   const [newProductByKind, setNewProductByKind] = useState<Record<UpsellKind, string>>({
     drink: "",
     starter: "",
@@ -73,128 +99,216 @@ export function UpsellSuggestionsSection() {
   const suggestions = config.data?.suggestions ?? [];
   const allProducts = products.data ?? [];
 
-  const productById = useMemo(() => {
-    const map = new Map<string, (typeof allProducts)[number]>();
-    for (const p of allProducts) map.set(p.id, p);
-    return map;
-  }, [allProducts]);
+  const catsList = categories.data ?? [];
+  const categoryNameById = useMemo(() => {
+    const m = new Map<string, string>();
+    for (const c of categories.data ?? []) m.set(c.id, c.name);
+    return m;
+  }, [categories.data]);
 
   return (
     <div className="space-y-4">
-      <p className="text-sm text-stone-600 dark:text-zinc-400">
-        Propose automatiquement une boisson / entrée juste avant la validation de commande si le panier n’en contient
-        pas. L’app affiche une seule relance par état du panier pour éviter le spam.
+      <p className="text-sm leading-relaxed text-stone-600 dark:text-zinc-400">
+        Une suggestion s’affiche juste avant la validation si le panier ne contient pas encore ce type d’article. Une
+        seule relance à la fois pour éviter le spam.
       </p>
 
-      {KINDS.map(({ kind, label }) => {
+      <div
+        className="flex flex-wrap gap-2 rounded-xl border border-stone-200/90 bg-stone-100/80 p-1.5 dark:border-zinc-700 dark:bg-zinc-900/50"
+        role="tablist"
+        aria-label="Type de relance"
+      >
+        {KINDS.map(({ kind, label, hint }) => {
+          const selected = activeKind === kind;
+          return (
+            <button
+              key={kind}
+              type="button"
+              role="tab"
+              aria-selected={selected}
+              id={`upsell-tab-${kind}`}
+              aria-controls={`upsell-panel-${kind}`}
+              onClick={() => setActiveKind(kind)}
+              className={`min-w-0 flex-1 rounded-lg px-3 py-2.5 text-left transition sm:min-w-[10rem] sm:flex-none ${
+                selected
+                  ? "bg-white font-semibold text-zinc-900 shadow-sm ring-1 ring-stone-200/90 dark:bg-zinc-800 dark:text-zinc-100 dark:ring-zinc-600"
+                  : "text-stone-600 hover:bg-white/60 dark:text-zinc-400 dark:hover:bg-zinc-800/80"
+              }`}
+            >
+              <span className="block text-sm">{label}</span>
+              <span className="mt-0.5 block text-xs font-normal text-stone-500 dark:text-zinc-500">{hint}</span>
+            </button>
+          );
+        })}
+      </div>
+
+      {(() => {
+        const meta = KINDS.find((k) => k.kind === activeKind);
+        if (!meta) return null;
+        const { kind, label, typePlural } = meta;
         const selectedCats = categoriesByKind[kind] ?? [];
         const kindSuggestions = suggestions.filter((s) => s.kind === kind);
         const availableToAdd = allProducts.filter((p) => !kindSuggestions.some((s) => s.product.id === p.id));
         const selectionValue = newProductByKind[kind];
+        const availableByCategory = groupAvailableByCategory(availableToAdd);
 
         return (
-          <section key={kind} className="rounded-xl border border-stone-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-950/50">
-            <h3 className="text-base font-bold text-zinc-900 dark:text-zinc-100">{label}</h3>
+          <section
+            key={kind}
+            id={`upsell-panel-${kind}`}
+            role="tabpanel"
+            aria-labelledby={`upsell-tab-${kind}`}
+            className="rounded-xl border border-stone-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-950/50"
+          >
+            <h3 className="sr-only">Relance {label}</h3>
 
-            <div className="mt-3">
-              <p className="text-xs font-semibold uppercase text-stone-500 dark:text-zinc-500">
-                Catégories considérées comme {label.toLowerCase()}
-              </p>
-              <div className="mt-2 flex flex-wrap gap-3">
-                {(categories.data ?? []).map((c) => {
-                  const checked = selectedCats.includes(c.id);
-                  return (
-                    <label key={`${kind}-${c.id}`} className="flex items-center gap-2 text-sm">
-                      <input
-                        type="checkbox"
-                        checked={checked}
-                        onChange={(e) => {
-                          const next = e.target.checked
-                            ? [...selectedCats, c.id]
-                            : selectedCats.filter((id) => id !== c.id);
-                          saveKindCategories.mutate({ kind, categoryIds: next });
-                        }}
-                      />
-                      {c.name}
-                    </label>
-                  );
-                })}
-              </div>
-            </div>
-
-            <div className="mt-4">
-              <p className="text-xs font-semibold uppercase text-stone-500 dark:text-zinc-500">
-                Produits proposés en relance
-              </p>
-              {kindSuggestions.length === 0 ? (
-                <p className="mt-2 text-sm italic text-stone-500 dark:text-zinc-500">Aucune suggestion configurée.</p>
-              ) : (
-                <ul className="mt-2 space-y-2">
-                  {kindSuggestions.map((s) => (
-                    <li key={s.id} className="flex flex-wrap items-center gap-2 rounded-lg bg-stone-50 px-3 py-2 dark:bg-zinc-900/60">
-                      <span className="min-w-0 flex-1 text-sm text-zinc-800 dark:text-zinc-200">
-                        {s.product.name} {!s.product.is_available ? "(indisponible)" : ""}
-                      </span>
-                      <label className="flex items-center gap-1 text-xs">
-                        Actif
+            <div className="space-y-4">
+              <div className="rounded-lg border border-stone-100 bg-stone-50/90 px-4 py-3 dark:border-zinc-800 dark:bg-zinc-900/40">
+                <p className="text-xs font-bold uppercase tracking-wide text-wt-bordeaux dark:text-wt-accent">
+                  Étape 1 — Repérer les {typePlural} dans le menu
+                </p>
+                <p className="mt-1 text-sm text-stone-600 dark:text-zinc-400">
+                  Cochez les onglets dont les plats comptent comme {typePlural} pour cette relance.
+                </p>
+                <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2">
+                  {catsList.map((c) => {
+                    const checked = selectedCats.includes(c.id);
+                    return (
+                      <label key={`${kind}-${c.id}`} className="flex cursor-pointer items-center gap-2 text-sm">
                         <input
                           type="checkbox"
-                          checked={s.is_active}
-                          onChange={(e) => patchSuggestion.mutate({ id: s.id, patch: { is_active: e.target.checked } })}
+                          checked={checked}
+                          onChange={(e) => {
+                            const next = e.target.checked
+                              ? [...selectedCats, c.id]
+                              : selectedCats.filter((id) => id !== c.id);
+                            saveKindCategories.mutate({ kind, categoryIds: next });
+                          }}
+                          className="rounded border-stone-300 text-wt-bordeaux focus:ring-wt-bordeaux dark:border-zinc-600"
                         />
+                        <span className="text-zinc-800 dark:text-zinc-200">{c.name}</span>
                       </label>
-                      <input
-                        type="number"
-                        defaultValue={s.position}
-                        onBlur={(e) => {
-                          const n = parseInt(e.target.value, 10);
-                          if (!Number.isFinite(n) || n === s.position) return;
-                          patchSuggestion.mutate({ id: s.id, patch: { position: n } });
-                        }}
-                        className="w-16 rounded border border-stone-300 px-2 py-1 text-sm dark:border-zinc-700"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => removeSuggestion.mutate(s.id)}
-                        className="text-xs font-semibold text-red-600 dark:text-red-400"
-                      >
-                        Retirer
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
+                    );
+                  })}
+                </div>
+                {catsList.length === 0 ? (
+                  <p className="mt-2 text-sm italic text-stone-500">Créez d’abord des catégories dans le menu.</p>
+                ) : null}
+              </div>
 
-            <div className="mt-3 flex flex-wrap items-center gap-2">
-              <select
-                value={selectionValue}
-                onChange={(e) => setNewProductByKind((prev) => ({ ...prev, [kind]: e.target.value }))}
-                className="min-w-[14rem] rounded-lg border border-stone-300 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
-              >
-                <option value="">Ajouter un produit…</option>
-                {availableToAdd.map((p) => (
-                  <option key={`${kind}-new-${p.id}`} value={p.id}>
-                    {p.name}
-                  </option>
-                ))}
-              </select>
-              <button
-                type="button"
-                disabled={!selectionValue || addSuggestion.isPending}
-                onClick={() => {
-                  if (!selectionValue) return;
-                  addSuggestion.mutate({ kind, productId: selectionValue });
-                  setNewProductByKind((prev) => ({ ...prev, [kind]: "" }));
-                }}
-                className="rounded-lg border border-stone-300 px-3 py-2 text-sm font-semibold dark:border-zinc-700 disabled:opacity-50"
-              >
-                Ajouter
-              </button>
+              <div className="rounded-lg border border-stone-100 bg-white px-4 py-3 dark:border-zinc-800 dark:bg-zinc-950/30">
+                <p className="text-xs font-bold uppercase tracking-wide text-wt-bordeaux dark:text-wt-accent">
+                  Étape 2 — Produits proposés au client
+                </p>
+                <p className="mt-1 text-sm text-stone-600 dark:text-zinc-400">
+                  Ordre = priorité d’affichage (plus petit en premier). Désactivez sans retirer pour tester.
+                </p>
+
+                {kindSuggestions.length === 0 ? (
+                  <p className="mt-3 text-sm italic text-stone-500 dark:text-zinc-500">
+                    Aucun produit : ajoutez-en un ci-dessous.
+                  </p>
+                ) : (
+                  <ul className="mt-3 space-y-2">
+                    {kindSuggestions.map((s) => (
+                      <li
+                        key={s.id}
+                        className="flex flex-wrap items-center gap-2 rounded-lg bg-stone-50 px-3 py-2 dark:bg-zinc-900/60"
+                      >
+                        <span className="min-w-0 flex-1 text-sm text-zinc-800 dark:text-zinc-200">
+                          {s.product.name}
+                          {!s.product.is_available ? (
+                            <span className="ml-1 text-xs text-amber-700 dark:text-amber-400">(indisponible)</span>
+                          ) : null}
+                        </span>
+                        <label className="flex items-center gap-1.5 text-xs text-zinc-600 dark:text-zinc-400">
+                          <span>Actif</span>
+                          <input
+                            type="checkbox"
+                            checked={s.is_active}
+                            onChange={(e) =>
+                              patchSuggestion.mutate({ id: s.id, patch: { is_active: e.target.checked } })
+                            }
+                            className="rounded border-stone-300 text-wt-bordeaux dark:border-zinc-600"
+                          />
+                        </label>
+                        <span className="flex items-center gap-1 text-xs text-stone-500 dark:text-zinc-500">
+                          <span className="whitespace-nowrap">Ordre</span>
+                          <input
+                            type="number"
+                            defaultValue={s.position}
+                            onBlur={(e) => {
+                              const n = parseInt(e.target.value, 10);
+                              if (!Number.isFinite(n) || n === s.position) return;
+                              patchSuggestion.mutate({ id: s.id, patch: { position: n } });
+                            }}
+                            className="w-16 rounded border border-stone-300 px-2 py-1 text-sm tabular-nums dark:border-zinc-700"
+                            aria-label={`Ordre pour ${s.product.name}`}
+                          />
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => removeSuggestion.mutate(s.id)}
+                          className="text-xs font-semibold text-red-600 dark:text-red-400"
+                        >
+                          Retirer
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+
+                <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
+                  <select
+                    value={selectionValue}
+                    onChange={(e) => setNewProductByKind((prev) => ({ ...prev, [kind]: e.target.value }))}
+                    className="min-w-0 flex-1 rounded-lg border border-stone-300 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900 sm:min-w-[16rem]"
+                    aria-label={`Ajouter un produit pour la relance ${label}`}
+                  >
+                    <option value="">Choisir un plat dans le menu…</option>
+                    {catsList.map((c) => {
+                      const list = availableByCategory.get(c.id);
+                      if (!list?.length) return null;
+                      return (
+                        <optgroup key={`${kind}-og-${c.id}`} label={c.name}>
+                          {list.map((p) => (
+                            <option key={`${kind}-new-${p.id}`} value={p.id}>
+                              {p.name}
+                            </option>
+                          ))}
+                        </optgroup>
+                      );
+                    })}
+                    {availableToAdd.some((p) => !categoryNameById.has(p.category_id)) ? (
+                      <optgroup label="Autre">
+                        {availableToAdd
+                          .filter((p) => !categoryNameById.has(p.category_id))
+                          .map((p) => (
+                            <option key={`${kind}-new-${p.id}`} value={p.id}>
+                              {p.name}
+                            </option>
+                          ))}
+                      </optgroup>
+                    ) : null}
+                  </select>
+                  <button
+                    type="button"
+                    disabled={!selectionValue || addSuggestion.isPending}
+                    onClick={() => {
+                      if (!selectionValue) return;
+                      addSuggestion.mutate({ kind, productId: selectionValue });
+                      setNewProductByKind((prev) => ({ ...prev, [kind]: "" }));
+                    }}
+                    className="rounded-lg border border-stone-300 bg-white px-4 py-2 text-sm font-semibold hover:bg-stone-50 dark:border-zinc-700 dark:bg-zinc-900 dark:hover:bg-zinc-800 disabled:opacity-50"
+                  >
+                    Ajouter à la liste
+                  </button>
+                </div>
+              </div>
             </div>
           </section>
         );
-      })}
+      })()}
 
       {config.isError ? (
         <p className="text-sm text-red-600 dark:text-red-400">
