@@ -1,4 +1,13 @@
-import { View, Text, StyleSheet, Pressable, ScrollView, Image, Modal } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Pressable,
+  ScrollView,
+  Image,
+  Modal,
+  useWindowDimensions,
+} from 'react-native';
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -10,6 +19,7 @@ import { wt } from '../../lib/theme';
 
 export default function CartTabScreen() {
   const router = useRouter();
+  const { height: windowHeight } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const { lines, subtotal, setQuantity, removeLine, addLine } = useCart();
   const products = useProducts({ onlyAvailable: false });
@@ -45,8 +55,9 @@ export default function CartTabScreen() {
       if (kindCategoryIds.length === 0) continue;
       const hasKindInCart = kindCategoryIds.some((cid) => cartCategoryIds.has(cid));
       if (hasKindInCart) continue;
-      const suggestion = suggestions.find((s) => s.kind === kind && s.is_active && s.product.is_available);
-      if (suggestion) out.push(suggestion);
+      for (const s of suggestions) {
+        if (s.kind === kind && s.is_active && s.product.is_available) out.push(s);
+      }
     }
     return out;
   }, [upsellConfig.data, products.data, lines]);
@@ -185,7 +196,11 @@ export default function CartTabScreen() {
               </Pressable>
             </View>
             <Text style={styles.upsellSub}>{upsellIntro}</Text>
-            <View style={{ gap: 10, marginTop: 10 }}>
+            <ScrollView
+              style={{ maxHeight: Math.min(windowHeight * 0.45, 420), marginTop: 10 }}
+              contentContainerStyle={{ gap: 10, paddingBottom: 4 }}
+              showsVerticalScrollIndicator={upsellCandidates.length > 3}
+            >
               {upsellCandidates.map((s) => (
                 <View key={s.id} style={styles.upsellItem}>
                   {s.product.image_url ? (
@@ -224,7 +239,7 @@ export default function CartTabScreen() {
                   </Pressable>
                 </View>
               ))}
-            </View>
+            </ScrollView>
             <View style={{ marginTop: 14, gap: 8 }}>
               <Pressable
                 onPress={() => {

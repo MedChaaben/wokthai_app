@@ -109,8 +109,8 @@ export function UpsellSuggestionsSection() {
   return (
     <div className="space-y-4">
       <p className="text-sm text-stone-600 dark:text-zinc-400">
-        Avant paiement, l’app propose une fois un produit si le panier n’a pas encore de boisson ou d’entrée — selon
-        la catégorie choisie (boisson ou entrée).
+        Avant paiement, l’app propose une fois la liste des produits ci‑dessous si le panier n’a pas encore de boisson ou
+        d’entrée — selon la catégorie choisie (boisson ou entrée).
       </p>
 
       <div
