@@ -422,8 +422,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </div>
           </div>
         ) : null}
-        <main className="min-h-0 flex-1 overflow-y-auto overflow-x-clip overscroll-y-contain bg-background p-4 pb-8 md:p-8">
-          {children}
+        {/* pt sur un enfant : sinon le padding-top du main ne scroll pas et tout sticky top-0 reste décalé sous un « trou » */}
+        <main className="min-h-0 flex-1 overflow-y-auto overflow-x-clip overscroll-y-contain bg-background px-4 pb-8 pt-0 md:px-8 md:pb-8 md:pt-0">
+          <div className="min-h-min pt-4 md:pt-8">{children}</div>
         </main>
       </div>
     </div>
