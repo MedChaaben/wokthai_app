@@ -40,13 +40,7 @@ export default function AdminSectionLayout({ children }: { children: React.React
 
   return (
     <div className="mx-auto max-w-7xl">
-      <header className="border-b border-stone-200 pb-6 dark:border-zinc-800">
-        <p className="text-xs font-semibold uppercase tracking-wide text-wt-bordeaux dark:text-wt-accent">Administration</p>
-        <h1 className="mt-1 text-2xl font-extrabold text-zinc-900 dark:text-zinc-100">Siège · multi-restaurants</h1>
-        <p className="mt-2 text-sm text-stone-600 dark:text-zinc-400">
-          Gestion des points de vente, accès équipe et vision globale des commandes. Le menu latéral propose « Produits » (catalogue global) et
-          cette section Administration ; un restaurant sur le profil siège est optionnel (libellé d’affichage).
-        </p>
+      <header className="border-b border-stone-200 pb-6 dark:border-zinc-800 sticky top-0 bg-background z-10 pt-4">
         <nav className="mt-4 flex flex-wrap gap-2" aria-label="Sous-navigation admin">
           {adminNav.map((item) => {
             const active = pathname === item.href || (item.href !== "/admin" && pathname.startsWith(`${item.href}`));
