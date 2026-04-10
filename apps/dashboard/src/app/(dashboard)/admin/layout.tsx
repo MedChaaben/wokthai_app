@@ -39,7 +39,7 @@ export default function AdminSectionLayout({ children }: { children: React.React
   }
 
   return (
-    <div className="mx-auto max-w-6xl">
+    <div className="mx-auto max-w-7xl">
       <header className="border-b border-stone-200 pb-6 dark:border-zinc-800">
         <p className="text-xs font-semibold uppercase tracking-wide text-wt-bordeaux dark:text-wt-accent">Administration</p>
         <h1 className="mt-1 text-2xl font-extrabold text-zinc-900 dark:text-zinc-100">Siège · multi-restaurants</h1>
