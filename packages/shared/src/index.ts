@@ -26,6 +26,7 @@ export {
   compareAnnouncementsForBanner,
   pickBannerAnnouncement,
 } from './domain/announcements';
+export * from './domain/analytics-events';
 export * from './services/stores';
 export * from './services/categories';
 export * from './services/products';
@@ -40,6 +41,8 @@ export * from './services/user-profile';
 export * from './services/account-deletion';
 export * from './services/staff';
 export * from './services/admin-dashboard';
+export * from './services/admin-restaurant-business';
+export * from './services/analytics-events';
 export * from './services/announcements';
 export { SupabaseProvider, useSupabase } from './context/SupabaseProvider';
 export { useProducts } from './hooks/useProducts';
@@ -66,6 +69,7 @@ export {
 } from './hooks/useStoreOrdersRealtime';
 export { useStaffProfile } from './hooks/useStaffProfile';
 export { useAdminDashboardSummary } from './hooks/useAdminDashboardSummary';
+export { useAdminRestaurantBusiness } from './hooks/useAdminRestaurantBusiness';
 export { useAdminOrdersRealtime } from './hooks/useAdminOrdersRealtime';
 export { useAdminStaffList } from './hooks/useAdminStaffList';
 export { useMyAddresses } from './hooks/useMyAddresses';

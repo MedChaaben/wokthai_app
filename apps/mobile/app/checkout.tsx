@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -11,22 +11,25 @@ import {
   Image,
 } from 'react-native';
 import type { Session } from '@supabase/supabase-js';
-import { useRouter } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   useCreateOrder,
   useMyAddresses,
+  useMyUserProfile,
   useActiveStores,
   useDeliveryZones,
   useMyNonCancelledOrderCount,
   createAddress,
   useSupabase,
+  insertAnalyticsEvent,
   getDeliveryFeeForStoreAndCity,
   formatStoreOpeningHoursLines,
   phoneDisplayToStorage,
   canonicalizePhoneDisplayInput,
   type AllowedCity,
 } from '@wokthai/shared';
+import { getAnalyticsDeviceId } from '../lib/analyticsDeviceId';
 import { AddressMapPreview } from '../components/AddressMapPreview';
 import { MapAddressPickerModal } from '../components/MapAddressPickerModal';
 import { WtButton } from '../components/WtButton';
@@ -46,6 +49,8 @@ export default function CheckoutScreen() {
   const insets = useSafeAreaInsets();
   const supabase = useSupabase();
   const { lines, subtotal, clear } = useCart();
+  const linesRef = useRef(lines);
+  linesRef.current = lines;
   const addresses = useMyAddresses();
   const stores = useActiveStores();
   const zones = useDeliveryZones();
@@ -66,6 +71,7 @@ export default function CheckoutScreen() {
 
   const hasSession = Boolean(session);
   const orderCount = useMyNonCancelledOrderCount(hasSession);
+  const myProfile = useMyUserProfile();
 
   const [selectedStoreId, setSelectedStoreId] = useState<string | null>(null);
   const [orderType, setOrderType] = useState<'delivery' | 'pickup'>('delivery');
@@ -103,6 +109,21 @@ export default function CheckoutScreen() {
   const [savingAddress, setSavingAddress] = useState(false);
   const [mapPickerVisible, setMapPickerVisible] = useState(false);
   const [mapPickerForGuest, setMapPickerForGuest] = useState(false);
+
+  useFocusEffect(
+    useCallback(() => {
+      void (async () => {
+        const device_id = await getAnalyticsDeviceId();
+        await insertAnalyticsEvent(supabase, {
+          event_name: 'checkout_start',
+          metadata: {
+            line_count: linesRef.current.length,
+            ...(device_id ? { device_id } : {}),
+          },
+        });
+      })();
+    }, [supabase])
+  );
 
   async function saveNewAddress() {
     if (!label.trim() || !addressLine.trim()) {
@@ -176,6 +197,7 @@ export default function CheckoutScreen() {
           productId: l.productId,
           quantity: l.quantity,
           selectedOptions: l.selectedOptions,
+          fromUpsell: l.fromUpsell === true,
         })),
         paymentStatus: 'paid_on_delivery',
         addressId: hasSession && orderType === 'delivery' ? selectedAddressId : null,
@@ -200,6 +222,18 @@ export default function CheckoutScreen() {
             }
           : undefined,
       });
+      void (async () => {
+        const device_id = await getAnalyticsDeviceId();
+        await insertAnalyticsEvent(supabase, {
+          event_name: 'order_completed',
+          metadata: {
+            order_id: result.order.id,
+            total_price: grandTotal,
+            store_id: selectedStoreId,
+            ...(device_id ? { device_id } : {}),
+          },
+        });
+      })();
       clear();
       router.replace(`/order/${result.order.id}`);
     } catch (e: unknown) {
@@ -222,8 +256,13 @@ export default function CheckoutScreen() {
           : 0
       : 0;
 
+  const promoAlreadyUsed = myProfile.profile?.promo_used === true;
   const isFirstOrderFree =
-    hasSession && orderType === 'delivery' && (orderCount.data ?? 0) === 0 && deliveryEnabled;
+    hasSession &&
+    orderType === 'delivery' &&
+    (orderCount.data ?? 0) === 0 &&
+    deliveryEnabled &&
+    !promoAlreadyUsed;
   const deliveryFee = orderType === 'delivery' && isFirstOrderFree ? 0 : rawDeliveryFee;
   const grandTotal = subtotal + (orderType === 'delivery' ? deliveryFee : 0);
   const itemCount = lines.reduce((sum, l) => sum + l.quantity, 0);

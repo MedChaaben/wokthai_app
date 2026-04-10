@@ -11,7 +11,14 @@ import {
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useProducts, useUpsellConfig, type UpsellKind } from '@wokthai/shared';
+import {
+  useProducts,
+  useUpsellConfig,
+  useSupabase,
+  insertAnalyticsEvent,
+  type UpsellKind,
+} from '@wokthai/shared';
+import { getAnalyticsDeviceId } from '../../lib/analyticsDeviceId';
 import { WtButton } from '../../components/WtButton';
 import { WtCard } from '../../components/WtCard';
 import { useCart } from '../../contexts/CartContext';
@@ -22,6 +29,7 @@ export default function CartTabScreen() {
   const { height: windowHeight } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const { lines, subtotal, setQuantity, removeLine, addLine } = useCart();
+  const supabase = useSupabase();
   const products = useProducts({ onlyAvailable: false });
   const upsellConfig = useUpsellConfig();
   const [upsellOpen, setUpsellOpen] = useState(false);
@@ -79,6 +87,20 @@ export default function CartTabScreen() {
       setUpsellOpen(false);
     }
   }, [upsellOpen, upsellCandidates.length]);
+
+  useEffect(() => {
+    if (!upsellOpen || upsellCandidates.length === 0) return;
+    void (async () => {
+      const device_id = await getAnalyticsDeviceId();
+      await insertAnalyticsEvent(supabase, {
+        event_name: 'upsell_view',
+        metadata: {
+          candidate_count: upsellCandidates.length,
+          ...(device_id ? { device_id } : {}),
+        },
+      });
+    })();
+  }, [supabase, upsellOpen, upsellCandidates.length]);
 
   function goCheckout() {
     if (upsellCandidates.length > 0 && lastUpsellCartKey !== cartFingerprint) {
@@ -231,7 +253,20 @@ export default function CartTabScreen() {
                         selectedOptions: [],
                         optionSummary,
                         image_url: s.product.image_url,
+                        fromUpsell: true,
                       });
+                      void (async () => {
+                        const device_id = await getAnalyticsDeviceId();
+                        await insertAnalyticsEvent(supabase, {
+                          event_name: 'upsell_add',
+                          metadata: {
+                            product_id: s.product.id,
+                            price: unitPrice,
+                            kind: s.kind,
+                            ...(device_id ? { device_id } : {}),
+                          },
+                        });
+                      })();
                     }}
                     style={styles.upsellAddBtn}
                   >

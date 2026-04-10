@@ -10,6 +10,7 @@ export function useCreateOrder() {
     mutationFn: (input: CreateOrderInput) => createOrderWithItems(client, input),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['orders'] });
+      void queryClient.invalidateQueries({ queryKey: ['users', 'me', 'profile'] });
     },
   });
 }

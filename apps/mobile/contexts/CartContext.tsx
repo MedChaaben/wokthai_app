@@ -54,12 +54,17 @@ export function CartProvider({ children }: { children: ReactNode }) {
             quantity: q,
             selectedOptions: line.selectedOptions ?? [],
             optionSummary: line.optionSummary,
+            fromUpsell: line.fromUpsell === true,
           },
         ];
       }
       const next = [...prev];
       const cur = next[i];
-      next[i] = { ...cur, quantity: cur.quantity + q };
+      next[i] = {
+        ...cur,
+        quantity: cur.quantity + q,
+        fromUpsell: Boolean(cur.fromUpsell || line.fromUpsell),
+      };
       return next;
     });
     triggerCartHaptic('add');

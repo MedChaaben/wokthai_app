@@ -14,6 +14,7 @@ import { GlobalAnnouncementBanner } from '../components/GlobalAnnouncementBanner
 import { ExpoPushTokenRegistrar } from '../components/ExpoPushTokenRegistrar';
 import { AppTopBannerProvider } from '../contexts/AppTopBannerContext';
 import { CartProvider } from '../contexts/CartContext';
+import { AnalyticsBootstrap } from '../components/AnalyticsBootstrap';
 import { getSupabase, supabaseReady } from '../lib/supabase';
 
 export default function RootLayout() {
@@ -41,6 +42,7 @@ export default function RootLayout() {
       <SupabaseProvider client={supabaseClient}>
         <SafeAreaProvider>
           <CartProvider>
+            <AnalyticsBootstrap />
             <AppTopBannerProvider>
               <StatusBar style="light" />
               <OrderNotificationsHost />

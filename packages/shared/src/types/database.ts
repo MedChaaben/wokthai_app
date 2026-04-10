@@ -25,6 +25,7 @@ export type Database = {
           first_name: string | null;
           last_name: string | null;
           loyalty_points: number;
+          promo_used: boolean;
           expo_push_token: string | null;
           expo_push_token_updated_at: string | null;
           created_at: string;
@@ -36,6 +37,7 @@ export type Database = {
           first_name?: string | null;
           last_name?: string | null;
           loyalty_points?: number;
+          promo_used?: boolean;
           expo_push_token?: string | null;
           expo_push_token_updated_at?: string | null;
           created_at?: string;
@@ -47,6 +49,7 @@ export type Database = {
           first_name?: string | null;
           last_name?: string | null;
           loyalty_points?: number;
+          promo_used?: boolean;
           expo_push_token?: string | null;
           expo_push_token_updated_at?: string | null;
           created_at?: string;
@@ -357,6 +360,8 @@ export type Database = {
           guest_lng: number | null;
           delivery_promo: string | null;
           loyalty_points_credited: boolean;
+          source: string;
+          has_upsell: boolean;
           created_at: string;
         };
         Insert: {
@@ -379,6 +384,8 @@ export type Database = {
           guest_lng?: number | null;
           delivery_promo?: string | null;
           loyalty_points_credited?: boolean;
+          source?: string;
+          has_upsell?: boolean;
           created_at?: string;
         };
         Update: {
@@ -401,6 +408,32 @@ export type Database = {
           guest_lng?: number | null;
           delivery_promo?: string | null;
           loyalty_points_credited?: boolean;
+          source?: string;
+          has_upsell?: boolean;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      events: {
+        Row: {
+          id: string;
+          user_id: string | null;
+          event_name: string;
+          metadata: Json;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id?: string | null;
+          event_name: string;
+          metadata?: Json;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string | null;
+          event_name?: string;
+          metadata?: Json;
           created_at?: string;
         };
         Relationships: [];
@@ -628,6 +661,10 @@ export type Database = {
         }[];
       };
       admin_dashboard_summary: {
+        Args: Record<string, never>;
+        Returns: Json;
+      };
+      admin_restaurant_business: {
         Args: Record<string, never>;
         Returns: Json;
       };

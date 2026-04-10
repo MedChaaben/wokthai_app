@@ -13,12 +13,15 @@ import { useEffect, useMemo, useState } from 'react';
 import {
   useProduct,
   useProductOptionGroups,
+  useSupabase,
+  insertAnalyticsEvent,
   validateLineOptionsAndPrice,
   sumSelectedModifiersPreview,
   buildCartLineKey,
   type OptionGroupWithOptions,
   type OrderLineOptionChoice,
 } from '@wokthai/shared';
+import { getAnalyticsDeviceId } from '../../lib/analyticsDeviceId';
 import { WtButton } from '../../components/WtButton';
 import { WtCard } from '../../components/WtCard';
 import { useCart } from '../../contexts/CartContext';
@@ -49,6 +52,7 @@ function choicesToSel(choices: OrderLineOptionChoice[]): Record<string, string[]
 export default function ProductDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
+  const supabase = useSupabase();
   const { data, isLoading, error } = useProduct(id);
   const { data: groups = [], isLoading: optLoading } = useProductOptionGroups(id);
   const { lines, addLine, setQuantity } = useCart();
@@ -86,6 +90,22 @@ export default function ProductDetailScreen() {
     setSeededFromCart(true);
   }, [id, lines, seededFromCart, optLoading]);
 
+  useEffect(() => {
+    if (!data) return;
+    void (async () => {
+      const device_id = await getAnalyticsDeviceId();
+      await insertAnalyticsEvent(supabase, {
+        event_name: 'view_product',
+        metadata: {
+          product_id: data.id,
+          price: Number(data.price),
+          category_id: data.category_id,
+          ...(device_id ? { device_id } : {}),
+        },
+      });
+    })();
+  }, [supabase, data?.id]);
+
   function toggleOption(g: OptionGroupWithOptions, optionId: string) {
     setSel((prev) => {
       const cur = prev[g.id] ?? [];
@@ -114,6 +134,18 @@ export default function ProductDetailScreen() {
         optionSummary: snapshots.map((s) => s.option_name),
         image_url: data.image_url,
       });
+      void (async () => {
+        const device_id = await getAnalyticsDeviceId();
+        await insertAnalyticsEvent(supabase, {
+          event_name: 'add_to_cart',
+          metadata: {
+            product_id: data.id,
+            price: unitPrice,
+            category_id: data.category_id,
+            ...(device_id ? { device_id } : {}),
+          },
+        });
+      })();
     } catch (e: unknown) {
       Alert.alert('Options', e instanceof Error ? e.message : 'Sélection invalide');
     }

@@ -296,6 +296,12 @@ async function countNonCancelledOrdersForUser(
   return count ?? 0;
 }
 
+async function fetchUserPromoUsed(client: WokthaiSupabaseClient, uid: string): Promise<boolean> {
+  const { data, error } = await client.from('users').select('promo_used').eq('id', uid).maybeSingle();
+  if (error) throw error;
+  return Boolean(data?.promo_used);
+}
+
 export async function createOrderWithItems(
   client: WokthaiSupabaseClient,
   input: CreateOrderInput
@@ -354,8 +360,11 @@ export async function createOrderWithItems(
         throw new Error('Livraison uniquement à Tunis ou Ariana');
       }
       deliveryFee = getDeliveryFeeForStoreAndCity(storeId, input.addressCity, zones);
-      const prior = await countNonCancelledOrdersForUser(client, userId);
-      if (prior === 0) {
+      const [prior, promoUsed] = await Promise.all([
+        countNonCancelledOrdersForUser(client, userId),
+        fetchUserPromoUsed(client, userId),
+      ]);
+      if (prior === 0 && !promoUsed) {
         deliveryFee = 0;
         deliveryPromo = 'first_order_free';
       }
@@ -382,6 +391,7 @@ export async function createOrderWithItems(
 
   const itemsTotal = subtotalFromPrepared(prepared);
   const total = itemsTotal + (input.type === 'delivery' ? deliveryFee : 0);
+  const hasUpsell = input.lines.some((l) => l.fromUpsell === true);
 
   const guestPhoneNormalized = (() => {
     if (userId || !input.guestCheckout?.phone) return null;
@@ -410,6 +420,8 @@ export async function createOrderWithItems(
           guest_delivery_city: null as string | null,
           guest_lat: null as number | null,
           guest_lng: null as number | null,
+          source: 'app' as const,
+          has_upsell: hasUpsell,
         }
       : {
           user_id: null as string | null,
@@ -433,6 +445,8 @@ export async function createOrderWithItems(
             input.type === 'delivery' ? input.guestCheckout!.delivery!.city : null,
           guest_lat: input.type === 'delivery' ? input.guestCheckout!.delivery!.lat : null,
           guest_lng: input.type === 'delivery' ? input.guestCheckout!.delivery!.lng : null,
+          source: 'app' as const,
+          has_upsell: hasUpsell,
         };
 
   const { data: order, error: orderErr } = await client.from('orders').insert(orderInsert).select().single();
@@ -465,6 +479,11 @@ export async function createOrderWithItems(
   if (optionRows.length > 0) {
     const { error: optErr } = await client.from('order_item_options').insert(optionRows);
     if (optErr) throw optErr;
+  }
+
+  if (userId && deliveryPromo === 'first_order_free') {
+    const { error: promoErr } = await client.from('users').update({ promo_used: true }).eq('id', userId);
+    if (promoErr) throw promoErr;
   }
 
   return { order };

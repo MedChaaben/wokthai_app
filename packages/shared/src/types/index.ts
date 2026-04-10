@@ -97,12 +97,15 @@ export type CartLine = {
   optionSummary?: string[];
   /** Aperçu liste panier (URL publique produit). */
   image_url?: string | null;
+  /** Ligne ajoutée depuis la modale upsell (mesure has_upsell en base). */
+  fromUpsell?: boolean;
 };
 
 export type CreateOrderLineInput = {
   productId: string;
   quantity: number;
   selectedOptions: OrderLineOptionChoice[];
+  fromUpsell?: boolean;
 };
 
 /** Contact pour une commande sans compte : téléphone obligatoire ; livraison = adresse snapshot (non enregistrée). */
