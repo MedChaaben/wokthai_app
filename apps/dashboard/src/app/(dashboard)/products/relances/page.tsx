@@ -4,12 +4,15 @@ import { UpsellSuggestionsSection } from "@/components/UpsellSuggestionsSection"
 
 export default function ProductsRelancesPage() {
   return (
-    <div>
-      <h1 className="text-2xl font-extrabold text-zinc-900 dark:text-zinc-100">Relances panier</h1>
-      <p className="mt-2 max-w-2xl text-sm text-stone-600 dark:text-zinc-400">
-        Suggestions boisson ou entrée avant validation si le panier n’en contient pas encore.
+    <div className="mx-auto max-w-3xl">
+      <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-wt-bordeaux dark:text-wt-accent">
+        Catalogue
       </p>
-      <div className="mt-6 rounded-2xl border border-stone-200/90 bg-stone-50/80 p-4 dark:border-zinc-800 dark:bg-zinc-950/40 sm:p-5">
+      <h1 className="mt-1 text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">Relances panier</h1>
+      <p className="mt-3 max-w-xl text-base leading-relaxed text-zinc-600 dark:text-zinc-400">
+        Encouragez une boisson ou une entrée au bon moment : une proposition claire, une seule fois, avant le paiement.
+      </p>
+      <div className="mt-8">
         <UpsellSuggestionsSection />
       </div>
     </div>
