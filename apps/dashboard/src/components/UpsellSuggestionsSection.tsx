@@ -20,40 +20,30 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useMemo, useState, type CSSProperties, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type CSSProperties, type ReactNode } from "react";
 import {
   useSupabase,
   useCategories,
   useProducts,
   useUpsellConfig,
-  replaceUpsellKindCategories,
+  replaceUpsellCampaignCategories,
+  createUpsellCampaign,
+  updateUpsellCampaign,
+  deleteUpsellCampaign,
   createUpsellSuggestion,
   deleteUpsellSuggestion,
   updateUpsellSuggestion,
-  type UpsellKind,
   type UpsellSuggestionWithProduct,
 } from "@wokthai/shared";
+
+const inputClass =
+  "w-full rounded-xl border border-zinc-200/90 bg-white px-3.5 py-2.5 text-sm text-zinc-900 shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition placeholder:text-zinc-400 hover:border-zinc-300 focus:border-wt-bordeaux/45 focus:outline-none focus:ring-2 focus:ring-wt-bordeaux/15 dark:border-zinc-600 dark:bg-zinc-950 dark:text-zinc-100 dark:placeholder:text-zinc-500 dark:hover:border-zinc-500 dark:focus:border-wt-accent/45 dark:focus:ring-wt-accent/20";
 
 const selectClass =
   "w-full cursor-pointer rounded-xl border border-zinc-200/90 bg-white px-3.5 py-2.5 text-sm text-zinc-900 shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition hover:border-zinc-300 focus:border-wt-bordeaux/45 focus:outline-none focus:ring-2 focus:ring-wt-bordeaux/15 disabled:cursor-not-allowed disabled:opacity-60 dark:border-zinc-600 dark:bg-zinc-950 dark:text-zinc-100 dark:hover:border-zinc-500 dark:focus:border-wt-accent/45 dark:focus:ring-wt-accent/20";
 
 const gripBtnClass =
   "flex h-10 w-10 shrink-0 cursor-grab touch-none items-center justify-center rounded-xl border border-zinc-200/90 bg-white text-zinc-400 shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition hover:border-zinc-300 hover:bg-zinc-50 hover:text-zinc-600 active:cursor-grabbing dark:border-zinc-600 dark:bg-zinc-900 dark:text-zinc-500 dark:hover:border-zinc-500 dark:hover:bg-zinc-800 dark:hover:text-zinc-300";
-
-const KINDS: { kind: UpsellKind; label: string; hint: string; typePlural: string }[] = [
-  {
-    kind: "drink",
-    label: "Boisson",
-    hint: "Si le panier ne contient aucune boisson (selon vos catégories), l’app propose une fois la liste de plats ci‑dessous.",
-    typePlural: "boissons",
-  },
-  {
-    kind: "starter",
-    label: "Entrée",
-    hint: "Si le panier ne contient aucune entrée (selon vos catégories), l’app propose une fois la liste de plats ci‑dessous.",
-    typePlural: "entrées",
-  },
-];
 
 function IconGrip() {
   return (
@@ -67,6 +57,14 @@ function IconPlus() {
   return (
     <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
       <path d="M12 5v14M5 12h14" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function IconLayers() {
+  return (
+    <svg className="h-8 w-8 text-zinc-300 dark:text-zinc-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden>
+      <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" strokeLinejoin="round" />
     </svg>
   );
 }
@@ -126,74 +124,108 @@ export function UpsellSuggestionsSection() {
   const categories = useCategories();
   const products = useProducts({ onlyAvailable: false });
   const config = useUpsellConfig();
-  const [activeKind, setActiveKind] = useState<UpsellKind>("drink");
-  const [newProductByKind, setNewProductByKind] = useState<Record<UpsellKind, string>>({
-    drink: "",
-    starter: "",
-  });
+  const [selectedCampaignId, setSelectedCampaignId] = useState("");
+  const [newCampaignName, setNewCampaignName] = useState("");
+  const [newProductId, setNewProductId] = useState("");
 
-  const saveKindCategories = useMutation({
-    mutationFn: async ({ kind, categoryIds }: { kind: UpsellKind; categoryIds: string[] }) =>
-      replaceUpsellKindCategories(supabase, kind, categoryIds),
-    onSuccess: () => {
+  const campaignsSorted = useMemo(() => {
+    return [...(config.data?.campaigns ?? [])].sort((a, b) => a.position - b.position);
+  }, [config.data?.campaigns]);
+
+  useEffect(() => {
+    const list = campaignsSorted;
+    queueMicrotask(() => {
+      if (list.length === 0) {
+        setSelectedCampaignId("");
+        return;
+      }
+      if (!selectedCampaignId || !list.some((c) => c.id === selectedCampaignId)) {
+        setSelectedCampaignId(list[0].id);
+      }
+    });
+  }, [campaignsSorted, selectedCampaignId]);
+
+  const createCampaign = useMutation({
+    mutationFn: () => createUpsellCampaign(supabase, newCampaignName),
+    onSuccess: (r) => {
+      setNewCampaignName("");
+      setSelectedCampaignId(r.campaignId);
       void qc.invalidateQueries({ queryKey: ["upsell-config"] });
     },
+  });
+
+  const renameCampaign = useMutation({
+    mutationFn: ({ id, name }: { id: string; name: string }) => updateUpsellCampaign(supabase, id, { name }),
+    onSuccess: () => void qc.invalidateQueries({ queryKey: ["upsell-config"] }),
+  });
+
+  const deleteCampaign = useMutation({
+    mutationFn: (id: string) => deleteUpsellCampaign(supabase, id),
+    onSuccess: () => void qc.invalidateQueries({ queryKey: ["upsell-config"] }),
+  });
+
+  const reorderCampaignsMut = useMutation({
+    mutationFn: async (orderedIds: string[]) => {
+      await Promise.all(orderedIds.map((id, index) => updateUpsellCampaign(supabase, id, { position: index })));
+    },
+    onSuccess: () => void qc.invalidateQueries({ queryKey: ["upsell-config"] }),
+  });
+
+  const saveCampaignCategories = useMutation({
+    mutationFn: async ({ campaignId, categoryIds }: { campaignId: string; categoryIds: string[] }) =>
+      replaceUpsellCampaignCategories(supabase, campaignId, categoryIds),
+    onSuccess: () => void qc.invalidateQueries({ queryKey: ["upsell-config"] }),
   });
 
   const addSuggestion = useMutation({
-    mutationFn: async ({ kind, productId }: { kind: UpsellKind; productId: string }) => {
-      const sameKind = (config.data?.suggestions ?? []).filter((s) => s.kind === kind);
-      const nextPos = (sameKind.reduce((m, s) => Math.max(m, s.position), -1) ?? -1) + 1;
-      await createUpsellSuggestion(supabase, { kind, product_id: productId, position: nextPos, is_active: true });
+    mutationFn: async ({ campaignId, productId }: { campaignId: string; productId: string }) => {
+      const same = (config.data?.suggestions ?? []).filter((s) => s.campaign_id === campaignId);
+      const nextPos = (same.reduce((m, s) => Math.max(m, s.position), -1) ?? -1) + 1;
+      await createUpsellSuggestion(supabase, { campaign_id: campaignId, product_id: productId, position: nextPos, is_active: true });
     },
-    onSuccess: () => {
-      void qc.invalidateQueries({ queryKey: ["upsell-config"] });
-    },
+    onSuccess: () => void qc.invalidateQueries({ queryKey: ["upsell-config"] }),
   });
 
   const patchSuggestion = useMutation({
-    mutationFn: ({
-      id,
-      patch,
-    }: {
-      id: string;
-      patch: { position?: number; is_active?: boolean };
-    }) => updateUpsellSuggestion(supabase, id, patch),
-    onSuccess: () => {
-      void qc.invalidateQueries({ queryKey: ["upsell-config"] });
-    },
+    mutationFn: ({ id, patch }: { id: string; patch: { position?: number; is_active?: boolean } }) =>
+      updateUpsellSuggestion(supabase, id, patch),
+    onSuccess: () => void qc.invalidateQueries({ queryKey: ["upsell-config"] }),
   });
 
   const removeSuggestion = useMutation({
     mutationFn: (id: string) => deleteUpsellSuggestion(supabase, id),
-    onSuccess: () => {
-      void qc.invalidateQueries({ queryKey: ["upsell-config"] });
-    },
+    onSuccess: () => void qc.invalidateQueries({ queryKey: ["upsell-config"] }),
   });
 
   const reorderSuggestions = useMutation({
     mutationFn: async (orderedIds: string[]) => {
       await Promise.all(orderedIds.map((id, index) => updateUpsellSuggestion(supabase, id, { position: index })));
     },
-    onSuccess: () => {
-      void qc.invalidateQueries({ queryKey: ["upsell-config"] });
-    },
+    onSuccess: () => void qc.invalidateQueries({ queryKey: ["upsell-config"] }),
   });
 
-  const categoriesByKind = config.data?.categoriesByKind ?? { drink: [], starter: [] };
+  const categoriesByCampaignId = config.data?.categoriesByCampaignId ?? {};
   const suggestions = config.data?.suggestions ?? [];
   const allProducts = products.data ?? [];
-
   const catsList = categories.data ?? [];
+
   const categoryNameById = useMemo(() => {
     const m = new Map<string, string>();
     for (const c of categories.data ?? []) m.set(c.id, c.name);
     return m;
   }, [categories.data]);
 
-  const activeMeta = KINDS.find((k) => k.kind === activeKind);
+  const selectedCampaign = campaignsSorted.find((c) => c.id === selectedCampaignId);
+  const selectedName = selectedCampaign?.name ?? "";
+
   const savingCategories =
-    saveKindCategories.isPending && saveKindCategories.variables?.kind === activeKind;
+    saveCampaignCategories.isPending && saveCampaignCategories.variables?.campaignId === selectedCampaignId;
+
+  const [activeDragCampaignId, setActiveDragCampaignId] = useState<string | null>(null);
+  const campaignSensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  );
 
   if (config.isLoading || categories.isLoading || products.isLoading) {
     return (
@@ -210,59 +242,177 @@ export function UpsellSuggestionsSection() {
   return (
     <div className="space-y-8">
       <section className="wt-panel overflow-hidden p-5 sm:p-6">
-        <StepBadge n={1} label="Type de relance" />
-        <p className="mb-4 max-w-xl text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
-          Avant paiement, l’app affiche <span className="font-medium text-zinc-800 dark:text-zinc-200">une seule fois</span> une
-          liste de plats si le panier ne contient pas encore ce type d’article. Choisissez ci‑dessous boisson ou entrée.
+        <StepBadge n={1} label="Relances (nom libre)" />
+        <p className="mb-5 max-w-xl text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
+          Chaque relance a un <span className="font-medium text-zinc-800 dark:text-zinc-200">nom</span> (ex. Boisson, Dessert, Menu midi). L’app les évalue dans l’ordre ci‑dessous : dès qu’une relance s’applique, ses plats sont proposés (avec les autres relances encore éligibles, sans doublon de plat).
         </p>
 
-        <div
-          className="flex max-w-lg gap-1 rounded-2xl border border-zinc-200/90 bg-zinc-100/80 p-1.5 dark:border-zinc-700 dark:bg-zinc-950/60"
-          role="tablist"
-          aria-label="Type de relance"
-        >
-          {KINDS.map(({ kind, label, hint }) => {
-            const selected = activeKind === kind;
-            return (
+        <div className="grid gap-6 lg:grid-cols-[1fr_minmax(0,20rem)] lg:items-end">
+          <div>
+            <FieldLabel hint="Liste de vos relances.">Relance à éditer</FieldLabel>
+            <select
+              value={selectedCampaignId}
+              onChange={(e) => setSelectedCampaignId(e.target.value)}
+              className={selectClass}
+              disabled={campaignsSorted.length === 0}
+              aria-label="Relance à éditer"
+            >
+              {campaignsSorted.length === 0 ? <option value="">Aucune relance</option> : null}
+              {campaignsSorted.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="rounded-2xl border border-dashed border-zinc-200/90 bg-zinc-50/50 p-4 dark:border-zinc-700/80 dark:bg-zinc-950/40">
+            <FieldLabel hint="Ex. « Dessert », « Accompagnement ».">Nouvelle relance</FieldLabel>
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-stretch">
+              <input
+                value={newCampaignName}
+                onChange={(e) => setNewCampaignName(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && newCampaignName.trim() && !createCampaign.isPending) {
+                    e.preventDefault();
+                    createCampaign.mutate();
+                  }
+                }}
+                placeholder="Nom de la relance"
+                className={`${inputClass} sm:min-w-0 sm:flex-1`}
+                aria-label="Nom de la nouvelle relance"
+              />
               <button
-                key={kind}
                 type="button"
-                role="tab"
-                title={hint}
-                aria-selected={selected}
-                id={`upsell-tab-${kind}`}
-                aria-controls={`upsell-panel-${kind}`}
-                onClick={() => setActiveKind(kind)}
-                className={`min-w-0 flex-1 rounded-xl px-4 py-3 text-center text-sm font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-wt-bordeaux/40 dark:focus-visible:outline-wt-accent/50 ${
-                  selected
-                    ? "bg-white text-zinc-900 shadow-[0_2px_8px_-2px_rgba(0,0,0,0.08)] ring-2 ring-wt-bordeaux/25 dark:bg-zinc-800 dark:text-zinc-50 dark:ring-wt-accent/35"
-                    : "text-zinc-600 hover:bg-white/70 dark:text-zinc-400 dark:hover:bg-zinc-800/90"
-                }`}
+                disabled={createCampaign.isPending || !newCampaignName.trim()}
+                onClick={() => createCampaign.mutate()}
+                className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-wt-bordeaux px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-wt-bordeaux-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-wt-bordeaux/50 disabled:cursor-not-allowed disabled:opacity-45 dark:focus-visible:outline-wt-accent/60"
               >
-                {label}
+                <IconPlus />
+                {createCampaign.isPending ? "Création…" : "Créer"}
               </button>
-            );
-          })}
+            </div>
+          </div>
         </div>
 
-        {activeMeta ? (
-          <p className="mt-3 max-w-2xl text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">{activeMeta.hint}</p>
+        {createCampaign.isError ? (
+          <p className="mt-4 text-sm text-red-600 dark:text-red-400" role="alert">
+            {createCampaign.error instanceof Error ? createCampaign.error.message : "Erreur"}
+          </p>
         ) : null}
 
-        <div className="my-8 border-t border-zinc-200/80 dark:border-zinc-800" />
+        {campaignsSorted.length > 1 ? (
+          <div className="mt-8 border-t border-zinc-200/80 pt-6 dark:border-zinc-800">
+            <FieldLabel hint="Ordre d’évaluation dans l’app (la première peut déclencher avant la suivante).">
+              Ordre des relances
+            </FieldLabel>
+            {reorderCampaignsMut.isError ? (
+              <p className="mb-2 text-sm text-red-600 dark:text-red-400" role="alert">
+                Impossible d’enregistrer l’ordre des relances.
+              </p>
+            ) : null}
+            {reorderCampaignsMut.isPending ? (
+              <p className="mb-2 flex items-center gap-2 text-xs font-medium text-wt-bordeaux dark:text-zinc-400">
+                <span
+                  className="inline-block h-3.5 w-3.5 animate-spin rounded-full border-2 border-wt-bordeaux border-t-transparent dark:border-zinc-400 dark:border-t-transparent"
+                  aria-hidden
+                />
+                Enregistrement…
+              </p>
+            ) : null}
+            <DndContext
+              sensors={campaignSensors}
+              collisionDetection={closestCenter}
+              onDragStart={(e: DragStartEvent) => setActiveDragCampaignId(String(e.active.id))}
+              onDragCancel={() => setActiveDragCampaignId(null)}
+              onDragEnd={(event: DragEndEvent) => {
+                setActiveDragCampaignId(null);
+                const { active, over } = event;
+                if (!over || active.id === over.id) return;
+                const oldIndex = campaignsSorted.findIndex((x) => x.id === active.id);
+                const newIndex = campaignsSorted.findIndex((x) => x.id === over.id);
+                if (oldIndex === -1 || newIndex === -1) return;
+                const reordered = arrayMove(campaignsSorted, oldIndex, newIndex);
+                reorderCampaignsMut.mutate(reordered.map((x) => x.id));
+              }}
+            >
+              <SortableContext items={campaignsSorted.map((c) => c.id)} strategy={verticalListSortingStrategy}>
+                <ul className="mt-3 space-y-2">
+                  {campaignsSorted.map((c, idx) => (
+                    <SortableCampaignOrderRow
+                      key={c.id}
+                      campaign={c}
+                      index={idx}
+                      reorderDisabled={reorderCampaignsMut.isPending}
+                    />
+                  ))}
+                </ul>
+              </SortableContext>
+              <DragOverlay dropAnimation={null}>
+                {activeDragCampaignId ? (
+                  <div className="flex items-center gap-3 rounded-xl border border-zinc-200 bg-white px-3 py-2 shadow-lg ring-2 ring-wt-bordeaux/20 dark:border-zinc-600 dark:bg-zinc-900 dark:ring-wt-accent/25">
+                    <span className={`${gripBtnClass} cursor-grabbing`}>
+                      <IconGrip />
+                    </span>
+                    <span className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+                      {campaignsSorted.find((x) => x.id === activeDragCampaignId)?.name ?? ""}
+                    </span>
+                  </div>
+                ) : null}
+              </DragOverlay>
+            </DndContext>
+          </div>
+        ) : null}
+      </section>
 
-        {activeMeta ? (
-          <div id={`upsell-panel-${activeKind}`} role="tabpanel" aria-labelledby={`upsell-tab-${activeKind}`}>
-            <h2 className="sr-only">Relance {activeMeta.label}</h2>
-            <StepBadge n={2} label={`Configurer — ${activeMeta.label}`} />
+      {selectedCampaignId && selectedCampaign ? (
+        <section className="wt-panel overflow-hidden p-5 sm:p-6">
+          <StepBadge n={2} label={`Configurer — ${selectedName}`} />
+          <p className="mb-6 max-w-2xl text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
+            Si le panier ne contient <span className="font-medium text-zinc-800 dark:text-zinc-200">aucun plat</span> des
+            catégories cochées, l’app peut proposer une fois les plats de votre liste (avec les autres relances encore
+            applicables).
+          </p>
 
-            <div className="mt-2 space-y-8">
-              <div className="rounded-2xl bg-zinc-50/90 p-4 sm:p-5 dark:bg-zinc-950/50">
-                <FieldLabel hint="Un plat appartenant à une case cochée compte comme boisson ou entrée dans le panier.">
+          <div className="rounded-2xl border border-zinc-200/80 bg-gradient-to-b from-white to-zinc-50/40 p-4 shadow-sm dark:border-zinc-700/80 dark:from-zinc-950 dark:to-zinc-950/80 sm:p-5">
+            <div className="flex flex-col gap-4 border-b border-zinc-200/70 pb-5 dark:border-zinc-800 sm:flex-row sm:items-start sm:justify-between">
+              <div className="min-w-0 flex-1 sm:max-w-lg">
+                <FieldLabel hint="Libellé interne (onglets, liste).">Nom de la relance</FieldLabel>
+                <input
+                  key={`rename-${selectedCampaignId}-${selectedName}`}
+                  defaultValue={selectedName}
+                  onBlur={(e) => {
+                    const v = e.target.value.trim();
+                    if (v && v !== selectedName) renameCampaign.mutate({ id: selectedCampaignId, name: v });
+                  }}
+                  className={`${inputClass} text-base font-semibold sm:text-sm`}
+                />
+              </div>
+              <button
+                type="button"
+                disabled={deleteCampaign.isPending}
+                onClick={() => {
+                  if (
+                    confirm(
+                      `Supprimer la relance « ${selectedName} » ? Les plats associés seront retirés de cette relance.`
+                    )
+                  ) {
+                    deleteCampaign.mutate(selectedCampaignId);
+                  }
+                }}
+                className="shrink-0 rounded-xl border border-red-200/90 bg-white px-4 py-2.5 text-sm font-medium text-red-600 transition hover:bg-red-50 dark:border-red-900/40 dark:bg-zinc-900 dark:text-red-400 dark:hover:bg-red-950/35 disabled:opacity-50"
+              >
+                Supprimer cette relance
+              </button>
+            </div>
+
+            <div className="mt-6 space-y-8">
+              <div className="rounded-2xl bg-zinc-50/90 p-4 dark:bg-zinc-950/50">
+                <FieldLabel hint="Un plat du panier dans une de ces catégories fait que cette relance ne s’applique pas (pour ce type d’article).">
                   Détection dans le panier
                 </FieldLabel>
                 <p className="mb-4 text-sm font-medium text-zinc-800 dark:text-zinc-200">
-                  Quelles catégories du menu comptent comme des {activeMeta.typePlural} ?
+                  Quelles catégories du menu comptent pour cette relance ?
                 </p>
                 {savingCategories ? (
                   <p className="mb-3 flex items-center gap-2 text-xs font-medium text-wt-bordeaux dark:text-zinc-400">
@@ -280,10 +430,11 @@ export function UpsellSuggestionsSection() {
                 ) : (
                   <div className="grid gap-2 sm:grid-cols-2">
                     {catsList.map((c) => {
-                      const checked = (categoriesByKind[activeKind] ?? []).includes(c.id);
+                      const selectedCats = categoriesByCampaignId[selectedCampaignId] ?? [];
+                      const checked = selectedCats.includes(c.id);
                       return (
                         <label
-                          key={`${activeKind}-${c.id}`}
+                          key={`${selectedCampaignId}-${c.id}`}
                           className={`flex cursor-pointer select-none items-center gap-3 rounded-xl border border-zinc-200/80 bg-white px-4 py-3 shadow-sm transition hover:border-zinc-300 dark:border-zinc-700 dark:bg-zinc-900 dark:hover:border-zinc-600 ${
                             savingCategories ? "pointer-events-none opacity-60" : ""
                           }`}
@@ -292,11 +443,10 @@ export function UpsellSuggestionsSection() {
                             type="checkbox"
                             checked={checked}
                             onChange={(e) => {
-                              const selectedCats = categoriesByKind[activeKind] ?? [];
                               const next = e.target.checked
                                 ? [...selectedCats, c.id]
                                 : selectedCats.filter((id) => id !== c.id);
-                              saveKindCategories.mutate({ kind: activeKind, categoryIds: next });
+                              saveCampaignCategories.mutate({ campaignId: selectedCampaignId, categoryIds: next });
                             }}
                             className="h-4 w-4 shrink-0 rounded border-zinc-300 text-wt-bordeaux focus:ring-wt-bordeaux/30 dark:border-zinc-600 dark:focus:ring-wt-accent/30"
                           />
@@ -309,16 +459,16 @@ export function UpsellSuggestionsSection() {
               </div>
 
               <div>
-                <FieldLabel hint="L’ordre d’affichage suit les lignes ci‑dessous ; glissez ⋮⋮ pour le modifier.">
+                <FieldLabel hint="L’ordre d’affichage dans la modale ; glissez ⋮⋮ pour le modifier.">
                   Plats proposés au client
                 </FieldLabel>
                 <p className="mb-4 text-sm text-zinc-600 dark:text-zinc-400">
-                  Décochez « Proposer » pour masquer un plat sans le retirer de la liste.
+                  Décochez « Proposer » pour masquer un plat sans le retirer.
                 </p>
 
                 <SuggestionsList
-                  label={activeMeta.label}
-                  kindSuggestions={suggestions.filter((s) => s.kind === activeKind)}
+                  label={selectedName}
+                  kindSuggestions={suggestions.filter((s) => s.campaign_id === selectedCampaignId)}
                   mutations={{
                     patchSuggestion,
                     removeSuggestion,
@@ -328,23 +478,22 @@ export function UpsellSuggestionsSection() {
 
                 <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-stretch">
                   <AddProductSelect
-                    kind={activeKind}
-                    label={activeMeta.label}
+                    campaignId={selectedCampaignId}
+                    label={selectedName}
                     suggestions={suggestions}
                     allProducts={allProducts}
                     catsList={catsList}
                     categoryNameById={categoryNameById}
-                    selectionValue={newProductByKind[activeKind]}
-                    onSelectionChange={(v) => setNewProductByKind((prev) => ({ ...prev, [activeKind]: v }))}
+                    selectionValue={newProductId}
+                    onSelectionChange={setNewProductId}
                   />
                   <button
                     type="button"
-                    disabled={!newProductByKind[activeKind] || addSuggestion.isPending}
+                    disabled={!newProductId || addSuggestion.isPending}
                     onClick={() => {
-                      const v = newProductByKind[activeKind];
-                      if (!v) return;
-                      addSuggestion.mutate({ kind: activeKind, productId: v });
-                      setNewProductByKind((prev) => ({ ...prev, [activeKind]: "" }));
+                      if (!newProductId) return;
+                      addSuggestion.mutate({ campaignId: selectedCampaignId, productId: newProductId });
+                      setNewProductId("");
                     }}
                     className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-wt-bordeaux px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-wt-bordeaux-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-wt-bordeaux/50 disabled:cursor-not-allowed disabled:opacity-45 dark:focus-visible:outline-wt-accent/60"
                   >
@@ -355,30 +504,82 @@ export function UpsellSuggestionsSection() {
               </div>
             </div>
           </div>
-        ) : null}
-      </section>
+        </section>
+      ) : (
+        <div className="wt-dashed-empty">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-zinc-100 dark:bg-zinc-800/80">
+            <IconLayers />
+          </div>
+          <p className="mt-4 text-sm font-medium text-zinc-800 dark:text-zinc-200">Aucune relance pour l’instant</p>
+          <p className="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-zinc-500 dark:text-zinc-400">
+            Donnez un nom ci‑dessus et cliquez sur <span className="font-medium text-zinc-700 dark:text-zinc-300">Créer</span>.
+          </p>
+        </div>
+      )}
 
       {config.isError ? (
         <p className="rounded-xl border border-red-200/80 bg-red-50/80 px-4 py-3 text-sm text-red-700 dark:border-red-900/50 dark:bg-red-950/30 dark:text-red-300" role="alert">
           {config.error instanceof Error ? config.error.message : "Erreur de chargement"}
         </p>
       ) : null}
-      {saveKindCategories.isError || addSuggestion.isError || patchSuggestion.isError || removeSuggestion.isError ? (
+      {saveCampaignCategories.isError ||
+      addSuggestion.isError ||
+      patchSuggestion.isError ||
+      removeSuggestion.isError ||
+      renameCampaign.isError ||
+      deleteCampaign.isError ? (
         <p className="text-sm text-red-600 dark:text-red-400" role="alert">
           Une sauvegarde a échoué. Vérifiez votre connexion et réessayez.
-        </p>
-      ) : null}
-      {reorderSuggestions.isError ? (
-        <p className="text-sm text-red-600 dark:text-red-400" role="alert">
-          Impossible d’enregistrer l’ordre des plats.
         </p>
       ) : null}
     </div>
   );
 }
 
+function SortableCampaignOrderRow({
+  campaign,
+  index,
+  reorderDisabled,
+}: {
+  campaign: { id: string; name: string };
+  index: number;
+  reorderDisabled: boolean;
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: campaign.id,
+    disabled: reorderDisabled,
+  });
+  const style: CSSProperties = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : undefined,
+  };
+  return (
+    <li
+      ref={setNodeRef}
+      style={style}
+      className="flex items-center gap-3 rounded-xl border border-zinc-200/80 bg-white px-3 py-2 dark:border-zinc-700 dark:bg-zinc-900/80"
+    >
+      <button
+        type="button"
+        title="Déplacer"
+        className={gripBtnClass}
+        {...attributes}
+        {...listeners}
+        aria-label={`Déplacer la relance : ${campaign.name}`}
+      >
+        <IconGrip />
+      </button>
+      <span className="flex h-6 min-w-6 items-center justify-center rounded-md bg-zinc-100 text-[11px] font-bold text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400">
+        {index + 1}
+      </span>
+      <span className="min-w-0 flex-1 truncate text-sm font-semibold text-zinc-900 dark:text-zinc-100">{campaign.name}</span>
+    </li>
+  );
+}
+
 function AddProductSelect({
-  kind,
+  campaignId,
   label,
   suggestions,
   allProducts,
@@ -387,7 +588,7 @@ function AddProductSelect({
   selectionValue,
   onSelectionChange,
 }: {
-  kind: UpsellKind;
+  campaignId: string;
   label: string;
   suggestions: UpsellSuggestionWithProduct[];
   allProducts: { id: string; name: string; category_id: string; position: number }[];
@@ -396,17 +597,17 @@ function AddProductSelect({
   selectionValue: string;
   onSelectionChange: (v: string) => void;
 }) {
-  const kindSuggestions = suggestions.filter((s) => s.kind === kind);
+  const kindSuggestions = suggestions.filter((s) => s.campaign_id === campaignId);
   const availableToAdd = allProducts.filter((p) => !kindSuggestions.some((s) => s.product.id === p.id));
   const availableByCategory = groupAvailableByCategory(availableToAdd);
 
   return (
     <div className="min-w-0 flex-1">
-      <label htmlFor={`upsell-add-${kind}`} className="sr-only">
-        Plat à ajouter pour la relance {label}
+      <label htmlFor={`upsell-add-${campaignId}`} className="sr-only">
+        Plat à ajouter pour {label}
       </label>
       <select
-        id={`upsell-add-${kind}`}
+        id={`upsell-add-${campaignId}`}
         value={selectionValue}
         onChange={(e) => onSelectionChange(e.target.value)}
         className={selectClass}
@@ -417,9 +618,9 @@ function AddProductSelect({
           const list = availableByCategory.get(c.id);
           if (!list?.length) return null;
           return (
-            <optgroup key={`${kind}-og-${c.id}`} label={c.name}>
+            <optgroup key={`${campaignId}-og-${c.id}`} label={c.name}>
               {list.map((p) => (
-                <option key={`${kind}-new-${p.id}`} value={p.id}>
+                <option key={`${campaignId}-new-${p.id}`} value={p.id}>
                   {p.name}
                 </option>
               ))}
@@ -431,7 +632,7 @@ function AddProductSelect({
             {availableToAdd
               .filter((p) => !categoryNameById.has(p.category_id))
               .map((p) => (
-                <option key={`${kind}-new-${p.id}`} value={p.id}>
+                <option key={`${campaignId}-new-${p.id}`} value={p.id}>
                   {p.name}
                 </option>
               ))}
@@ -453,7 +654,8 @@ function SuggestionsList({
 }) {
   const { patchSuggestion, removeSuggestion, reorderSuggestions } = mutations;
   const sorted = useMemo(
-    () => [...kindSuggestions].sort((a, b) => a.position - b.position || a.product.name.localeCompare(b.product.name, "fr")),
+    () =>
+      [...kindSuggestions].sort((a, b) => a.position - b.position || a.product.name.localeCompare(b.product.name, "fr")),
     [kindSuggestions]
   );
 
@@ -468,7 +670,7 @@ function SuggestionsList({
       <div className="rounded-2xl border border-dashed border-zinc-200/90 bg-zinc-50/50 px-4 py-10 text-center dark:border-zinc-700 dark:bg-zinc-900/25">
         <p className="text-sm font-medium text-zinc-800 dark:text-zinc-200">Liste vide</p>
         <p className="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-zinc-500 dark:text-zinc-400">
-          Choisissez un plat dans le menu ci‑dessous pour l’ajouter à cette relance.
+          Ajoutez un plat depuis le menu ci‑dessous.
         </p>
       </div>
     );

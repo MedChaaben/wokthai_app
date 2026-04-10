@@ -11,13 +11,7 @@ import {
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import {
-  useProducts,
-  useUpsellConfig,
-  useSupabase,
-  insertAnalyticsEvent,
-  type UpsellKind,
-} from '@wokthai/shared';
+import { useProducts, useUpsellConfig, useSupabase, insertAnalyticsEvent } from '@wokthai/shared';
 import { getAnalyticsDeviceId } from '../../lib/analyticsDeviceId';
 import { WtButton } from '../../components/WtButton';
 import { WtCard } from '../../components/WtCard';
@@ -45,9 +39,10 @@ export default function CartTabScreen() {
   );
 
   const upsellCandidates = useMemo(() => {
-    const categoriesByKind = upsellConfig.data?.categoriesByKind;
+    const categoriesByCampaignId = upsellConfig.data?.categoriesByCampaignId;
+    const campaigns = [...(upsellConfig.data?.campaigns ?? [])].sort((a, b) => a.position - b.position);
     const suggestions = upsellConfig.data?.suggestions ?? [];
-    if (!categoriesByKind) return [];
+    if (!categoriesByCampaignId || !upsellConfig.data?.campaigns) return [];
 
     const byProductId = new Map((products.data ?? []).map((p) => [p.id, p]));
     const cartCategoryIds = new Set<string>();
@@ -56,19 +51,29 @@ export default function CartTabScreen() {
       if (p) cartCategoryIds.add(p.category_id);
     }
 
-    const kinds: UpsellKind[] = ['drink', 'starter'];
+    const seenProductIds = new Set<string>();
     const out: (typeof suggestions)[number][] = [];
-    for (const kind of kinds) {
-      const kindCategoryIds = categoriesByKind[kind] ?? [];
-      if (kindCategoryIds.length === 0) continue;
-      const hasKindInCart = kindCategoryIds.some((cid) => cartCategoryIds.has(cid));
-      if (hasKindInCart) continue;
+    for (const camp of campaigns) {
+      const triggerCats = categoriesByCampaignId[camp.id] ?? [];
+      if (triggerCats.length === 0) continue;
+      const hasInCart = triggerCats.some((cid) => cartCategoryIds.has(cid));
+      if (hasInCart) continue;
       for (const s of suggestions) {
-        if (s.kind === kind && s.is_active && s.product.is_available) out.push(s);
+        if (s.campaign_id !== camp.id) continue;
+        if (!s.is_active || !s.product.is_available) continue;
+        if (seenProductIds.has(s.product.id)) continue;
+        seenProductIds.add(s.product.id);
+        out.push(s);
       }
     }
     return out;
   }, [upsellConfig.data, products.data, lines]);
+
+  const upsellCampaignNameById = useMemo(() => {
+    const m = new Map<string, string>();
+    for (const c of upsellConfig.data?.campaigns ?? []) m.set(c.id, c.name);
+    return m;
+  }, [upsellConfig.data?.campaigns]);
 
   const upsellNames = useMemo(() => upsellCandidates.map((s) => s.product.name), [upsellCandidates]);
   const upsellIntro = useMemo(() => {
@@ -240,10 +245,8 @@ export default function CartTabScreen() {
                     onPress={() => {
                       const unitPrice = Number(s.product.price);
                       if (!Number.isFinite(unitPrice)) return;
-                      const optionSummary =
-                        s.kind === 'drink'
-                          ? ['Suggestion boisson']
-                          : ['Suggestion entree'];
+                      const campLabel = upsellCampaignNameById.get(s.campaign_id) ?? 'Suggestion';
+                      const optionSummary = [`Suggestion : ${campLabel}`];
                       // Ajout rapide sans personnalisation: produit suggere uniquement.
                       addLine({
                         productId: s.product.id,
@@ -262,7 +265,7 @@ export default function CartTabScreen() {
                           metadata: {
                             product_id: s.product.id,
                             price: unitPrice,
-                            kind: s.kind,
+                            campaign_id: s.campaign_id,
                             ...(device_id ? { device_id } : {}),
                           },
                         });

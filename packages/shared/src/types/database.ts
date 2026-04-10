@@ -12,7 +12,6 @@ export type OrderStatusEnum =
 export type PaymentStatusEnum = 'unpaid' | 'paid_on_delivery';
 export type StaffRoleEnum = 'store' | 'platform_admin';
 export type AnnouncementTypeEnum = 'info' | 'warning' | 'promo' | 'important';
-export type UpsellKindEnum = 'drink' | 'starter';
 
 export type Database = {
   public: {
@@ -231,19 +230,40 @@ export type Database = {
         Update: { id?: string; name?: string; position?: number };
         Relationships: [];
       };
-      upsell_kind_categories: {
+      upsell_campaigns: {
         Row: {
-          kind: UpsellKindEnum;
+          id: string;
+          name: string;
+          position: number;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          position?: number;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+          position?: number;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      upsell_campaign_categories: {
+        Row: {
+          campaign_id: string;
           category_id: string;
           created_at: string;
         };
         Insert: {
-          kind: UpsellKindEnum;
+          campaign_id: string;
           category_id: string;
           created_at?: string;
         };
         Update: {
-          kind?: UpsellKindEnum;
+          campaign_id?: string;
           category_id?: string;
           created_at?: string;
         };
@@ -285,7 +305,7 @@ export type Database = {
       upsell_suggestions: {
         Row: {
           id: string;
-          kind: UpsellKindEnum;
+          campaign_id: string;
           product_id: string;
           position: number;
           is_active: boolean;
@@ -293,7 +313,7 @@ export type Database = {
         };
         Insert: {
           id?: string;
-          kind: UpsellKindEnum;
+          campaign_id: string;
           product_id: string;
           position?: number;
           is_active?: boolean;
@@ -301,7 +321,7 @@ export type Database = {
         };
         Update: {
           id?: string;
-          kind?: UpsellKindEnum;
+          campaign_id?: string;
           product_id?: string;
           position?: number;
           is_active?: boolean;
@@ -699,7 +719,6 @@ export type Database = {
     };
     Enums: {
       announcement_type: AnnouncementTypeEnum;
-      upsell_kind: UpsellKindEnum;
       order_type: OrderTypeEnum;
       order_status: OrderStatusEnum;
       payment_status: PaymentStatusEnum;
