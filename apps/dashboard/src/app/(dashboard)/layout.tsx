@@ -217,6 +217,35 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   const navLinks = isPlatformAdmin ? (
     <nav className="mt-4 flex flex-col gap-3" aria-label="Navigation principale">
+      <div>
+        <p className="px-3 text-[10px] font-semibold uppercase tracking-wide text-stone-500 dark:text-zinc-500">
+          Administration
+        </p>
+        <ul
+          className="mt-1.5 flex flex-col gap-0.5 border-l border-stone-200/90 pl-2 ml-3 dark:border-zinc-700"
+          role="list"
+        >
+          {platformAdminSubLinks.map(({ href, label, match }) => {
+            const active = match(pathname);
+            return (
+              <li key={href}>
+                <Link
+                  href={href}
+                  onClick={() => setMobileNavOpen(false)}
+                  className={`block rounded-lg px-3 py-1.5 text-sm font-medium ${
+                    active
+                      ? "bg-wt-bordeaux-muted text-wt-bordeaux dark:bg-wt-bordeaux/25 dark:text-wt-white"
+                      : "text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800"
+                  }`}
+                  aria-current={active ? "page" : undefined}
+                >
+                  {label}
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
+      </div>
       <Suspense
         fallback={
           <PlatformAdminCommandesNavFallback
@@ -239,35 +268,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           role="list"
         >
           {platformAdminProductsSubLinks.map(({ href, label, match }) => {
-            const active = match(pathname);
-            return (
-              <li key={href}>
-                <Link
-                  href={href}
-                  onClick={() => setMobileNavOpen(false)}
-                  className={`block rounded-lg px-3 py-1.5 text-sm font-medium ${
-                    active
-                      ? "bg-wt-bordeaux-muted text-wt-bordeaux dark:bg-wt-bordeaux/25 dark:text-wt-white"
-                      : "text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800"
-                  }`}
-                  aria-current={active ? "page" : undefined}
-                >
-                  {label}
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
-      </div>
-      <div>
-        <p className="px-3 text-[10px] font-semibold uppercase tracking-wide text-stone-500 dark:text-zinc-500">
-          Administration
-        </p>
-        <ul
-          className="mt-1.5 flex flex-col gap-0.5 border-l border-stone-200/90 pl-2 ml-3 dark:border-zinc-700"
-          role="list"
-        >
-          {platformAdminSubLinks.map(({ href, label, match }) => {
             const active = match(pathname);
             return (
               <li key={href}>
