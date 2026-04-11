@@ -9,9 +9,10 @@
 --
 -- Ce script :
 --   1) Supprime une éventuelle exécution précédente (emails @wokthai-demo.local + invités +216991…)
---   2) Crée ~12 clients tunisiens (auth + profil + adresses)
---   3) Génère ~85 commandes réalistes sur ~45 jours + lignes + options obligatoires
---   4) Insère des lignes dans public.events pour enrichir les funnels / conversions
+--   2) Crée 18 clients tunisiens (auth + profil + adresses)
+--   3) Génère 250 commandes sur ~60 jours : ~242 livrées (CA démo réaliste) + 8 annulées avant confirmation
+--   4) Par magasin actif : 3 commandes pending (récentes) + 1 en préparation (pipeline démo)
+--   5) Insère des lignes dans public.events pour analytics / upsell
 --
 -- Mot de passe auth (tous les comptes démo) : DemoWok2026!
 -- =============================================================================
@@ -298,6 +299,108 @@ BEGIN
       '',
       '',
       ''
+    ),
+    (
+      'f0d10000-0000-4000-8000-00000000000d',
+      v_instance,
+      'authenticated',
+      'authenticated',
+      'sarra.hammami@wokthai-demo.local',
+      extensions.crypt('DemoWok2026!', extensions.gen_salt('bf')),
+      now(),
+      '{"provider":"email","providers":["email"]}'::jsonb,
+      '{}'::jsonb,
+      now(),
+      now(),
+      '',
+      '',
+      '',
+      ''
+    ),
+    (
+      'f0d10000-0000-4000-8000-00000000000e',
+      v_instance,
+      'authenticated',
+      'authenticated',
+      'chiheb.guesmi@wokthai-demo.local',
+      extensions.crypt('DemoWok2026!', extensions.gen_salt('bf')),
+      now(),
+      '{"provider":"email","providers":["email"]}'::jsonb,
+      '{}'::jsonb,
+      now(),
+      now(),
+      '',
+      '',
+      '',
+      ''
+    ),
+    (
+      'f0d10000-0000-4000-8000-00000000000f',
+      v_instance,
+      'authenticated',
+      'authenticated',
+      'mariem.boukhris@wokthai-demo.local',
+      extensions.crypt('DemoWok2026!', extensions.gen_salt('bf')),
+      now(),
+      '{"provider":"email","providers":["email"]}'::jsonb,
+      '{}'::jsonb,
+      now(),
+      now(),
+      '',
+      '',
+      '',
+      ''
+    ),
+    (
+      'f0d10000-0000-4000-8000-000000000010',
+      v_instance,
+      'authenticated',
+      'authenticated',
+      'bilel.nasraoui@wokthai-demo.local',
+      extensions.crypt('DemoWok2026!', extensions.gen_salt('bf')),
+      now(),
+      '{"provider":"email","providers":["email"]}'::jsonb,
+      '{}'::jsonb,
+      now(),
+      now(),
+      '',
+      '',
+      '',
+      ''
+    ),
+    (
+      'f0d10000-0000-4000-8000-000000000011',
+      v_instance,
+      'authenticated',
+      'authenticated',
+      'rania.turki@wokthai-demo.local',
+      extensions.crypt('DemoWok2026!', extensions.gen_salt('bf')),
+      now(),
+      '{"provider":"email","providers":["email"]}'::jsonb,
+      '{}'::jsonb,
+      now(),
+      now(),
+      '',
+      '',
+      '',
+      ''
+    ),
+    (
+      'f0d10000-0000-4000-8000-000000000012',
+      v_instance,
+      'authenticated',
+      'authenticated',
+      'mohamed.benfredj@wokthai-demo.local',
+      extensions.crypt('DemoWok2026!', extensions.gen_salt('bf')),
+      now(),
+      '{"provider":"email","providers":["email"]}'::jsonb,
+      '{}'::jsonb,
+      now(),
+      now(),
+      '',
+      '',
+      '',
+      ''
     );
 
   INSERT INTO auth.identities (id, user_id, identity_data, provider, provider_id, last_sign_in_at, created_at, updated_at)
@@ -313,7 +416,13 @@ BEGIN
     (gen_random_uuid(), 'f0d10000-0000-4000-8000-000000000009', jsonb_build_object('sub', 'f0d10000-0000-4000-8000-000000000009', 'email', 'fatma.sassi@wokthai-demo.local', 'email_verified', true), 'email', 'fatma.sassi@wokthai-demo.local', now(), now(), now()),
     (gen_random_uuid(), 'f0d10000-0000-4000-8000-00000000000a', jsonb_build_object('sub', 'f0d10000-0000-4000-8000-00000000000a', 'email', 'oussama.dhouib@wokthai-demo.local', 'email_verified', true), 'email', 'oussama.dhouib@wokthai-demo.local', now(), now(), now()),
     (gen_random_uuid(), 'f0d10000-0000-4000-8000-00000000000b', jsonb_build_object('sub', 'f0d10000-0000-4000-8000-00000000000b', 'email', 'nour.miled@wokthai-demo.local', 'email_verified', true), 'email', 'nour.miled@wokthai-demo.local', now(), now(), now()),
-    (gen_random_uuid(), 'f0d10000-0000-4000-8000-00000000000c', jsonb_build_object('sub', 'f0d10000-0000-4000-8000-00000000000c', 'email', 'aymen.dridi@wokthai-demo.local', 'email_verified', true), 'email', 'aymen.dridi@wokthai-demo.local', now(), now(), now());
+    (gen_random_uuid(), 'f0d10000-0000-4000-8000-00000000000c', jsonb_build_object('sub', 'f0d10000-0000-4000-8000-00000000000c', 'email', 'aymen.dridi@wokthai-demo.local', 'email_verified', true), 'email', 'aymen.dridi@wokthai-demo.local', now(), now(), now()),
+    (gen_random_uuid(), 'f0d10000-0000-4000-8000-00000000000d', jsonb_build_object('sub', 'f0d10000-0000-4000-8000-00000000000d', 'email', 'sarra.hammami@wokthai-demo.local', 'email_verified', true), 'email', 'sarra.hammami@wokthai-demo.local', now(), now(), now()),
+    (gen_random_uuid(), 'f0d10000-0000-4000-8000-00000000000e', jsonb_build_object('sub', 'f0d10000-0000-4000-8000-00000000000e', 'email', 'chiheb.guesmi@wokthai-demo.local', 'email_verified', true), 'email', 'chiheb.guesmi@wokthai-demo.local', now(), now(), now()),
+    (gen_random_uuid(), 'f0d10000-0000-4000-8000-00000000000f', jsonb_build_object('sub', 'f0d10000-0000-4000-8000-00000000000f', 'email', 'mariem.boukhris@wokthai-demo.local', 'email_verified', true), 'email', 'mariem.boukhris@wokthai-demo.local', now(), now(), now()),
+    (gen_random_uuid(), 'f0d10000-0000-4000-8000-000000000010', jsonb_build_object('sub', 'f0d10000-0000-4000-8000-000000000010', 'email', 'bilel.nasraoui@wokthai-demo.local', 'email_verified', true), 'email', 'bilel.nasraoui@wokthai-demo.local', now(), now(), now()),
+    (gen_random_uuid(), 'f0d10000-0000-4000-8000-000000000011', jsonb_build_object('sub', 'f0d10000-0000-4000-8000-000000000011', 'email', 'rania.turki@wokthai-demo.local', 'email_verified', true), 'email', 'rania.turki@wokthai-demo.local', now(), now(), now()),
+    (gen_random_uuid(), 'f0d10000-0000-4000-8000-000000000012', jsonb_build_object('sub', 'f0d10000-0000-4000-8000-000000000012', 'email', 'mohamed.benfredj@wokthai-demo.local', 'email_verified', true), 'email', 'mohamed.benfredj@wokthai-demo.local', now(), now(), now());
 END $$;
 
 -- Le trigger auth crée déjà public.users (email) ; on enrichit prénom / nom / téléphone / fidélité / promo
@@ -335,7 +444,13 @@ FROM (VALUES
   ('f0d10000-0000-4000-8000-000000000009', 'Fatma', 'Sassi', '+21627123009', 410, false),
   ('f0d10000-0000-4000-8000-00000000000a', 'Oussama', 'Dhouib', '+21628123010', 12, false),
   ('f0d10000-0000-4000-8000-00000000000b', 'Nour El Houda', 'Miled', '+21629123011', 175, false),
-  ('f0d10000-0000-4000-8000-00000000000c', 'Aymen', 'Dridi', '+21630123012', 62, true)
+  ('f0d10000-0000-4000-8000-00000000000c', 'Aymen', 'Dridi', '+21630123012', 62, true),
+  ('f0d10000-0000-4000-8000-00000000000d', 'Sarra', 'Hammami', '+21631123013', 95, false),
+  ('f0d10000-0000-4000-8000-00000000000e', 'Chiheb', 'Guesmi', '+21632123014', 28, false),
+  ('f0d10000-0000-4000-8000-00000000000f', 'Mariem', 'Boukhris', '+21633123015', 220, true),
+  ('f0d10000-0000-4000-8000-000000000010', 'Bilel', 'Nasraoui', '+21634123016', 8, false),
+  ('f0d10000-0000-4000-8000-000000000011', 'Rania', 'Turki', '+21635123017', 142, false),
+  ('f0d10000-0000-4000-8000-000000000012', 'Mohamed', 'Ben Fredj', '+21636123018', 77, true)
 ) AS v(id, first_name, last_name, phone, loyalty_points, promo_used)
 WHERE public.users.id = v.id::uuid;
 
@@ -353,7 +468,13 @@ VALUES
   ('f0d20000-0000-4000-8000-000000000009', 'f0d10000-0000-4000-8000-000000000009', 'Maison', 'Ennasr 2', 'Ariana', 36.8650, 10.1680, 'Immeuble B7'),
   ('f0d20000-0000-4000-8000-00000000000a', 'f0d10000-0000-4000-8000-00000000000a', 'Domicile', 'Le Bardo', 'Tunis', 36.8100, 10.1400, NULL),
   ('f0d20000-0000-4000-8000-00000000000b', 'f0d10000-0000-4000-8000-00000000000b', 'Maison', 'Jardins d’El Menzah', 'Tunis', 36.8300, 10.1750, NULL),
-  ('f0d20000-0000-4000-8000-00000000000c', 'f0d10000-0000-4000-8000-00000000000c', 'Domicile', 'Riadh Landalous', 'Ariana', 36.8620, 10.1150, NULL);
+  ('f0d20000-0000-4000-8000-00000000000c', 'f0d10000-0000-4000-8000-00000000000c', 'Domicile', 'Riadh Landalous', 'Ariana', 36.8620, 10.1150, NULL),
+  ('f0d20000-0000-4000-8000-00000000000d', 'f0d10000-0000-4000-8000-00000000000d', 'Maison', 'La Marsa, avenue Taieb Mhiri', 'Tunis', 36.8780, 10.3250, 'Villa côté mer'),
+  ('f0d20000-0000-4000-8000-00000000000e', 'f0d10000-0000-4000-8000-00000000000e', 'Domicile', 'Carthage Byrsa', 'Tunis', 36.8530, 10.3230, NULL),
+  ('f0d20000-0000-4000-8000-00000000000f', 'f0d10000-0000-4000-8000-00000000000f', 'Bureau', 'Technopole El Ghazala', 'Ariana', 36.8910, 10.2360, 'Bâtiment C'),
+  ('f0d20000-0000-4000-8000-000000000010', 'f0d10000-0000-4000-8000-000000000010', 'Maison', 'Sidi Bou Said', 'Tunis', 36.8700, 10.3420, NULL),
+  ('f0d20000-0000-4000-8000-000000000011', 'f0d10000-0000-4000-8000-000000000011', 'Domicile', 'Ezzahra, route de la plage', 'Tunis', 36.8820, 10.2980, 'Résidence Les Pins'),
+  ('f0d20000-0000-4000-8000-000000000012', 'f0d10000-0000-4000-8000-000000000012', 'Maison', 'Soukra, avenue de l’Environnement', 'Ariana', 36.8830, 10.2680, NULL);
 
 -- ---------------------------------------------------------------------------
 -- Génération commandes + lignes (à partir des vrais produits / magasins / zones)
@@ -368,6 +489,7 @@ DECLARE
   v_item_id uuid;
   v_type public.order_type;
   v_status public.order_status;
+  v_payment public.payment_status;
   v_fee numeric(10, 2);
   v_subtotal numeric(10, 2);
   v_total numeric(10, 2);
@@ -395,7 +517,13 @@ DECLARE
     'f0d10000-0000-4000-8000-000000000009'::uuid,
     'f0d10000-0000-4000-8000-00000000000a'::uuid,
     'f0d10000-0000-4000-8000-00000000000b'::uuid,
-    'f0d10000-0000-4000-8000-00000000000c'::uuid
+    'f0d10000-0000-4000-8000-00000000000c'::uuid,
+    'f0d10000-0000-4000-8000-00000000000d'::uuid,
+    'f0d10000-0000-4000-8000-00000000000e'::uuid,
+    'f0d10000-0000-4000-8000-00000000000f'::uuid,
+    'f0d10000-0000-4000-8000-000000000010'::uuid,
+    'f0d10000-0000-4000-8000-000000000011'::uuid,
+    'f0d10000-0000-4000-8000-000000000012'::uuid
   ];
   v_addr_ids uuid[] := ARRAY[
     'f0d20000-0000-4000-8000-000000000001'::uuid,
@@ -409,11 +537,19 @@ DECLARE
     'f0d20000-0000-4000-8000-000000000009'::uuid,
     'f0d20000-0000-4000-8000-00000000000a'::uuid,
     'f0d20000-0000-4000-8000-00000000000b'::uuid,
-    'f0d20000-0000-4000-8000-00000000000c'::uuid
+    'f0d20000-0000-4000-8000-00000000000c'::uuid,
+    'f0d20000-0000-4000-8000-00000000000d'::uuid,
+    'f0d20000-0000-4000-8000-00000000000e'::uuid,
+    'f0d20000-0000-4000-8000-00000000000f'::uuid,
+    'f0d20000-0000-4000-8000-000000000010'::uuid,
+    'f0d20000-0000-4000-8000-000000000011'::uuid,
+    'f0d20000-0000-4000-8000-000000000012'::uuid
   ];
   v_has_upsell boolean;
   v_pick int;
   v_ord int;
+  v_st uuid;
+  v_live int;
 BEGIN
   IF NOT EXISTS (SELECT 1 FROM public.products WHERE is_available = true LIMIT 1) THEN
     RAISE EXCEPTION 'Aucun produit disponible : remplis le catalogue avant ce script.';
@@ -422,39 +558,30 @@ BEGIN
     RAISE EXCEPTION 'Aucun magasin actif.';
   END IF;
 
-  FOR v_ord IN 1..88 LOOP
-    v_created := now() - (floor(random() * 45) || ' days')::interval
+  FOR v_ord IN 1..250 LOOP
+    v_created := now() - (floor(random() * 60) || ' days')::interval
                      - (floor(random() * 86400) || ' seconds')::interval;
 
     v_r := random();
-    IF v_r < 0.14 THEN
+    IF v_r < 0.12 THEN
       v_type := 'pickup';
     ELSE
       v_type := 'delivery';
     END IF;
 
-    -- Statut réaliste (majorité livrée / terminée)
-    v_r := random();
-    IF v_r < 0.62 THEN
-      v_status := 'delivered';
-    ELSIF v_r < 0.70 THEN
+    -- 242 livrées + 8 annulées avant confirmation (pas de commandes « en attente » vieilles)
+    IF v_ord = ANY (ARRAY[17, 41, 63, 88, 112, 149, 201, 233]) THEN
       v_status := 'cancelled';
-    ELSIF v_r < 0.78 THEN
-      v_status := 'pending';
-    ELSIF v_r < 0.86 THEN
-      v_status := 'confirmed';
-    ELSIF v_r < 0.92 THEN
-      v_status := 'preparing';
-    ELSIF v_r < 0.96 THEN
-      v_status := 'ready';
+      v_payment := 'unpaid';
+      v_has_upsell := random() < 0.14;
     ELSE
-      v_status := 'delivering';
+      v_status := 'delivered';
+      v_payment := 'paid_on_delivery';
+      v_has_upsell := random() < 0.42;
     END IF;
 
-    v_has_upsell := random() < 0.32;
-
-    -- ~18 % commandes invitées (téléphone +216991xxxxx)
-    IF random() < 0.18 THEN
+    -- ~16 % commandes invitées (téléphone +216991xxxxx)
+    IF random() < 0.16 THEN
       v_uid := NULL;
       SELECT id INTO v_store FROM public.stores WHERE is_active = true ORDER BY random() LIMIT 1;
       IF v_type = 'delivery' THEN
@@ -464,7 +591,7 @@ BEGIN
           guest_delivery_label, guest_delivery_address, guest_delivery_city, guest_lat, guest_lng,
           delivery_promo, loyalty_points_credited, source, has_upsell, created_at
         ) VALUES (
-          NULL, v_store, 'delivery', v_status, 'paid_on_delivery', 0,
+          NULL, v_store, 'delivery', v_status, v_payment, 0,
           NULL, CASE WHEN random() < 0.4 THEN 'Sonner 2 fois' ELSE NULL END,
           '+216991' || lpad((v_guest_n % 10000)::text, 4, '0'),
           'Livraison invité',
@@ -481,7 +608,7 @@ BEGIN
           guest_delivery_label, guest_delivery_address, guest_delivery_city, guest_lat, guest_lng,
           delivery_promo, loyalty_points_credited, source, has_upsell, created_at
         ) VALUES (
-          NULL, v_store, 'pickup', v_status, 'paid_on_delivery', 0,
+          NULL, v_store, 'pickup', v_status, v_payment, 0,
           NULL, NULL,
           '+216991' || lpad((v_guest_n % 10000)::text, 4, '0'),
           NULL, NULL, NULL, NULL, NULL,
@@ -519,11 +646,11 @@ BEGIN
           guest_phone, guest_delivery_label, guest_delivery_address, guest_delivery_city, guest_lat, guest_lng,
           delivery_promo, loyalty_points_credited, source, has_upsell, created_at
         ) VALUES (
-          v_uid, v_store, 'delivery', v_status, 'paid_on_delivery', 0,
+          v_uid, v_store, 'delivery', v_status, v_payment, 0,
           v_addr,
           CASE WHEN random() < 0.35 THEN 'Merci de laisser devant la porte' ELSE NULL END,
           NULL, NULL, NULL, NULL, NULL, NULL,
-          CASE WHEN random() < 0.08 THEN 'first_order_free' ELSE NULL END,
+          CASE WHEN v_status = 'delivered' AND random() < 0.08 THEN 'first_order_free' ELSE NULL END,
           false, 'app', v_has_upsell, v_created
         ) RETURNING id INTO v_order_id;
       ELSE
@@ -533,7 +660,7 @@ BEGIN
           guest_phone, guest_delivery_label, guest_delivery_address, guest_delivery_city, guest_lat, guest_lng,
           delivery_promo, loyalty_points_credited, source, has_upsell, created_at
         ) VALUES (
-          v_uid, v_store, 'pickup', v_status, 'paid_on_delivery', 0,
+          v_uid, v_store, 'pickup', v_status, v_payment, 0,
           NULL, NULL,
           NULL, NULL, NULL, NULL, NULL, NULL,
           NULL, false, 'app', v_has_upsell, v_created
@@ -542,7 +669,11 @@ BEGIN
     END IF;
 
     v_subtotal := 0;
-    v_lines := 1 + floor(random() * 3.5)::int;
+    IF v_status = 'cancelled' THEN
+      v_lines := 1 + floor(random() * 2.2)::int;
+    ELSE
+      v_lines := 1 + floor(random() * 4)::int;
+    END IF;
 
     FOR v_i IN 1..v_lines LOOP
       SELECT p.id, p.price::numeric
@@ -553,7 +684,7 @@ BEGIN
       LIMIT 1;
 
       v_qty := 1 + floor(random() * 2.2)::int;
-      IF random() < 0.12 THEN
+      IF v_status = 'delivered' AND random() < 0.17 THEN
         v_qty := v_qty + 1;
       END IF;
 
@@ -583,7 +714,7 @@ BEGIN
       END LOOP;
 
       -- Au plus une option facultative (supplément, etc.)
-      IF random() < 0.26 THEN
+      IF random() < 0.33 THEN
         SELECT po.name, po.price_modifier::numeric
         INTO v_oname, v_omod
         FROM public.product_option_groups g
@@ -629,6 +760,158 @@ BEGIN
 
     UPDATE public.orders SET total_price = round(v_total, 2) WHERE id = v_order_id;
   END LOOP;
+
+  -- -------------------------------------------------------------------------
+  -- Commandes « live » par point de vente : 3 en attente + 1 en préparation
+  -- -------------------------------------------------------------------------
+  FOR v_st IN SELECT s.id FROM public.stores s WHERE s.is_active = true
+  LOOP
+    FOR v_live IN 1..4 LOOP
+      IF v_live <= 3 THEN
+        v_status := 'pending';
+        v_payment := 'unpaid';
+        v_created := now() - ((v_live * 6 + floor(random() * 22)::int) * interval '1 minute');
+      ELSE
+        v_status := 'preparing';
+        v_payment := 'paid_on_delivery';
+        v_created := now() - ((18 + floor(random() * 35)::int) * interval '1 minute');
+      END IF;
+
+      v_has_upsell := CASE WHEN v_status = 'preparing' THEN random() < 0.28 ELSE random() < 0.10 END;
+
+      SELECT du.uid, ad.id
+      INTO v_uid, v_addr
+      FROM (SELECT unnest(v_demo_uuids) AS uid) du
+      INNER JOIN public.addresses ad ON ad.user_id = du.uid
+      WHERE EXISTS (
+        SELECT 1 FROM public.delivery_zones dz
+        WHERE dz.store_id = v_st AND dz.city = ad.city
+      )
+      ORDER BY random()
+      LIMIT 1;
+
+      IF v_uid IS NULL THEN
+        v_pick := 1 + floor(random() * array_length(v_demo_uuids, 1))::int;
+        v_uid := v_demo_uuids[v_pick];
+        v_addr := v_addr_ids[v_pick];
+      END IF;
+
+      SELECT city INTO v_city FROM public.addresses WHERE id = v_addr;
+
+      v_r := random();
+      IF v_r < 0.42 THEN
+        v_type := 'pickup';
+      ELSE
+        v_type := 'delivery';
+      END IF;
+
+      IF v_type = 'delivery'
+         AND NOT EXISTS (
+           SELECT 1 FROM public.delivery_zones dz
+           WHERE dz.store_id = v_st AND dz.city = v_city
+         ) THEN
+        v_type := 'pickup';
+      END IF;
+
+      IF v_type = 'delivery' THEN
+        INSERT INTO public.orders (
+          user_id, store_id, type, status, payment_status, total_price,
+          address_id, delivery_notes,
+          guest_phone, guest_delivery_label, guest_delivery_address, guest_delivery_city, guest_lat, guest_lng,
+          delivery_promo, loyalty_points_credited, source, has_upsell, created_at
+        ) VALUES (
+          v_uid, v_st, 'delivery', v_status, v_payment, 0,
+          v_addr,
+          CASE WHEN random() < 0.3 THEN 'Démo — appeler en bas' ELSE NULL END,
+          NULL, NULL, NULL, NULL, NULL, NULL,
+          NULL, false, 'app', v_has_upsell, v_created
+        ) RETURNING id INTO v_order_id;
+      ELSE
+        INSERT INTO public.orders (
+          user_id, store_id, type, status, payment_status, total_price,
+          address_id, delivery_notes,
+          guest_phone, guest_delivery_label, guest_delivery_address, guest_delivery_city, guest_lat, guest_lng,
+          delivery_promo, loyalty_points_credited, source, has_upsell, created_at
+        ) VALUES (
+          v_uid, v_st, 'pickup', v_status, v_payment, 0,
+          NULL, NULL,
+          NULL, NULL, NULL, NULL, NULL, NULL,
+          NULL, false, 'app', v_has_upsell, v_created
+        ) RETURNING id INTO v_order_id;
+      END IF;
+
+      v_subtotal := 0;
+      v_lines := 1 + floor(random() * 3)::int;
+
+      FOR v_i IN 1..v_lines LOOP
+        SELECT p.id, p.price::numeric
+        INTO v_pid, v_base
+        FROM public.products p
+        WHERE p.is_available = true
+        ORDER BY random()
+        LIMIT 1;
+
+        v_qty := 1 + floor(random() * 2)::int;
+        v_unit := v_base;
+
+        INSERT INTO public.order_items (order_id, product_id, quantity, unit_price)
+        VALUES (v_order_id, v_pid, v_qty, v_base)
+        RETURNING id INTO v_item_id;
+
+        FOR v_g IN
+          SELECT g.id AS gid
+          FROM public.product_option_groups g
+          WHERE g.product_id = v_pid AND g.required = true
+          ORDER BY g.position
+        LOOP
+          SELECT po.name, po.price_modifier::numeric
+          INTO v_oname, v_omod
+          FROM public.product_options po
+          WHERE po.group_id = v_g.gid
+          ORDER BY po.position
+          LIMIT 1;
+
+          INSERT INTO public.order_item_options (order_item_id, option_name, price_modifier)
+          VALUES (v_item_id, v_oname, v_omod);
+
+          v_unit := v_unit + coalesce(v_omod, 0);
+        END LOOP;
+
+        IF random() < 0.25 THEN
+          SELECT po.name, po.price_modifier::numeric
+          INTO v_oname, v_omod
+          FROM public.product_option_groups g
+          INNER JOIN public.product_options po ON po.group_id = g.id
+          WHERE g.product_id = v_pid AND g.required = false
+          ORDER BY random()
+          LIMIT 1;
+          IF FOUND THEN
+            INSERT INTO public.order_item_options (order_item_id, option_name, price_modifier)
+            VALUES (v_item_id, v_oname, v_omod);
+            v_unit := v_unit + coalesce(v_omod, 0);
+          END IF;
+        END IF;
+
+        UPDATE public.order_items SET unit_price = v_unit WHERE id = v_item_id;
+        v_subtotal := v_subtotal + v_unit * v_qty;
+      END LOOP;
+
+      v_store := v_st;
+      IF v_type = 'delivery' THEN
+        SELECT dz.delivery_fee::numeric INTO v_fee
+        FROM public.delivery_zones dz
+        JOIN public.addresses a ON a.id = (SELECT address_id FROM public.orders WHERE id = v_order_id)
+        WHERE dz.store_id = v_store AND dz.city = a.city
+        LIMIT 1;
+        v_fee := coalesce(v_fee, 6.00);
+        v_total := v_subtotal + v_fee;
+      ELSE
+        v_total := v_subtotal;
+      END IF;
+
+      UPDATE public.orders SET total_price = round(v_total, 2) WHERE id = v_order_id;
+    END LOOP;
+  END LOOP;
 END $$;
 
 -- ---------------------------------------------------------------------------
@@ -642,9 +925,9 @@ SELECT
     'demo_seed', true,
     'device_id', 'demo_device_' || substr(md5(u.id::text), 1, 8)
   ),
-  now() - (random() * 35 + g)::double precision * interval '1 day'
+  now() - (random() * 58 + g)::double precision * interval '1 day'
 FROM public.users u
-CROSS JOIN generate_series(1, 28) AS g
+CROSS JOIN generate_series(1, 48) AS g
 CROSS JOIN LATERAL (
   VALUES
     ('app_open'),
@@ -677,8 +960,8 @@ SELECT
   NULL,
   ev,
   jsonb_build_object('demo_seed', true, 'guest', true),
-  now() - (random() * 20 || ' days')::interval
-FROM generate_series(1, 120) g
+  now() - (random() * 55 || ' days')::interval
+FROM generate_series(1, 340) g
 CROSS JOIN LATERAL (
   SELECT (ARRAY['app_open', 'view_product', 'add_to_cart', 'checkout_start'])[1 + floor(random() * 4)::int]
 ) AS x(ev);
@@ -688,9 +971,9 @@ SELECT
   u.id,
   'upsell_view',
   jsonb_build_object('demo_seed', true, 'candidate_count', 2 + floor(random() * 3)::int),
-  now() - (random() * 14 || ' days')::interval
+  now() - (random() * 24 || ' days')::interval
 FROM public.users u
-CROSS JOIN generate_series(1, 5) AS _gs
+CROSS JOIN generate_series(1, 14) AS _gs
 WHERE u.email LIKE '%@wokthai-demo.local';
 
 INSERT INTO public.events (user_id, event_name, metadata, created_at)
@@ -702,9 +985,9 @@ SELECT
     'product_id', x.pid,
     'price', x.pr
   ),
-  now() - (random() * 14 || ' days')::interval
+  now() - (random() * 22 || ' days')::interval
 FROM public.users u
-CROSS JOIN generate_series(1, 3) AS gs
+CROSS JOIN generate_series(1, 8) AS gs
 CROSS JOIN LATERAL (
   SELECT
     p.id::text AS pid,
