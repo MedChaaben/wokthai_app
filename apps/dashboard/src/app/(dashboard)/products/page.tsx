@@ -34,6 +34,7 @@ import {
 import type { ProductRow as ProductRowType } from "@wokthai/shared";
 import Link from "next/link";
 import type { CSSProperties } from "react";
+import { ConfirmModal } from "../../../components/ConfirmModal";
 import { Modal } from "../../../components/Modal";
 import { ProductOptionsEditor } from "../../../components/ProductOptionsEditor";
 
@@ -348,6 +349,7 @@ export default function ProductsPage() {
                         product={p}
                         categories={cats}
                         reorderDisabled={reorderProductsMut.isPending}
+                        deletePending={deleteMut.isPending}
                         onDelete={() => deleteMut.mutate(p.id)}
                       />
                     ))}
@@ -375,6 +377,7 @@ export default function ProductsPage() {
                   product={p}
                   categories={cats}
                   readOnly
+                  deletePending={deleteMut.isPending}
                   onDelete={() => deleteMut.mutate(p.id)}
                 />
               ))}
@@ -536,11 +539,13 @@ function SortableProductListRow({
   product,
   categories,
   reorderDisabled,
+  deletePending,
   onDelete,
 }: {
   product: ProductRowType;
   categories: { id: string; name: string }[];
   reorderDisabled: boolean;
+  deletePending?: boolean;
   onDelete: () => void;
 }) {
   const [editing, setEditing] = useState(false);
@@ -559,6 +564,7 @@ function SortableProductListRow({
       product={product}
       categories={categories}
       readOnly={false}
+      deletePending={deletePending}
       onDelete={onDelete}
       onEditingChange={setEditing}
       sortable={{ setNodeRef, style: sortableStyle, isDragging }}
@@ -583,6 +589,7 @@ function ProductListRow({
   product,
   categories,
   readOnly = false,
+  deletePending = false,
   onDelete,
   onEditingChange,
   sortable,
@@ -591,6 +598,7 @@ function ProductListRow({
   product: ProductRowType;
   categories: { id: string; name: string }[];
   readOnly?: boolean;
+  deletePending?: boolean;
   onDelete: () => void;
   onEditingChange?: (editing: boolean) => void;
   sortable?: {
@@ -605,6 +613,7 @@ function ProductListRow({
   const fileRef = useRef<HTMLInputElement>(null);
 
   const [isEditing, setIsEditing] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [name, setName] = useState(product.name);
   const [description, setDescription] = useState(product.description ?? "");
   const [price, setPrice] = useState(Number(product.price).toFixed(2));
@@ -754,9 +763,7 @@ function ProductListRow({
                   </button>
                   <button
                     type="button"
-                    onClick={() => {
-                      if (confirm("Supprimer ce produit ?")) onDelete();
-                    }}
+                    onClick={() => setDeleteModalOpen(true)}
                     className="rounded-xl border border-red-200 px-4 py-2 text-sm font-semibold text-red-600 dark:border-red-900/60 dark:text-red-400"
                   >
                     Supprimer
@@ -900,6 +907,23 @@ function ProductListRow({
           {bodyEl}
         </div>
       )}
+      <ConfirmModal
+        open={deleteModalOpen}
+        onClose={() => setDeleteModalOpen(false)}
+        title="Supprimer ce produit ?"
+        description={
+          <>
+            <span className="font-medium text-zinc-800 dark:text-zinc-200">{product.name}</span> sera retiré du catalogue.
+            Cette action est définitive.
+          </>
+        }
+        confirmLabel="Supprimer"
+        onConfirm={() => {
+          onDelete();
+          setDeleteModalOpen(false);
+        }}
+        isPending={deletePending}
+      />
     </li>
   );
 }

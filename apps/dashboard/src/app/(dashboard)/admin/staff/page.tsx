@@ -11,6 +11,7 @@ import {
   type StaffRoleEnum,
 } from "@wokthai/shared";
 import { useQuery } from "@tanstack/react-query";
+import { ConfirmModal } from "../../../../components/ConfirmModal";
 
 const ROLE_LABEL: Record<StaffRoleEnum, string> = {
   store: "Restaurant",
@@ -43,6 +44,7 @@ export default function AdminStaffPage() {
   const [editError, setEditError] = useState<string | null>(null);
   const [editOk, setEditOk] = useState<string | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [staffDeleteCandidate, setStaffDeleteCandidate] = useState<StaffListRow | null>(null);
 
   useEffect(() => {
     if (!editRow) return;
@@ -261,14 +263,7 @@ export default function AdminStaffPage() {
                             type="button"
                             disabled={isSelf || deleteMut.isPending}
                             title={isSelf ? "Impossible de supprimer votre propre compte" : undefined}
-                            onClick={() => {
-                              const msg =
-                                row.role === "platform_admin"
-                                  ? `Supprimer le compte siège ${row.email} ? L’utilisateur ne pourra plus se connecter.`
-                                  : `Supprimer le compte ${row.email} ? L’utilisateur ne pourra plus se connecter.`;
-                              if (!window.confirm(msg)) return;
-                              deleteMut.mutate(row.user_id);
-                            }}
+                            onClick={() => setStaffDeleteCandidate(row)}
                             className="rounded-lg border border-red-200 px-2.5 py-1 text-xs font-semibold text-red-700 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-red-900/50 dark:text-red-400 dark:hover:bg-red-950/40"
                           >
                             Supprimer
@@ -387,6 +382,36 @@ export default function AdminStaffPage() {
           </div>
         </div>
       ) : null}
+
+      <ConfirmModal
+        open={staffDeleteCandidate != null}
+        onClose={() => setStaffDeleteCandidate(null)}
+        title="Supprimer ce compte ?"
+        description={
+          staffDeleteCandidate ? (
+            <>
+              {staffDeleteCandidate.role === "platform_admin" ? (
+                <>
+                  Supprimer le compte siège{" "}
+                  <span className="font-semibold text-zinc-800 dark:text-zinc-200">{staffDeleteCandidate.email}</span> ?
+                </>
+              ) : (
+                <>
+                  Supprimer le compte{" "}
+                  <span className="font-semibold text-zinc-800 dark:text-zinc-200">{staffDeleteCandidate.email}</span> ?
+                </>
+              )}{" "}
+              L’utilisateur ne pourra plus se connecter.
+            </>
+          ) : null
+        }
+        confirmLabel="Supprimer"
+        onConfirm={() => {
+          if (staffDeleteCandidate) deleteMut.mutate(staffDeleteCandidate.user_id);
+          setStaffDeleteCandidate(null);
+        }}
+        isPending={deleteMut.isPending}
+      />
     </div>
   );
 }

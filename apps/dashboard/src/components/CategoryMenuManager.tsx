@@ -30,6 +30,7 @@ import {
   useSupabase,
 } from "@wokthai/shared";
 import type { CategoryRow } from "@wokthai/shared";
+import { ConfirmModal } from "./ConfirmModal";
 import { Modal } from "./Modal";
 
 function IconGrip() {
@@ -87,6 +88,7 @@ export function CategoryMenuManager({ className = "" }: CategoryMenuManagerProps
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [name, setName] = useState("");
   const [activeDragId, setActiveDragId] = useState<string | null>(null);
+  const [categoryToDelete, setCategoryToDelete] = useState<CategoryRow | null>(null);
 
   const productCountByCategory = useMemo(() => {
     const map = new Map<string, number>();
@@ -279,15 +281,7 @@ export function CategoryMenuManager({ className = "" }: CategoryMenuManagerProps
                     index={index}
                     productCount={productCountByCategory.get(c.id) ?? 0}
                     disabled={reorderMut.isPending}
-                    onDelete={() => {
-                      if (
-                        confirm(
-                          "Supprimer cette catégorie ? Les produits associés seront définitivement supprimés (effet en cascade)."
-                        )
-                      ) {
-                        deleteMut.mutate(c.id);
-                      }
-                    }}
+                    onDelete={() => setCategoryToDelete(c)}
                   />
                 ))}
               </ul>
@@ -305,6 +299,29 @@ export function CategoryMenuManager({ className = "" }: CategoryMenuManagerProps
           </DndContext>
         )}
       </section>
+
+      <ConfirmModal
+        open={categoryToDelete != null}
+        onClose={() => setCategoryToDelete(null)}
+        title="Supprimer cette catégorie ?"
+        description={
+          categoryToDelete ? (
+            <>
+              La catégorie <span className="font-semibold text-zinc-800 dark:text-zinc-200">{categoryToDelete.name}</span> et{" "}
+              <span className="font-semibold text-zinc-800 dark:text-zinc-200">
+                tous les produits associés
+              </span>{" "}
+              seront définitivement supprimés (effet en cascade).
+            </>
+          ) : null
+        }
+        confirmLabel="Supprimer"
+        onConfirm={() => {
+          if (categoryToDelete) deleteMut.mutate(categoryToDelete.id);
+          setCategoryToDelete(null);
+        }}
+        isPending={deleteMut.isPending}
+      />
 
       <Modal open={showCreateForm} onClose={cancelCreateForm} title="Nouvelle catégorie">
         <form

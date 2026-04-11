@@ -35,6 +35,7 @@ import {
   updateUpsellSuggestion,
   type UpsellSuggestionWithProduct,
 } from "@wokthai/shared";
+import { ConfirmModal } from "./ConfirmModal";
 
 const inputClass =
   "w-full rounded-xl border border-zinc-200/90 bg-white px-3.5 py-2.5 text-sm text-zinc-900 shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition placeholder:text-zinc-400 hover:border-zinc-300 focus:border-wt-bordeaux/45 focus:outline-none focus:ring-2 focus:ring-wt-bordeaux/15 dark:border-zinc-600 dark:bg-zinc-950 dark:text-zinc-100 dark:placeholder:text-zinc-500 dark:hover:border-zinc-500 dark:focus:border-wt-accent/45 dark:focus:ring-wt-accent/20";
@@ -222,6 +223,7 @@ export function UpsellSuggestionsSection() {
     saveCampaignCategories.isPending && saveCampaignCategories.variables?.campaignId === selectedCampaignId;
 
   const [activeDragCampaignId, setActiveDragCampaignId] = useState<string | null>(null);
+  const [deleteCampaignModalOpen, setDeleteCampaignModalOpen] = useState(false);
   const campaignSensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
@@ -391,15 +393,7 @@ export function UpsellSuggestionsSection() {
               <button
                 type="button"
                 disabled={deleteCampaign.isPending}
-                onClick={() => {
-                  if (
-                    confirm(
-                      `Supprimer la relance « ${selectedName} » ? Les plats associés seront retirés de cette relance.`
-                    )
-                  ) {
-                    deleteCampaign.mutate(selectedCampaignId);
-                  }
-                }}
+                onClick={() => setDeleteCampaignModalOpen(true)}
                 className="shrink-0 rounded-xl border border-red-200/90 bg-white px-4 py-2.5 text-sm font-medium text-red-600 transition hover:bg-red-50 dark:border-red-900/40 dark:bg-zinc-900 dark:text-red-400 dark:hover:bg-red-950/35 disabled:opacity-50"
               >
                 Supprimer cette relance
@@ -532,6 +526,24 @@ export function UpsellSuggestionsSection() {
           Une sauvegarde a échoué. Vérifiez votre connexion et réessayez.
         </p>
       ) : null}
+
+      <ConfirmModal
+        open={deleteCampaignModalOpen}
+        onClose={() => setDeleteCampaignModalOpen(false)}
+        title="Supprimer cette relance ?"
+        description={
+          <>
+            La relance <span className="font-semibold text-zinc-800 dark:text-zinc-200">« {selectedName} »</span> sera
+            supprimée. Les plats associés seront retirés de cette relance.
+          </>
+        }
+        confirmLabel="Supprimer"
+        onConfirm={() => {
+          if (selectedCampaignId) deleteCampaign.mutate(selectedCampaignId);
+          setDeleteCampaignModalOpen(false);
+        }}
+        isPending={deleteCampaign.isPending}
+      />
     </div>
   );
 }
@@ -755,6 +767,8 @@ function SortableSuggestionRow({
     opacity: isDragging ? 0.5 : undefined,
   };
 
+  const [removeSuggestionModalOpen, setRemoveSuggestionModalOpen] = useState(false);
+
   return (
     <li
       ref={setNodeRef}
@@ -790,14 +804,29 @@ function SortableSuggestionRow({
         <button
           type="button"
           disabled={removeSuggestion.isPending}
-          onClick={() => {
-            if (confirm(`Retirer « ${s.product.name} » de cette relance ?`)) removeSuggestion.mutate(s.id);
-          }}
+          onClick={() => setRemoveSuggestionModalOpen(true)}
           className="shrink-0 rounded-lg px-3 py-2 text-xs font-semibold text-red-600 transition hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/40"
         >
           Retirer
         </button>
       </div>
+      <ConfirmModal
+        open={removeSuggestionModalOpen}
+        onClose={() => setRemoveSuggestionModalOpen(false)}
+        title="Retirer ce plat de la relance ?"
+        description={
+          <>
+            <span className="font-semibold text-zinc-800 dark:text-zinc-200">« {s.product.name} »</span> ne sera plus
+            proposé dans la relance <span className="font-medium">{relanceLabel}</span>.
+          </>
+        }
+        confirmLabel="Retirer"
+        onConfirm={() => {
+          removeSuggestion.mutate(s.id);
+          setRemoveSuggestionModalOpen(false);
+        }}
+        isPending={removeSuggestion.isPending}
+      />
     </li>
   );
 }

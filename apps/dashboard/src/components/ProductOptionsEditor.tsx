@@ -2,6 +2,7 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
+import { ConfirmModal } from "./ConfirmModal";
 import {
   useProductOptionGroups,
   useCustomizationPresets,
@@ -205,6 +206,8 @@ function GroupBlock({
     onSuccess: onChanged,
   });
 
+  const [removeGroupModalOpen, setRemoveGroupModalOpen] = useState(false);
+
   return (
     <div className="space-y-3">
       <div className="flex flex-wrap items-start justify-between gap-2">
@@ -265,9 +268,7 @@ function GroupBlock({
         <button
           type="button"
           disabled={removeGroup.isPending}
-          onClick={() => {
-            if (confirm("Supprimer ce groupe et toutes ses valeurs ?")) removeGroup.mutate();
-          }}
+          onClick={() => setRemoveGroupModalOpen(true)}
           className="shrink-0 rounded-lg border border-red-200 px-3 py-1.5 text-xs font-semibold text-red-600 dark:border-red-900/50 dark:text-red-400"
         >
           Supprimer le groupe
@@ -293,6 +294,18 @@ function GroupBlock({
           {patchGroup.error instanceof Error ? patchGroup.error.message : "Erreur"}
         </p>
       ) : null}
+      <ConfirmModal
+        open={removeGroupModalOpen}
+        onClose={() => setRemoveGroupModalOpen(false)}
+        title="Supprimer ce groupe ?"
+        description="Toutes les valeurs proposées au client dans ce groupe seront supprimées."
+        confirmLabel="Supprimer"
+        onConfirm={() => {
+          removeGroup.mutate();
+          setRemoveGroupModalOpen(false);
+        }}
+        isPending={removeGroup.isPending}
+      />
     </div>
   );
 }
@@ -324,6 +337,8 @@ function OptionRow({
     },
     onSuccess: onChanged,
   });
+
+  const [removeOptionModalOpen, setRemoveOptionModalOpen] = useState(false);
 
   const isChargeable = o.is_chargeable;
   const priceStr = Number(o.price_modifier).toFixed(2);
@@ -387,13 +402,27 @@ function OptionRow({
       <button
         type="button"
         disabled={del.isPending}
-        onClick={() => {
-          if (confirm("Supprimer cette valeur ?")) del.mutate();
-        }}
+        onClick={() => setRemoveOptionModalOpen(true)}
         className="mb-0.5 rounded-lg px-2 py-1 text-xs font-semibold text-red-600 dark:text-red-400"
       >
         Retirer
       </button>
+      <ConfirmModal
+        open={removeOptionModalOpen}
+        onClose={() => setRemoveOptionModalOpen(false)}
+        title="Supprimer cette valeur ?"
+        description={
+          <>
+            Retirer <span className="font-semibold text-zinc-800 dark:text-zinc-200">{o.name}</span> des choix proposés pour ce plat.
+          </>
+        }
+        confirmLabel="Supprimer"
+        onConfirm={() => {
+          del.mutate();
+          setRemoveOptionModalOpen(false);
+        }}
+        isPending={del.isPending}
+      />
     </li>
   );
 }

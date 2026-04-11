@@ -14,6 +14,8 @@ import {
   type AnnouncementRow,
   type AnnouncementType,
 } from "@wokthai/shared";
+import { ConfirmModal } from "../../../../components/ConfirmModal";
+import { Modal } from "../../../../components/Modal";
 
 const TYPE_OPTIONS: { value: AnnouncementType; label: string }[] = [
   { value: "info", label: "Info (bleu)" },
@@ -95,6 +97,10 @@ export default function AdminAnnouncementsPage() {
   const [editEndLocal, setEditEndLocal] = useState("");
   const [editError, setEditError] = useState<string | null>(null);
   const [editOk, setEditOk] = useState<string | null>(null);
+
+  const [activatePushRow, setActivatePushRow] = useState<AnnouncementRow | null>(null);
+  const [pushOnlyRow, setPushOnlyRow] = useState<AnnouncementRow | null>(null);
+  const [announcementToDelete, setAnnouncementToDelete] = useState<AnnouncementRow | null>(null);
 
   const resetCreateForm = useCallback(() => {
     setTitle("");
@@ -212,15 +218,17 @@ export default function AdminAnnouncementsPage() {
   });
 
   const toggleActiveMut = useMutation({
-    mutationFn: async ({ row, next }: { row: AnnouncementRow; next: boolean }) => {
-      let send = false;
-      if (next && row.send_push) {
-        send = window.confirm(
-          "Cette annonce est configurée pour les notifications push. Envoyer une notification à tous les appareils enregistrés maintenant ?"
-        );
-      }
+    mutationFn: async ({
+      row,
+      next,
+      sendPush = false,
+    }: {
+      row: AnnouncementRow;
+      next: boolean;
+      sendPush?: boolean;
+    }) => {
       await updateAnnouncementAdmin(supabase, row.id, { is_active: next });
-      if (send) {
+      if (next && sendPush && row.send_push) {
         const token = await getAccessToken(supabase);
         await postSendPush(row.id, token);
       }
@@ -395,7 +403,14 @@ export default function AdminAnnouncementsPage() {
                         type="checkbox"
                         checked={row.is_active}
                         disabled={toggleActiveMut.isPending}
-                        onChange={(e) => toggleActiveMut.mutate({ row, next: e.target.checked })}
+                        onChange={(e) => {
+                          const next = e.target.checked;
+                          if (next && row.send_push) {
+                            setActivatePushRow(row);
+                            return;
+                          }
+                          toggleActiveMut.mutate({ row, next, sendPush: false });
+                        }}
                       />
                       Active
                     </label>
@@ -411,10 +426,7 @@ export default function AdminAnnouncementsPage() {
                         type="button"
                         className="rounded-lg bg-wt-bordeaux px-3 py-1.5 text-xs font-semibold text-white hover:bg-wt-bordeaux-hover disabled:opacity-60"
                         disabled={pushOnlyMut.isPending}
-                        onClick={() => {
-                          if (!window.confirm("Envoyer la notification push à tous les appareils enregistrés ?")) return;
-                          pushOnlyMut.mutate(row);
-                        }}
+                        onClick={() => setPushOnlyRow(row)}
                       >
                         Envoyer push
                       </button>
@@ -422,11 +434,7 @@ export default function AdminAnnouncementsPage() {
                     <button
                       type="button"
                       className="rounded-lg px-3 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/40"
-                      onClick={() => {
-                        if (!window.confirm("Supprimer cette annonce ?")) return;
-                        if (editing?.id === row.id) setEditing(null);
-                        deleteMut.mutate(row.id);
-                      }}
+                      onClick={() => setAnnouncementToDelete(row)}
                     >
                       Supprimer
                     </button>
@@ -550,6 +558,88 @@ export default function AdminAnnouncementsPage() {
           </div>
         </div>
       ) : null}
+
+      <Modal
+        open={activatePushRow != null}
+        onClose={toggleActiveMut.isPending ? () => {} : () => setActivatePushRow(null)}
+        title="Activer l’annonce"
+        maxWidthClassName="max-w-md"
+      >
+        <p className="text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
+          Cette annonce est configurée pour les notifications push. Souhaitez-vous envoyer une notification à tous les appareils enregistrés maintenant ?
+        </p>
+        <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:justify-end sm:gap-2">
+          <button
+            type="button"
+            disabled={toggleActiveMut.isPending}
+            onClick={() => setActivatePushRow(null)}
+            className="rounded-xl border border-zinc-200 bg-white px-4 py-2.5 text-sm font-semibold text-zinc-800 transition hover:bg-zinc-50 disabled:opacity-50 dark:border-zinc-600 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800"
+          >
+            Annuler
+          </button>
+          <button
+            type="button"
+            disabled={toggleActiveMut.isPending}
+            onClick={() => {
+              if (!activatePushRow) return;
+              toggleActiveMut.mutate({ row: activatePushRow, next: true, sendPush: false });
+              setActivatePushRow(null);
+            }}
+            className="rounded-xl border border-zinc-200 bg-white px-4 py-2.5 text-sm font-semibold text-zinc-800 transition hover:bg-zinc-50 disabled:opacity-50 dark:border-zinc-600 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800"
+          >
+            Activer sans envoyer
+          </button>
+          <button
+            type="button"
+            disabled={toggleActiveMut.isPending}
+            onClick={() => {
+              if (!activatePushRow) return;
+              toggleActiveMut.mutate({ row: activatePushRow, next: true, sendPush: true });
+              setActivatePushRow(null);
+            }}
+            className="rounded-xl bg-wt-bordeaux px-4 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-wt-bordeaux-hover disabled:opacity-50 dark:bg-wt-accent dark:hover:bg-wt-accent-hover"
+          >
+            Activer et envoyer
+          </button>
+        </div>
+      </Modal>
+
+      <ConfirmModal
+        open={pushOnlyRow != null}
+        onClose={() => setPushOnlyRow(null)}
+        title="Envoyer la notification push ?"
+        description="Un envoi sera fait vers tous les appareils enregistrés pour les notifications."
+        confirmLabel="Envoyer"
+        variant="primary"
+        onConfirm={() => {
+          if (pushOnlyRow) pushOnlyMut.mutate(pushOnlyRow);
+          setPushOnlyRow(null);
+        }}
+        isPending={pushOnlyMut.isPending}
+      />
+
+      <ConfirmModal
+        open={announcementToDelete != null}
+        onClose={() => setAnnouncementToDelete(null)}
+        title="Supprimer cette annonce ?"
+        description={
+          announcementToDelete ? (
+            <>
+              L’annonce <span className="font-semibold text-zinc-800 dark:text-zinc-200">« {announcementToDelete.title} »</span> sera
+              définitivement supprimée.
+            </>
+          ) : null
+        }
+        confirmLabel="Supprimer"
+        onConfirm={() => {
+          if (announcementToDelete) {
+            if (editing?.id === announcementToDelete.id) setEditing(null);
+            deleteMut.mutate(announcementToDelete.id);
+          }
+          setAnnouncementToDelete(null);
+        }}
+        isPending={deleteMut.isPending}
+      />
     </div>
   );
 }

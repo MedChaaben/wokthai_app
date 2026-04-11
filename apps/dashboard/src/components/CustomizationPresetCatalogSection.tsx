@@ -37,6 +37,7 @@ import {
   deleteCustomizationPresetOption,
   type CustomizationPresetGroupWithOptions,
 } from "@wokthai/shared";
+import { ConfirmModal } from "./ConfirmModal";
 
 /** Champs — lisibilité, focus bordeaux discret */
 const inputClass =
@@ -280,6 +281,7 @@ function CustomizationPresetEditor({
   });
 
   const [activeDragGroupId, setActiveDragGroupId] = useState<string | null>(null);
+  const [deletePresetModalOpen, setDeletePresetModalOpen] = useState(false);
   const groupSensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
@@ -332,15 +334,7 @@ function CustomizationPresetEditor({
           <button
             type="button"
             disabled={deleteWholePreset.isPending}
-            onClick={() => {
-              if (
-                confirm(
-                  "Supprimer ce modèle du catalogue ? Les plats qui l’ont déjà importé ne sont pas modifiés."
-                )
-              ) {
-                deleteWholePreset.mutate();
-              }
-            }}
+            onClick={() => setDeletePresetModalOpen(true)}
             className="shrink-0 rounded-xl border border-red-200/90 bg-white px-4 py-2.5 text-sm font-medium text-red-600 transition hover:bg-red-50 dark:border-red-900/40 dark:bg-zinc-900 dark:text-red-400 dark:hover:bg-red-950/35 disabled:opacity-50"
           >
             {deleteWholePreset.isPending ? "…" : "Supprimer le modèle"}
@@ -433,6 +427,19 @@ function CustomizationPresetEditor({
           {addGroup.isPending ? "Ajout…" : "Ajouter un bloc"}
         </button>
       </div>
+
+      <ConfirmModal
+        open={deletePresetModalOpen}
+        onClose={() => setDeletePresetModalOpen(false)}
+        title="Supprimer ce modèle du catalogue ?"
+        description="Les plats qui l’ont déjà importé ne sont pas modifiés. Le modèle sera retiré de la bibliothèque."
+        confirmLabel="Supprimer"
+        onConfirm={() => {
+          deleteWholePreset.mutate();
+          setDeletePresetModalOpen(false);
+        }}
+        isPending={deleteWholePreset.isPending}
+      />
     </section>
   );
 }
@@ -545,6 +552,7 @@ function PresetGroupBlock({
   });
 
   const [activeDragOptionId, setActiveDragOptionId] = useState<string | null>(null);
+  const [removeGroupModalOpen, setRemoveGroupModalOpen] = useState(false);
   const optionSensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
@@ -602,9 +610,7 @@ function PresetGroupBlock({
             <button
               type="button"
               disabled={removeGroup.isPending}
-              onClick={() => {
-                if (confirm("Supprimer ce bloc et toutes ses valeurs ?")) removeGroup.mutate();
-              }}
+              onClick={() => setRemoveGroupModalOpen(true)}
               className="rounded-xl border border-red-200/90 px-4 py-2.5 text-sm font-medium text-red-600 transition hover:bg-red-50 dark:border-red-900/40 dark:text-red-400 dark:hover:bg-red-950/35"
             >
               Supprimer le bloc
@@ -695,6 +701,19 @@ function PresetGroupBlock({
           {addOption.isPending ? "Ajout…" : "Ajouter une réponse"}
         </button>
       </div>
+
+      <ConfirmModal
+        open={removeGroupModalOpen}
+        onClose={() => setRemoveGroupModalOpen(false)}
+        title="Supprimer ce bloc ?"
+        description="Toutes les réponses associées à ce bloc seront supprimées."
+        confirmLabel="Supprimer"
+        onConfirm={() => {
+          removeGroup.mutate();
+          setRemoveGroupModalOpen(false);
+        }}
+        isPending={removeGroup.isPending}
+      />
     </div>
   );
 }
@@ -732,6 +751,8 @@ function SortablePresetOptionRow({
     },
     onSuccess: onChanged,
   });
+
+  const [removeOptionModalOpen, setRemoveOptionModalOpen] = useState(false);
 
   const isChargeable = o.is_chargeable;
   const priceStr = Number(o.price_modifier).toFixed(2);
@@ -800,9 +821,7 @@ function SortablePresetOptionRow({
               <button
                 type="button"
                 disabled={del.isPending}
-                onClick={() => {
-                  if (confirm("Retirer cette réponse ?")) del.mutate();
-                }}
+                onClick={() => setRemoveOptionModalOpen(true)}
                 className="rounded-lg px-3 py-2 text-xs font-semibold text-red-600 transition hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/40"
               >
                 Retirer
@@ -811,6 +830,22 @@ function SortablePresetOptionRow({
           </div>
         </div>
       </div>
+      <ConfirmModal
+        open={removeOptionModalOpen}
+        onClose={() => setRemoveOptionModalOpen(false)}
+        title="Retirer cette réponse ?"
+        description={
+          <>
+            La réponse <span className="font-semibold text-zinc-800 dark:text-zinc-200">{o.name}</span> sera supprimée de ce bloc.
+          </>
+        }
+        confirmLabel="Retirer"
+        onConfirm={() => {
+          del.mutate();
+          setRemoveOptionModalOpen(false);
+        }}
+        isPending={del.isPending}
+      />
     </li>
   );
 }
