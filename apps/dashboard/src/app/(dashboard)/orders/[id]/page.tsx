@@ -13,18 +13,9 @@ import {
   phoneToTelHref,
 } from "@wokthai/shared";
 import type { OrderItemDetail, OrderRow, OrderStatusEventRow } from "@wokthai/shared";
+import { Modal } from "../../../../components/Modal";
 
 const EMPTY_ORDER_ITEMS: OrderItemDetail[] = [];
-
-const STATUSES: OrderRow["status"][] = [
-  "pending",
-  "confirmed",
-  "preparing",
-  "ready",
-  "delivering",
-  "delivered",
-  "cancelled",
-];
 
 /** Étapes du parcours « normal » (hors annulation). */
 const STATUS_FLOW: OrderRow["status"][] = [
@@ -196,6 +187,111 @@ function useOrderLinePrepChecked(orderId: string, lineIds: string[]) {
   );
 
   return { checked, toggle, setAll };
+}
+
+/** Étapes modifiables en un clic (hors annulation, traitée à part). */
+const STATUS_PICKER_MAIN: OrderRow["status"][] = [
+  "pending",
+  "confirmed",
+  "preparing",
+  "ready",
+  "delivering",
+  "delivered",
+];
+
+function OrderStatusControl({
+  status,
+  disabled,
+  onSelect,
+}: {
+  status: OrderRow["status"];
+  disabled: boolean;
+  onSelect: (next: OrderRow["status"]) => void;
+}) {
+  const [cancelModalOpen, setCancelModalOpen] = useState(false);
+
+  function confirmCancel() {
+    setCancelModalOpen(false);
+    onSelect("cancelled");
+  }
+
+  return (
+    <div className="mt-4 space-y-4">
+      <div
+        className="rounded-2xl border border-zinc-200/80 bg-gradient-to-b from-white via-white to-zinc-50/90 p-4 shadow-[0_1px_0_0_rgba(255,255,255,0.9)_inset,0_8px_24px_-12px_rgba(0,0,0,0.08)] dark:border-zinc-700/70 dark:from-zinc-900 dark:via-zinc-900 dark:to-zinc-950/90 dark:shadow-[0_1px_0_0_rgba(255,255,255,0.04)_inset,0_12px_32px_-16px_rgba(0,0,0,0.45)]"
+        role="group"
+        aria-label="Étapes du parcours"
+      >
+        <p className="mb-3 text-[10px] font-semibold uppercase tracking-[0.16em] text-zinc-500 dark:text-zinc-500">Étapes</p>
+        <div className="flex flex-wrap gap-2">
+          {STATUS_PICKER_MAIN.map((s) => {
+            const active = status === s;
+            return (
+              <button
+                key={s}
+                type="button"
+                disabled={disabled}
+                aria-pressed={active}
+                onClick={() => {
+                  if (!active) onSelect(s);
+                }}
+                className={`min-h-[44px] min-w-[6.5rem] flex-1 rounded-xl px-3 py-2.5 text-center text-sm font-bold transition focus-visible:outline focus-visible:ring-2 focus-visible:ring-wt-bordeaux/40 focus-visible:ring-offset-2 focus-visible:ring-offset-white sm:min-w-0 sm:flex-none dark:focus-visible:ring-wt-accent/35 dark:focus-visible:ring-offset-zinc-950 ${
+                  active
+                    ? `${STATUS_BADGE[s]} shadow-md ring-2 ring-wt-bordeaux/35 ring-offset-2 ring-offset-white dark:ring-wt-accent/30 dark:ring-offset-zinc-950`
+                    : "border border-zinc-200/90 bg-white/90 text-zinc-700 hover:border-zinc-300 hover:bg-white hover:shadow-sm active:scale-[0.99] dark:border-zinc-600/70 dark:bg-zinc-800/40 dark:text-zinc-200 dark:hover:border-zinc-500 dark:hover:bg-zinc-800"
+                }`}
+              >
+                {LABELS[s]}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {status === "cancelled" ? (
+        <p className="border-t border-zinc-100 pt-4 text-center text-xs text-zinc-500 dark:border-zinc-800 dark:text-zinc-500">
+          Cette commande est <span className="font-semibold text-zinc-600 dark:text-zinc-400">{LABELS.cancelled.toLowerCase()}</span>
+          .
+        </p>
+      ) : (
+        <div className="border-t border-zinc-100 pt-4 dark:border-zinc-800">
+          <p className="text-center text-[11px] text-zinc-500 dark:text-zinc-500">Besoin de clôturer sans livrer ?</p>
+          <button
+            type="button"
+            disabled={disabled}
+            onClick={() => setCancelModalOpen(true)}
+            className="mx-auto mt-2 flex min-h-[40px] items-center justify-center rounded-lg px-2 py-1.5 text-xs font-medium text-zinc-500 underline-offset-4 transition hover:text-zinc-700 hover:underline focus-visible:outline focus-visible:ring-2 focus-visible:ring-wt-bordeaux/30 focus-visible:ring-offset-2 dark:text-zinc-500 dark:hover:text-zinc-300 dark:focus-visible:ring-wt-accent/25"
+          >
+            Annuler la commande…
+          </button>
+        </div>
+      )}
+
+      <Modal open={cancelModalOpen} onClose={() => setCancelModalOpen(false)} title="Annuler la commande ?" maxWidthClassName="max-w-md">
+        <p className="text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
+          Le statut passera à <strong className="font-semibold text-zinc-800 dark:text-zinc-200">{LABELS.cancelled}</strong>. Cette action est
+          visible dans l’historique. Confirmez seulement si c’est intentionnel.
+        </p>
+        <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end sm:gap-3">
+          <button
+            type="button"
+            onClick={() => setCancelModalOpen(false)}
+            className="rounded-xl border border-zinc-200 bg-white px-4 py-2.5 text-sm font-semibold text-zinc-800 transition hover:bg-zinc-50 dark:border-zinc-600 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800"
+          >
+            Retour
+          </button>
+          <button
+            type="button"
+            disabled={disabled}
+            onClick={confirmCancel}
+            className="rounded-xl bg-red-600 px-4 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-red-700 disabled:opacity-50 dark:bg-red-700 dark:hover:bg-red-600"
+          >
+            Confirmer l’annulation
+          </button>
+        </div>
+      </Modal>
+    </div>
+  );
 }
 
 function OrderStatusJourney({ status }: { status: OrderRow["status"] }) {
@@ -550,27 +646,27 @@ export default function OrderDetailPage() {
             <OrderStatusJourney status={o.status} />
           </div>
           <div className="mt-8 border-t border-zinc-100 pt-6 dark:border-zinc-800">
-            <label htmlFor="order-status-select" className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">
-              Mettre à jour le statut
-            </label>
-            <select
-              id="order-status-select"
-              value={o.status}
+            <div>
+              <p className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">Mettre à jour le statut</p>
+              <p className="mt-1 max-w-xl text-xs leading-relaxed text-zinc-500 dark:text-zinc-500">
+                Pastilles tactiles — même couleurs que le badge. Un clic enregistre tout de suite pour toute l’équipe.
+              </p>
+            </div>
+            <OrderStatusControl
+              status={o.status}
               disabled={updateStatus.isPending}
-              onChange={(e) => {
-                const status = e.target.value as OrderRow["status"];
-                void updateStatus.mutateAsync({ orderId: o.id, status });
+              onSelect={(next) => {
+                void updateStatus.mutateAsync({ orderId: o.id, status: next });
               }}
-              className="mt-2 w-full max-w-md rounded-xl border border-zinc-200 bg-white px-3 py-2.5 text-zinc-900 shadow-sm dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
-            >
-              {STATUSES.map((s) => (
-                <option key={s} value={s}>
-                  {LABELS[s]}
-                </option>
-              ))}
-            </select>
+            />
             {updateStatus.isPending ? (
-              <p className="mt-2 text-xs text-zinc-500">Enregistrement…</p>
+              <p className="mt-3 flex items-center gap-2 text-xs font-medium text-zinc-500 dark:text-zinc-400">
+                <span
+                  className="inline-block h-3.5 w-3.5 animate-spin rounded-full border-2 border-zinc-300 border-t-wt-bordeaux dark:border-zinc-600 dark:border-t-wt-accent"
+                  aria-hidden
+                />
+                Enregistrement…
+              </p>
             ) : null}
           </div>
         </div>
