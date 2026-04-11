@@ -266,6 +266,7 @@ export function OrdersCommandCenter(props: OrdersCommandCenterProps) {
   }
 
   function applyStatusChip(s: OrderRow["status"] | "all") {
+    setTypeFilter("all");
     if (s === "all") {
       setStatusFilter("all");
       return;
@@ -399,6 +400,7 @@ export function OrdersCommandCenter(props: OrdersCommandCenterProps) {
                 onClick={() => {
                   setView("active");
                   setStatusFilter("all");
+                  setTypeFilter("all");
                 }}
                 className={`flex min-w-[5.5rem] shrink-0 flex-col rounded-xl border px-3 py-2 text-left transition ${
                   view === "active" && statusFilter === "all"
@@ -433,6 +435,7 @@ export function OrdersCommandCenter(props: OrdersCommandCenterProps) {
                 onClick={() => {
                   setView("history");
                   setStatusFilter("all");
+                  setTypeFilter("all");
                 }}
                 className={`flex min-w-[5.5rem] shrink-0 flex-col rounded-xl border px-3 py-2 text-left transition ${
                   view === "history" && statusFilter === "all"
@@ -474,70 +477,95 @@ export function OrdersCommandCenter(props: OrdersCommandCenterProps) {
         ) : null}
       </section>
 
-      <div className="sticky top-0 z-20 -mx-4 border-b border-zinc-200 bg-background px-4 py-3 shadow-[0_4px_14px_-6px_rgba(0,0,0,0.12)] dark:border-zinc-800 dark:shadow-[0_6px_18px_-8px_rgba(0,0,0,0.45)] md:-mx-8 md:px-8">
-        <div className="flex flex-col gap-3 lg:flex-row lg:flex-wrap lg:items-center">
-          <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Vue liste">
-            {(
-              [
-                ["active", "En cours"],
-                ["all", "Toutes"],
-                ["history", "Historique"],
-              ] as const
-            ).map(([key, label]) => (
-              <button
-                key={key}
-                type="button"
-                onClick={() => {
-                  setView(key);
-                  if (key !== "active") setStatusFilter("all");
-                }}
-                className={`rounded-full px-3.5 py-1.5 text-xs font-semibold transition sm:text-sm ${
-                  view === key
-                    ? "bg-wt-bordeaux text-white shadow-sm dark:bg-wt-accent"
-                    : "bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300"
-                }`}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-          <div className="hidden h-6 w-px shrink-0 bg-zinc-200 dark:bg-zinc-700 lg:block" aria-hidden />
-          <div className="flex flex-wrap items-center gap-2">
-            {(
-              [
-                ["all", "Tous types"],
-                ["delivery", "Livraison"],
-                ["pickup", "Retrait"],
-              ] as const
-            ).map(([key, label]) => (
-              <button
-                key={key}
-                type="button"
-                onClick={() => setTypeFilter(key)}
-                className={`rounded-full px-3 py-1.5 text-xs font-medium transition sm:text-sm ${
-                  typeFilter === key
-                    ? "bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900"
-                    : "bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400"
-                }`}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-          <div className="w-full min-w-0 flex-1 lg:max-w-md lg:min-w-[220px]">
-            <label htmlFor={searchInputId} className="sr-only">
-              Recherche client ou commande
-            </label>
-            <input
-              id={searchInputId}
-              type="search"
-              value={clientSearch}
-              onChange={(e) => setClientSearch(e.target.value)}
-              placeholder="Rechercher…"
-              className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 shadow-sm placeholder:text-zinc-400 focus:border-wt-bordeaux/50 focus:outline-none focus:ring-2 focus:ring-wt-bordeaux/20 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:focus:border-wt-accent/50 dark:focus:ring-wt-accent/20"
-            />
+      <div className="sticky top-0 z-20 -mx-4 border-b border-zinc-200 bg-background shadow-[0_4px_14px_-6px_rgba(0,0,0,0.12)] dark:border-zinc-800 dark:shadow-[0_6px_18px_-8px_rgba(0,0,0,0.45)] md:-mx-8">
+        <div className="px-4 py-3 md:px-8">
+          <div className="flex flex-col gap-3 lg:flex-row lg:flex-wrap lg:items-center">
+            <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Vue liste">
+              {(
+                [
+                  ["active", "En cours"],
+                  ["all", "Toutes"],
+                  ["history", "Historique"],
+                ] as const
+              ).map(([key, label]) => (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => {
+                    setView(key);
+                    if (key !== "active") setStatusFilter("all");
+                    setTypeFilter("all");
+                  }}
+                  className={`rounded-full px-3.5 py-1.5 text-xs font-semibold transition sm:text-sm ${
+                    view === key
+                      ? "bg-wt-bordeaux text-white shadow-sm dark:bg-wt-accent"
+                      : "bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300"
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+            <div className="hidden h-6 w-px shrink-0 bg-zinc-200 dark:bg-zinc-700 lg:block" aria-hidden />
+            <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Type de commande">
+              {(
+                [
+                  ["all", "Tous types"],
+                  ["delivery", "Livraison"],
+                  ["pickup", "Retrait"],
+                ] as const
+              ).map(([key, label]) => (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => setTypeFilter(key)}
+                  className={`rounded-full px-3 py-1.5 text-xs font-medium transition sm:text-sm ${
+                    typeFilter === key
+                      ? "bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900"
+                      : "bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400"
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+            <div className="w-full min-w-0 flex-1 lg:max-w-md lg:min-w-[220px]">
+              <label htmlFor={searchInputId} className="sr-only">
+                Recherche client ou commande
+              </label>
+              <input
+                id={searchInputId}
+                type="search"
+                value={clientSearch}
+                onChange={(e) => setClientSearch(e.target.value)}
+                placeholder="Rechercher…"
+                className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 shadow-sm placeholder:text-zinc-400 focus:border-wt-bordeaux/50 focus:outline-none focus:ring-2 focus:ring-wt-bordeaux/20 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:focus:border-wt-accent/50 dark:focus:ring-wt-accent/20"
+              />
+            </div>
           </div>
         </div>
+        {typeFilter !== "all" ? (
+          <div
+            role="alert"
+            aria-live="polite"
+            className="border-t border-amber-400/80 bg-amber-50 px-4 py-3 dark:border-amber-700/70 dark:bg-amber-950/55 md:px-8"
+          >
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+              <p className="text-sm font-semibold leading-snug text-amber-950 dark:text-amber-100">
+                {typeFilter === "delivery"
+                  ? "Vous ne voyez que les livraisons. Les commandes à retrait n’apparaissent pas dans cette liste."
+                  : "Vous ne voyez que les retraits. Les commandes en livraison n’apparaissent pas dans cette liste."}
+              </p>
+              <button
+                type="button"
+                onClick={() => setTypeFilter("all")}
+                className="shrink-0 rounded-xl bg-wt-bordeaux px-4 py-2.5 text-center text-sm font-bold text-white shadow-md transition hover:bg-wt-bordeaux-hover focus-visible:outline focus-visible:ring-2 focus-visible:ring-wt-bordeaux/50 focus-visible:ring-offset-2 focus-visible:ring-offset-amber-50 dark:bg-wt-accent dark:hover:bg-wt-accent-hover dark:focus-visible:ring-wt-accent/40 dark:focus-visible:ring-offset-amber-950/80 sm:min-w-[14rem]"
+              >
+                Voir toutes les commandes
+              </button>
+            </div>
+          </div>
+        ) : null}
       </div>
 
       <div className="flex flex-wrap items-end justify-between gap-3">
