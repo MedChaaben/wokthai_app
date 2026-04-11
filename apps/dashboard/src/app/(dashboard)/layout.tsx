@@ -32,6 +32,31 @@ const platformAdminProductsSubLinks = [
   },
 ] as const;
 
+/** Sous-menu Administration (siège uniquement). « Toutes les commandes » est un lien racine dans la sidebar. */
+const platformAdminSubLinks = [
+  { href: "/admin", label: "Vue d’ensemble", match: (p: string) => p === "/admin" },
+  {
+    href: "/admin/restaurant",
+    label: "Vue resto (business)",
+    match: (p: string) => p === "/admin/restaurant" || p.startsWith("/admin/restaurant/"),
+  },
+  {
+    href: "/admin/announcements",
+    label: "Annonces",
+    match: (p: string) => p === "/admin/announcements" || p.startsWith("/admin/announcements/"),
+  },
+  {
+    href: "/admin/stores",
+    label: "Points de vente",
+    match: (p: string) => p === "/admin/stores" || p.startsWith("/admin/stores/"),
+  },
+  {
+    href: "/admin/staff",
+    label: "Équipe & accès",
+    match: (p: string) => p === "/admin/staff" || p.startsWith("/admin/staff/"),
+  },
+] as const;
+
 function formatQueryError(err: unknown): string {
   if (err instanceof Error) return err.message;
   if (err != null && typeof err === "object") {
@@ -188,6 +213,27 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   const navLinks = isPlatformAdmin ? (
     <nav className="mt-4 flex flex-col gap-3" aria-label="Navigation principale">
+      <Link
+        href="/admin/orders"
+        onClick={() => setMobileNavOpen(false)}
+        aria-label={
+          pendingOrdersCount > 0
+            ? `Toutes les commandes, ${pendingOrdersCount} commande${pendingOrdersCount > 1 ? "s" : ""} en attente`
+            : undefined
+        }
+        className={`flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium ${
+          pathname === "/admin/orders" || pathname.startsWith("/admin/orders/")
+            ? "bg-wt-bordeaux-muted text-wt-bordeaux dark:bg-wt-bordeaux/25 dark:text-wt-white"
+            : "text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800"
+        }`}
+      >
+        <span className="min-w-0 flex-1">Toutes les commandes</span>
+        {pendingOrdersCount > 0 ? (
+          <span className="inline-flex min-h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-wt-bordeaux px-1.5 text-[10px] font-bold leading-none text-white tabular-nums">
+            {pendingOrdersCount > 99 ? "99+" : pendingOrdersCount}
+          </span>
+        ) : null}
+      </Link>
       <div>
         <p className="px-3 text-[10px] font-semibold uppercase tracking-wide text-stone-500 dark:text-zinc-500">
           Produits
@@ -218,27 +264,33 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </ul>
       </div>
       <div>
-        <Link
-          href="/admin"
-          onClick={() => setMobileNavOpen(false)}
-          aria-label={
-            pendingOrdersCount > 0
-              ? `Administration, ${pendingOrdersCount} commande${pendingOrdersCount > 1 ? "s" : ""} en attente`
-              : undefined
-          }
-          className={`flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium ${
-            pathname === "/admin" || pathname.startsWith("/admin/")
-              ? "bg-wt-bordeaux-muted text-wt-bordeaux dark:bg-wt-bordeaux/25 dark:text-wt-white"
-              : "text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800"
-          }`}
+        <p className="px-3 text-[10px] font-semibold uppercase tracking-wide text-stone-500 dark:text-zinc-500">
+          Administration
+        </p>
+        <ul
+          className="mt-1.5 flex flex-col gap-0.5 border-l border-stone-200/90 pl-2 ml-3 dark:border-zinc-700"
+          role="list"
         >
-          <span className="min-w-0 flex-1">Administration</span>
-          {pendingOrdersCount > 0 ? (
-            <span className="inline-flex min-h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-wt-bordeaux px-1.5 text-[10px] font-bold leading-none text-white tabular-nums">
-              {pendingOrdersCount > 99 ? "99+" : pendingOrdersCount}
-            </span>
-          ) : null}
-        </Link>
+          {platformAdminSubLinks.map(({ href, label, match }) => {
+            const active = match(pathname);
+            return (
+              <li key={href}>
+                <Link
+                  href={href}
+                  onClick={() => setMobileNavOpen(false)}
+                  className={`block rounded-lg px-3 py-1.5 text-sm font-medium ${
+                    active
+                      ? "bg-wt-bordeaux-muted text-wt-bordeaux dark:bg-wt-bordeaux/25 dark:text-wt-white"
+                      : "text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800"
+                  }`}
+                  aria-current={active ? "page" : undefined}
+                >
+                  {label}
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
       </div>
     </nav>
   ) : (
