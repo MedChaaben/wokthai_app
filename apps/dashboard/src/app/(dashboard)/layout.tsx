@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import {
   useOrders,
   useStaffProfile,
@@ -13,6 +13,10 @@ import {
   useAdminOrdersRealtime,
 } from "@wokthai/shared";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import {
+  PlatformAdminCommandesNav,
+  PlatformAdminCommandesNavFallback,
+} from "@/components/PlatformAdminCommandesNav";
 
 const storeStaffNav = [
   { href: "/orders", label: "Commandes" },
@@ -213,27 +217,19 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   const navLinks = isPlatformAdmin ? (
     <nav className="mt-4 flex flex-col gap-3" aria-label="Navigation principale">
-      <Link
-        href="/admin/orders"
-        onClick={() => setMobileNavOpen(false)}
-        aria-label={
-          pendingOrdersCount > 0
-            ? `Toutes les commandes, ${pendingOrdersCount} commande${pendingOrdersCount > 1 ? "s" : ""} en attente`
-            : undefined
+      <Suspense
+        fallback={
+          <PlatformAdminCommandesNavFallback
+            pendingOrdersCount={pendingOrdersCount}
+            onNavigate={() => setMobileNavOpen(false)}
+          />
         }
-        className={`flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium ${
-          pathname === "/admin/orders" || pathname.startsWith("/admin/orders/")
-            ? "bg-wt-bordeaux-muted text-wt-bordeaux dark:bg-wt-bordeaux/25 dark:text-wt-white"
-            : "text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800"
-        }`}
       >
-        <span className="min-w-0 flex-1">Toutes les commandes</span>
-        {pendingOrdersCount > 0 ? (
-          <span className="inline-flex min-h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-wt-bordeaux px-1.5 text-[10px] font-bold leading-none text-white tabular-nums">
-            {pendingOrdersCount > 99 ? "99+" : pendingOrdersCount}
-          </span>
-        ) : null}
-      </Link>
+        <PlatformAdminCommandesNav
+          pendingOrdersCount={pendingOrdersCount}
+          onNavigate={() => setMobileNavOpen(false)}
+        />
+      </Suspense>
       <div>
         <p className="px-3 text-[10px] font-semibold uppercase tracking-wide text-stone-500 dark:text-zinc-500">
           Produits

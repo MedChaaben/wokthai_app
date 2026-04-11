@@ -182,7 +182,7 @@ function sumFilteredTotal(rows: OrderListRow[]): number {
   return s;
 }
 
-function OrdersSkeleton() {
+export function OrdersCommandCenterSkeleton() {
   return (
     <div className="animate-pulse space-y-8">
       <div className="h-36 rounded-3xl bg-zinc-200/80 dark:bg-zinc-800/80" />
@@ -280,7 +280,7 @@ export function OrdersCommandCenter(props: OrdersCommandCenterProps) {
 
   const adminLoading = props.variant === "admin" && props.storesQuery.isLoading;
   if (ordersQuery.isLoading || adminLoading) {
-    return <OrdersSkeleton />;
+    return <OrdersCommandCenterSkeleton />;
   }
 
   if (ordersQuery.error) {

@@ -1,7 +1,8 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useCallback } from "react";
 import {
   useOrders,
   useStaffProfile,
@@ -9,11 +10,14 @@ import {
   fetchAllStores,
   useSupabase,
 } from "@wokthai/shared";
-import { OrdersCommandCenter } from "@/components/OrdersCommandCenter";
+import { OrdersCommandCenter, OrdersCommandCenterSkeleton } from "@/components/OrdersCommandCenter";
 
-export default function AdminOrdersPage() {
+function AdminOrdersPageInner() {
   const staff = useStaffProfile();
   const supabase = useSupabase();
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
   const isAdmin = staff.data?.role === "platform_admin";
 
   const storesQuery = useQuery({
@@ -22,8 +26,19 @@ export default function AdminOrdersPage() {
     enabled: Boolean(isAdmin),
   });
 
-  const [storeFilter, setStoreFilter] = useState<string>("");
+  const storeFilter = (searchParams.get("store") ?? "").trim();
   const storeIdForQuery = storeFilter || null;
+
+  const onStoreFilterChange = useCallback(
+    (id: string) => {
+      const params = new URLSearchParams(searchParams.toString());
+      if (id) params.set("store", id);
+      else params.delete("store");
+      const q = params.toString();
+      router.replace(q ? `${pathname}?${q}` : pathname, { scroll: false });
+    },
+    [router, pathname, searchParams]
+  );
 
   const orders = useOrders({
     mode: "admin",
@@ -41,7 +56,15 @@ export default function AdminOrdersPage() {
       ordersQuery={orders}
       storesQuery={storesQuery}
       storeFilter={storeFilter}
-      onStoreFilterChange={setStoreFilter}
+      onStoreFilterChange={onStoreFilterChange}
     />
+  );
+}
+
+export default function AdminOrdersPage() {
+  return (
+    <Suspense fallback={<OrdersCommandCenterSkeleton />}>
+      <AdminOrdersPageInner />
+    </Suspense>
   );
 }
