@@ -15,6 +15,7 @@ import {
   type StoreOpeningHourSlotInput,
   type StoreRow,
 } from "@wokthai/shared";
+import { useNotifications } from "@/components/Notifications";
 
 const DAYS = [1, 2, 3, 4, 5, 6, 7] as const;
 const DAY_LONG: Record<number, string> = {
@@ -92,6 +93,7 @@ function AdminStoreHoursForm({
   onSaved: () => void;
 }) {
   const supabase = useSupabase();
+  const notifications = useNotifications();
   const [draftByDay, setDraftByDay] = useState(() => rowsToDraftByDay(initialRows));
 
   const addSlot = useCallback((day: number) => {
@@ -141,7 +143,11 @@ function AdminStoreHoursForm({
       await replaceStoreOpeningHoursForStoreAsAdmin(supabase, storeId, buildPayload(draftByDay));
     },
     onSuccess: () => {
+      notifications.success("Horaires du restaurant enregistrés");
       onSaved();
+    },
+    onError: (error) => {
+      notifications.error(error instanceof Error ? error.message : "Erreur lors de l’enregistrement des horaires.");
     },
   });
 
@@ -212,6 +218,7 @@ export default function AdminStoresPage() {
   const supabase = useSupabase();
   const qc = useQueryClient();
   const staff = useStaffProfile();
+  const notifications = useNotifications();
   const isAdmin = staff.data?.role === "platform_admin";
 
   const storesQuery = useQuery({
@@ -259,15 +266,19 @@ export default function AdminStoresPage() {
       if (zErr) throw zErr;
       return store;
     },
-    onSuccess: () => {
+    onSuccess: (store) => {
       void qc.invalidateQueries({ queryKey: ["admin", "stores"] });
       void qc.invalidateQueries({ queryKey: ["stores"] });
+      notifications.success(`Restaurant ${store.name} créé`);
       setNewName("");
       setNewAddress("");
       setNewCity("Tunis");
       setNewLat("36.8065");
       setNewLng("10.1815");
       setNewPrep("30");
+    },
+    onError: (error) => {
+      notifications.error(error instanceof Error ? error.message : "Erreur lors de la création du restaurant.");
     },
   });
 
@@ -314,7 +325,11 @@ export default function AdminStoresPage() {
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ["admin", "stores"] });
       void qc.invalidateQueries({ queryKey: ["stores"] });
+      notifications.success(`Restaurant ${editName.trim() || "sélectionné"} mis à jour`);
       setEditRow(null);
+    },
+    onError: (error) => {
+      notifications.error(error instanceof Error ? error.message : "Erreur lors de la mise à jour du restaurant.");
     },
   });
 

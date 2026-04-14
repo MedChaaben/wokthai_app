@@ -37,6 +37,7 @@ import type { CSSProperties } from "react";
 import { ConfirmModal } from "../../../components/ConfirmModal";
 import { Modal } from "../../../components/Modal";
 import { ProductOptionsEditor } from "../../../components/ProductOptionsEditor";
+import { useNotifications } from "@/components/Notifications";
 
 function IconGrip() {
   return (
@@ -53,6 +54,7 @@ const CATEGORY_PILLS_STICKY =
 export default function ProductsPage() {
   const supabase = useSupabase();
   const qc = useQueryClient();
+  const notifications = useNotifications();
   const staff = useStaffProfile();
   const isPlatformAdmin = staff.data?.role === "platform_admin";
   /** Seul le siège modifie le catalogue ; le magasin consulte les plats et gère les commandes ailleurs. */
@@ -93,7 +95,7 @@ export default function ProductsPage() {
         position: parseInt(productPosition, 10) || 0,
       });
     },
-    onSuccess: () => {
+    onSuccess: (createdProduct) => {
       setName("");
       setDescription("");
       setPrice("");
@@ -101,19 +103,35 @@ export default function ProductsPage() {
       setShowCreateForm(false);
       if (fileRef.current) fileRef.current.value = "";
       void qc.invalidateQueries({ queryKey: ["products"] });
+      notifications.success(`Produit ${createdProduct.name} créé`);
+    },
+    onError: (error) => {
+      notifications.error(error instanceof Error ? error.message : "Erreur lors de la création du produit.");
     },
   });
 
   const deleteMut = useMutation({
     mutationFn: (id: string) => deleteProduct(supabase, id),
-    onSuccess: () => void qc.invalidateQueries({ queryKey: ["products"] }),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ["products"] });
+      notifications.success("Produit supprimé");
+    },
+    onError: (error) => {
+      notifications.error(error instanceof Error ? error.message : "Erreur lors de la suppression du produit.");
+    },
   });
 
   const reorderProductsMut = useMutation({
     mutationFn: async (orderedIds: string[]) => {
       await Promise.all(orderedIds.map((id, index) => updateProduct(supabase, id, { position: index })));
     },
-    onSuccess: () => void qc.invalidateQueries({ queryKey: ["products"] }),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ["products"] });
+      notifications.success("Ordre des produits enregistré");
+    },
+    onError: (error) => {
+      notifications.error(error instanceof Error ? error.message : "Erreur lors de l’enregistrement de l’ordre.");
+    },
   });
 
   const [activeDragProductId, setActiveDragProductId] = useState<string | null>(null);
@@ -610,6 +628,7 @@ function ProductListRow({
 }) {
   const supabase = useSupabase();
   const qc = useQueryClient();
+  const notifications = useNotifications();
   const fileRef = useRef<HTMLInputElement>(null);
 
   const [isEditing, setIsEditing] = useState(false);
@@ -693,6 +712,10 @@ function ProductListRow({
       setImagePreview(null);
       setIsEditing(false);
       void qc.invalidateQueries({ queryKey: ["products"] });
+      notifications.success("Produit mis à jour");
+    },
+    onError: (error) => {
+      notifications.error(error instanceof Error ? error.message : "Erreur à l’enregistrement du produit.");
     },
   });
 

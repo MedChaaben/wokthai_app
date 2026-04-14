@@ -13,6 +13,7 @@ import {
   type StoreOpeningHourRow,
   type StoreOpeningHourSlotInput,
 } from "@wokthai/shared";
+import { useNotifications } from "@/components/Notifications";
 
 const DAY_LONG: Record<number, string> = {
   1: "Lundi",
@@ -89,6 +90,7 @@ export default function StoreSettingsPage() {
   const supabase = useSupabase();
   const qc = useQueryClient();
   const staff = useStaffProfile();
+  const notifications = useNotifications();
   const storeId = staff.data?.store_id;
 
   const storeQuery = useQuery({
@@ -121,8 +123,12 @@ export default function StoreSettingsPage() {
   const toggleMut = useMutation({
     mutationFn: (deliveryEnabled: boolean) =>
       updateStoreDeliveryEnabled(supabase, storeId!, deliveryEnabled),
-    onSuccess: () => {
+    onSuccess: (_, deliveryEnabled) => {
       void qc.invalidateQueries({ queryKey: ["store", storeId, "delivery_enabled"] });
+      notifications.success(deliveryEnabled ? "Livraison activée" : "Livraison désactivée");
+    },
+    onError: (error) => {
+      notifications.error(error instanceof Error ? error.message : "Erreur lors de l’enregistrement.");
     },
   });
 
@@ -131,6 +137,10 @@ export default function StoreSettingsPage() {
       updateStore(supabase, storeId!, patch),
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ["store", storeId, "delivery_enabled"] });
+      notifications.success("Durées enregistrées");
+    },
+    onError: (error) => {
+      notifications.error(error instanceof Error ? error.message : "Erreur lors de l’enregistrement.");
     },
   });
 
@@ -149,6 +159,10 @@ export default function StoreSettingsPage() {
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ["store", storeId, "opening_hours"] });
       void qc.invalidateQueries({ queryKey: ["stores", "active"] });
+      notifications.success("Horaires enregistrés");
+    },
+    onError: (error) => {
+      notifications.error(error instanceof Error ? error.message : "Erreur lors de l’enregistrement des horaires.");
     },
   });
 
@@ -176,11 +190,11 @@ export default function StoreSettingsPage() {
   const onSaveHours = useCallback(() => {
     const err = validateSlots(draftByDay);
     if (err) {
-      window.alert(err);
+      notifications.error(err, 5200);
       return;
     }
     saveHoursMut.mutate(buildPayload(draftByDay));
-  }, [draftByDay, saveHoursMut]);
+  }, [draftByDay, notifications, saveHoursMut]);
 
   const hoursDirty = useMemo(() => {
     if (!hoursQuery.data) return false;
@@ -317,11 +331,11 @@ export default function StoreSettingsPage() {
                 const prep = parseInt(prepDraft, 10);
                 const load = parseInt(loadDraft, 10);
                 if (Number.isNaN(prep) || prep < 5 || prep > 120) {
-                  window.alert("Préparation : nombre entre 5 et 120 minutes.");
+                  notifications.error("Préparation : nombre entre 5 et 120 minutes.", 5200);
                   return;
                 }
                 if (Number.isNaN(load) || load < 0 || load > 60) {
-                  window.alert("Charge : nombre entre 0 et 60 minutes.");
+                  notifications.error("Charge : nombre entre 0 et 60 minutes.", 5200);
                   return;
                 }
                 saveKitchenMut.mutate({

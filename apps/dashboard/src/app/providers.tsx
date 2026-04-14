@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { SupabaseProvider } from "@wokthai/shared";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import { NotificationsProvider } from "@/components/Notifications";
 import { createDashboardSupabaseClient } from "@/lib/supabase/browser";
 
 export function Providers({ children }: { children: React.ReactNode }) {
@@ -34,9 +35,11 @@ export function Providers({ children }: { children: React.ReactNode }) {
 
   return (
     <ThemeProvider>
-      <QueryClientProvider client={queryClient}>
-        <SupabaseProvider client={supabase}>{children}</SupabaseProvider>
-      </QueryClientProvider>
+      <NotificationsProvider>
+        <QueryClientProvider client={queryClient}>
+          <SupabaseProvider client={supabase}>{children}</SupabaseProvider>
+        </QueryClientProvider>
+      </NotificationsProvider>
     </ThemeProvider>
   );
 }

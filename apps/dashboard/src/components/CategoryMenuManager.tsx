@@ -32,6 +32,7 @@ import {
 import type { CategoryRow } from "@wokthai/shared";
 import { ConfirmModal } from "./ConfirmModal";
 import { Modal } from "./Modal";
+import { useNotifications } from "@/components/Notifications";
 
 function IconGrip() {
   return (
@@ -83,6 +84,7 @@ type CategoryMenuManagerProps = {
 export function CategoryMenuManager({ className = "" }: CategoryMenuManagerProps) {
   const supabase = useSupabase();
   const qc = useQueryClient();
+  const notifications = useNotifications();
   const categories = useCategories();
   const products = useProducts({ onlyAvailable: false });
   const [showCreateForm, setShowCreateForm] = useState(false);
@@ -111,6 +113,10 @@ export function CategoryMenuManager({ className = "" }: CategoryMenuManagerProps
       setName("");
       setShowCreateForm(false);
       void qc.invalidateQueries({ queryKey: ["categories"] });
+      notifications.success("Catégorie créée");
+    },
+    onError: (error) => {
+      notifications.error(error instanceof Error ? error.message : "Erreur lors de la création de la catégorie.");
     },
   });
 
@@ -120,12 +126,24 @@ export function CategoryMenuManager({ className = "" }: CategoryMenuManagerProps
         orderedIds.map((id, index) => updateCategory(supabase, id, { position: index }))
       );
     },
-    onSuccess: () => void qc.invalidateQueries({ queryKey: ["categories"] }),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ["categories"] });
+      notifications.success("Ordre des catégories enregistré");
+    },
+    onError: (error) => {
+      notifications.error(error instanceof Error ? error.message : "Erreur lors de l’enregistrement de l’ordre.");
+    },
   });
 
   const deleteMut = useMutation({
     mutationFn: (id: string) => deleteCategory(supabase, id),
-    onSuccess: () => void qc.invalidateQueries({ queryKey: ["categories"] }),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ["categories"] });
+      notifications.success("Catégorie supprimée");
+    },
+    onError: (error) => {
+      notifications.error(error instanceof Error ? error.message : "Erreur lors de la suppression de la catégorie.");
+    },
   });
 
   const sensors = useSensors(
@@ -448,6 +466,7 @@ function SortableCategoryRow({
 function CategoryRowEditor({ category, productCount }: { category: CategoryRow; productCount: number }) {
   const supabase = useSupabase();
   const qc = useQueryClient();
+  const notifications = useNotifications();
   const [name, setName] = useState(category.name);
   const [showSaved, setShowSaved] = useState(false);
 
@@ -463,6 +482,10 @@ function CategoryRowEditor({ category, productCount }: { category: CategoryRow; 
       void qc.invalidateQueries({ queryKey: ["categories"] });
       setShowSaved(true);
       window.setTimeout(() => setShowSaved(false), 2200);
+      notifications.success("Catégorie enregistrée");
+    },
+    onError: (error) => {
+      notifications.error(error instanceof Error ? error.message : "Erreur d’enregistrement");
     },
   });
 
