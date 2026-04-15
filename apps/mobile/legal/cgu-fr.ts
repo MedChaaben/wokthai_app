@@ -11,7 +11,7 @@ export const CGU_SECTIONS: CguSection[] = [
   {
     title: '1. Objet et acceptation',
     paragraphs: [
-      'Les présentes Conditions générales d’utilisation (« CGU ») régissent l’accès et l’utilisation de l’application mobile Wok Thai (l’« Application »), proposée dans le cadre de la commande de plats auprès du restaurant Wok Thai (Marsa et Ennasr, Tunisie). L’éditeur de l’Application est la société SOCIETE RAYMAR, SARL (identifiant unique 1599773V) — voir les mentions légales dans l’Application.',
+      'Les présentes Conditions générales d’utilisation (« CGU ») régissent l’accès et l’utilisation de l’application mobile Wokthai (l’« Application »), proposée dans le cadre de la commande de plats auprès du restaurant Wokthai (Marsa et Ennasr, Tunisie). L’éditeur de l’Application est la société SOCIETE RAYMAR, SARL (identifiant unique 1599773V) — voir les mentions légales dans l’Application.',
       'En créant un compte, en passant une commande ou en utilisant l’Application, vous reconnaissez avoir pris connaissance des présentes CGU et les accepter sans réserve. Si vous n’acceptez pas ces conditions, veuillez ne pas utiliser l’Application.',
     ],
   },
@@ -79,7 +79,7 @@ export const CGU_SECTIONS: CguSection[] = [
   {
     title: '11. Contact',
     paragraphs: [
-      'Pour toute question relative aux présentes CGU ou à l’Application, vous pouvez contacter le restaurant Wok Thai (coordonnées disponibles sur le site, en établissement ou sur les supports de communication du restaurant).',
+      'Pour toute question relative aux présentes CGU ou à l’Application, vous pouvez contacter le restaurant Wokthai (coordonnées disponibles sur le site, en établissement ou sur les supports de communication du restaurant).',
     ],
   },
 ];

@@ -11,7 +11,7 @@ export default function CguScreen() {
     >
       <Text style={styles.updated}>Dernière mise à jour : {CGU_LAST_UPDATED}</Text>
       <Text style={styles.intro}>
-        Les conditions ci-dessous encadrent l’utilisation de l’application Wok Thai. Vous pouvez les consulter à tout
+        Les conditions ci-dessous encadrent l’utilisation de l’application Wokthai. Vous pouvez les consulter à tout
         moment depuis le menu Compte ou l’écran de connexion.
       </Text>
       {CGU_SECTIONS.map((section) => (

@@ -11,7 +11,7 @@ export default function PrivacyScreen() {
     >
       <Text style={styles.updated}>Dernière mise à jour : {PRIVACY_LAST_UPDATED}</Text>
       <Text style={styles.intro}>
-        Cette politique décrit comment Wok Thai traite les données personnelles lorsque vous utilisez l’application.
+        Cette politique décrit comment Wokthai traite les données personnelles lorsque vous utilisez l’application.
         Elle complète les conditions générales d’utilisation. Vous pouvez la consulter à tout moment depuis le menu
         Compte ou l’écran de connexion.
       </Text>

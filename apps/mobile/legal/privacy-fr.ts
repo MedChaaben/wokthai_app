@@ -11,7 +11,7 @@ export const PRIVACY_SECTIONS: PrivacySection[] = [
   {
     title: '1. Responsable du traitement',
     paragraphs: [
-      'Le responsable du traitement des données personnelles collectées via l’application mobile Wok Thai est la société SOCIETE RAYMAR, SARL, immatriculée sous l’identifiant unique 1599773V, dont le siège social est situé au 50, rue Taieb Mhiri, 2078 La Marsa, Tunisie, exploitant l’enseigne Wok Thai (établissements Marsa et Ennasr).',
+      'Le responsable du traitement des données personnelles collectées via l’application mobile Wokthai est la société SOCIETE RAYMAR, SARL, immatriculée sous l’identifiant unique 1599773V, dont le siège social est situé au 50, rue Taieb Mhiri, 2078 La Marsa, Tunisie, exploitant l’enseigne Wokthai (établissements Marsa et Ennasr).',
       'Pour toute question relative à cette politique ou à vos données, vous pouvez contacter le restaurant aux coordonnées communiquées sur vos supports habituels (site, réseaux sociaux, téléphone en magasin) ou l’éditeur à l’adresse du siège social (voir également les mentions légales dans l’application).',
     ],
   },
@@ -41,7 +41,7 @@ export const PRIVACY_SECTIONS: PrivacySection[] = [
   {
     title: '5. Prestataires et hébergement',
     paragraphs: [
-      'Nous faisons appel à des prestataires techniques pour héberger les données et fournir l’authentification et la base de données (par exemple Supabase et l’infrastructure associée). Ces acteurs traitent des données uniquement sur nos instructions et dans le cadre contractuel prévu.',
+      'Nous faisons appel à Supabase (https://supabase.com/) et OVH pour héberger les données et fournir l’authentification et la base de données. Ces acteurs traitent des données uniquement sur nos instructions et dans le cadre contractuel prévu.',
       'Les données peuvent être stockées ou transiter via des serveurs situés dans l’Union européenne ou dans d’autres pays offrant un niveau de protection reconnu ou des garanties appropriées, selon la configuration du prestataire. Les informations détaillées figurent dans la documentation du prestataire concerné.',
     ],
   },

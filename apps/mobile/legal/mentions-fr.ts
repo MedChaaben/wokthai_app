@@ -11,9 +11,11 @@ export const MENTIONS_SECTIONS: MentionsSection[] = [
   {
     title: '1. Éditeur de l’application',
     paragraphs: [
-      'L’application mobile « Wok Thai » est éditée par la société SOCIETE RAYMAR, Société à responsabilité limitée (SARL), immatriculée sous l’identifiant unique 1599773V (registre national des entreprises — état actif au moment de la rédaction de ce document).',
+      'L’application mobile « Wokthai » est éditée par la société SOCIETE RAYMAR, Société à responsabilité limitée (SARL), immatriculée sous l’identifiant unique 1599773V (registre national des entreprises — état actif au moment de la rédaction de ce document).',
       'Siège social : 50, rue Taieb Mhiri, 2078 La Marsa, Tunisie.',
-      'L’enseigne commerciale « Wok Thai » et les établissements (notamment Marsa et Ennasr) relèvent de l’activité de cette société.',
+      'L’enseigne commerciale « Wokthai » et les établissements (notamment Marsa et Ennasr) relèvent de l’activité de cette société.',
+      'La conception, le développement et la maintenance applicative de l’application sont assurés par la société BuildMyBrand SARL, immatriculée au RNE sous le numéro 1926571L.',
+      'Coordonnées de BuildMyBrand SARL : Bureau A37 Résidence Tunis Carthage, 2080 Ariana, Tunisie — Email : hello@buildmybrand.art - site web: https://buildmybrand.art',
     ],
   },
   {
@@ -25,7 +27,7 @@ export const MENTIONS_SECTIONS: MentionsSection[] = [
   {
     title: '3. Hébergement et infrastructure',
     paragraphs: [
-      'Les données et l’authentification sont notamment hébergées via des prestataires techniques (par exemple Supabase et l’infrastructure cloud associée). Les conditions et localisations des traitements sont détaillées dans la politique de confidentialité de l’application.',
+      'Les données et l’authentification sont notamment hébergées via Supabase (https://supabase.com/). Les conditions et localisations des traitements sont détaillées dans la politique de confidentialité de l’application.',
     ],
   },
   {
@@ -43,7 +45,7 @@ export const MENTIONS_SECTIONS: MentionsSection[] = [
   {
     title: '6. Contact',
     paragraphs: [
-      'Pour toute question relative aux présentes mentions légales, vous pouvez contacter SOCIETE RAYMAR à l’adresse du siège social indiquée ci-dessus ou via les coordonnées communiquées sur les supports du restaurant Wok Thai (téléphone, réseaux sociaux, site internet le cas échéant).',
+      'Pour toute question relative aux présentes mentions légales, vous pouvez contacter SOCIETE RAYMAR à l’adresse du siège social indiquée ci-dessus ou via les coordonnées communiquées sur les supports du restaurant Wokthai (téléphone, réseaux sociaux, site internet le cas échéant).',
     ],
   },
 ];

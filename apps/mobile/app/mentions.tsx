@@ -11,7 +11,7 @@ export default function MentionsScreen() {
     >
       <Text style={styles.updated}>Dernière mise à jour : {MENTIONS_LAST_UPDATED}</Text>
       <Text style={styles.intro}>
-        Les informations ci-dessous identifient l’éditeur de l’application Wok Thai et complètent les conditions
+        Les informations ci-dessous identifient l’éditeur de l’application Wokthai et complètent les conditions
         générales d’utilisation et la politique de confidentialité.
       </Text>
       {MENTIONS_SECTIONS.map((section) => (

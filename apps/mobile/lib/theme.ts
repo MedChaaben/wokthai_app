@@ -1,5 +1,5 @@
 /**
- * Thème Wok Thai : fond noir, accents bordeaux, texte blanc.
+ * Thème Wokthai : fond noir, accents bordeaux, texte blanc.
  */
 export const wt = {
   bg: '#0a0a0a',
