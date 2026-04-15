@@ -8,7 +8,7 @@ import {
   Modal,
   useWindowDimensions,
 } from 'react-native';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useProducts, useUpsellConfig, useSupabase, insertAnalyticsEvent } from '@wokthai/shared';
@@ -17,6 +17,17 @@ import { WtButton } from '../../components/WtButton';
 import { WtCard } from '../../components/WtCard';
 import { useCart } from '../../contexts/CartContext';
 import { wt } from '../../lib/theme';
+
+type UpsellModalCandidate = {
+  id: string;
+  campaign_id: string;
+  product: {
+    id: string;
+    name: string;
+    price: number | string;
+    image_url: string | null;
+  };
+};
 
 export default function CartTabScreen() {
   const router = useRouter();
@@ -27,7 +38,10 @@ export default function CartTabScreen() {
   const products = useProducts({ onlyAvailable: false });
   const upsellConfig = useUpsellConfig();
   const [upsellOpen, setUpsellOpen] = useState(false);
+  const [upsellModalCandidates, setUpsellModalCandidates] = useState<UpsellModalCandidate[]>([]);
   const [lastUpsellCartKey, setLastUpsellCartKey] = useState<string | null>(null);
+  const [justAddedUpsellProductIds, setJustAddedUpsellProductIds] = useState<Record<string, true>>({});
+  const justAddedTimersRef = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
 
   const cartFingerprint = useMemo(
     () =>
@@ -37,6 +51,13 @@ export default function CartTabScreen() {
         .join('|'),
     [lines]
   );
+  const cartQtyByProductId = useMemo(() => {
+    const qtyById = new Map<string, number>();
+    for (const line of lines) {
+      qtyById.set(line.productId, (qtyById.get(line.productId) ?? 0) + line.quantity);
+    }
+    return qtyById;
+  }, [lines]);
 
   const upsellCandidates = useMemo(() => {
     const categoriesByCampaignId = upsellConfig.data?.categoriesByCampaignId;
@@ -69,13 +90,31 @@ export default function CartTabScreen() {
     return out;
   }, [upsellConfig.data, products.data, lines]);
 
+  useEffect(() => {
+    if (upsellOpen) return;
+    setUpsellModalCandidates([]);
+    setJustAddedUpsellProductIds({});
+  }, [upsellOpen]);
+
+  useEffect(
+    () => () => {
+      for (const timer of Object.values(justAddedTimersRef.current)) {
+        clearTimeout(timer);
+      }
+    },
+    []
+  );
+
   const upsellCampaignNameById = useMemo(() => {
     const m = new Map<string, string>();
     for (const c of upsellConfig.data?.campaigns ?? []) m.set(c.id, c.name);
     return m;
   }, [upsellConfig.data?.campaigns]);
 
-  const upsellNames = useMemo(() => upsellCandidates.map((s) => s.product.name), [upsellCandidates]);
+  const upsellNames = useMemo(
+    () => upsellModalCandidates.map((s) => s.product.name),
+    [upsellModalCandidates]
+  );
   const upsellIntro = useMemo(() => {
     if (upsellNames.length === 0) return '';
     if (upsellNames.length === 1) {
@@ -88,32 +127,47 @@ export default function CartTabScreen() {
   }, [upsellNames]);
 
   useEffect(() => {
-    if (upsellOpen && upsellCandidates.length === 0) {
+    if (upsellOpen && upsellModalCandidates.length === 0) {
       setUpsellOpen(false);
     }
-  }, [upsellOpen, upsellCandidates.length]);
+  }, [upsellOpen, upsellModalCandidates.length]);
 
   useEffect(() => {
-    if (!upsellOpen || upsellCandidates.length === 0) return;
+    if (!upsellOpen || upsellModalCandidates.length === 0) return;
     void (async () => {
       const device_id = await getAnalyticsDeviceId();
       await insertAnalyticsEvent(supabase, {
         event_name: 'upsell_view',
         metadata: {
-          candidate_count: upsellCandidates.length,
+          candidate_count: upsellModalCandidates.length,
           ...(device_id ? { device_id } : {}),
         },
       });
     })();
-  }, [supabase, upsellOpen, upsellCandidates.length]);
+  }, [supabase, upsellOpen, upsellModalCandidates.length]);
 
   function goCheckout() {
     if (upsellCandidates.length > 0 && lastUpsellCartKey !== cartFingerprint) {
       setLastUpsellCartKey(cartFingerprint);
+      setUpsellModalCandidates(upsellCandidates);
       setUpsellOpen(true);
       return;
     }
     router.push('/checkout');
+  }
+
+  function markUpsellAdded(productId: string) {
+    const previousTimer = justAddedTimersRef.current[productId];
+    if (previousTimer) clearTimeout(previousTimer);
+    setJustAddedUpsellProductIds((prev) => ({ ...prev, [productId]: true }));
+    justAddedTimersRef.current[productId] = setTimeout(() => {
+      setJustAddedUpsellProductIds((prev) => {
+        const next = { ...prev };
+        delete next[productId];
+        return next;
+      });
+      delete justAddedTimersRef.current[productId];
+    }, 1200);
   }
 
   const articleCount = lines.reduce((s, l) => s + l.quantity, 0);
@@ -226,9 +280,9 @@ export default function CartTabScreen() {
             <ScrollView
               style={{ maxHeight: Math.min(windowHeight * 0.45, 420), marginTop: 10 }}
               contentContainerStyle={{ gap: 10, paddingBottom: 4 }}
-              showsVerticalScrollIndicator={upsellCandidates.length > 3}
+              showsVerticalScrollIndicator={upsellModalCandidates.length > 3}
             >
-              {upsellCandidates.map((s) => (
+              {upsellModalCandidates.map((s) => (
                 <View key={s.id} style={styles.upsellItem}>
                   {s.product.image_url ? (
                     <Image source={{ uri: s.product.image_url }} style={styles.upsellThumb} resizeMode="cover" />
@@ -240,6 +294,11 @@ export default function CartTabScreen() {
                   <View style={{ flex: 1 }}>
                     <Text style={styles.upsellName}>{s.product.name}</Text>
                     <Text style={styles.upsellPrice}>{Number(s.product.price).toFixed(2)} TND</Text>
+                    {(cartQtyByProductId.get(s.product.id) ?? 0) > 0 ? (
+                      <Text style={styles.upsellInCart}>
+                        Dans le panier : {cartQtyByProductId.get(s.product.id) ?? 0}
+                      </Text>
+                    ) : null}
                   </View>
                   <Pressable
                     onPress={() => {
@@ -258,6 +317,7 @@ export default function CartTabScreen() {
                         image_url: s.product.image_url,
                         fromUpsell: true,
                       });
+                      markUpsellAdded(s.product.id);
                       void (async () => {
                         const device_id = await getAnalyticsDeviceId();
                         await insertAnalyticsEvent(supabase, {
@@ -271,9 +331,19 @@ export default function CartTabScreen() {
                         });
                       })();
                     }}
-                    style={styles.upsellAddBtn}
+                    style={[
+                      styles.upsellAddBtn,
+                      justAddedUpsellProductIds[s.product.id] ? styles.upsellAddBtnAdded : null,
+                    ]}
                   >
-                    <Text style={styles.upsellAddBtnText}>+ Ajouter</Text>
+                    <Text
+                      style={[
+                        styles.upsellAddBtnText,
+                        justAddedUpsellProductIds[s.product.id] ? styles.upsellAddBtnTextAdded : null,
+                      ]}
+                    >
+                      {justAddedUpsellProductIds[s.product.id] ? 'Ajoute ✓' : '+ Ajouter'}
+                    </Text>
                   </Pressable>
                 </View>
               ))}
@@ -470,6 +540,7 @@ const styles = StyleSheet.create({
   upsellThumbPlaceholderText: { fontSize: 10, color: wt.textMuted, fontWeight: '600' },
   upsellName: { fontSize: 15, fontWeight: '700', color: wt.text },
   upsellPrice: { marginTop: 2, fontSize: 13, color: wt.textMuted },
+  upsellInCart: { marginTop: 4, fontSize: 12, color: wt.accentLight, fontWeight: '700' },
   upsellAddBtn: {
     backgroundColor: wt.accentMuted,
     borderWidth: 1,
@@ -478,7 +549,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 8,
   },
+  upsellAddBtnAdded: {
+    backgroundColor: wt.accent,
+    borderColor: wt.accent,
+  },
   upsellAddBtnText: { color: wt.accentLight, fontWeight: '700', fontSize: 13 },
+  upsellAddBtnTextAdded: { color: wt.bg },
   upsellContinueBtn: {
     borderWidth: 1,
     borderColor: wt.borderStrong,
